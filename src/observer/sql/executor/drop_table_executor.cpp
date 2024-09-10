@@ -9,7 +9,7 @@ MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
 //
-// Created by Wangyunlai on 2023/6/13.
+// Created on 2024/9/10.
 //
 
 #include "sql/executor/drop_table_executor.h"

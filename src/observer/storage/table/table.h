@@ -57,8 +57,6 @@ public:
   /**
    * 删除一个表
    * @param path 元数据保存的文件(完整路径)
-   * @param name 表名
-   * @param base_dir 表数据存放的路径
    */
   RC drop(const char *path);    
 

@@ -143,10 +143,10 @@ RC Table::drop(const char *path)
     return rc;
   }
   data_buffer_pool_ = nullptr;
-  // 删除数据文件
+  // 删除data数据文件
   ::remove(data_file.c_str());
 
-  //删除文件
+  //删除table文件
   ::remove(path);
   LOG_INFO("Successfully drop table %s:%s", base_dir_, name());
 
