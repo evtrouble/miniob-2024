@@ -127,6 +127,32 @@ RC Table::create(Db *db, int32_t table_id, const char *path, const char *name, c
   return rc;
 }
 
+RC Table::drop(const char *path)
+{
+  LOG_INFO("Begin to drop table %s:%s", base_dir_, name());
+  RC rc = RC::SUCCESS;
+
+  record_handler_->close();
+  delete record_handler_;
+  record_handler_ = nullptr;
+
+  string data_file = data_buffer_pool_->filename();
+  rc = data_buffer_pool_->close_file();
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to drop disk buffer pool of data file. file name=%s", name());
+    return rc;
+  }
+  data_buffer_pool_ = nullptr;
+  // 删除数据文件
+  ::remove(data_file.c_str());
+
+  //删除文件
+  ::remove(path);
+  LOG_INFO("Successfully drop table %s:%s", base_dir_, name());
+
+  return rc;
+}
+
 RC Table::open(Db *db, const char *meta_file, const char *base_dir)
 {
   // 加载元数据文件
