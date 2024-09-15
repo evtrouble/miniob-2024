@@ -22,6 +22,14 @@ UpdateStmt::UpdateStmt(Table *table, const std::string *attribute_names, const V
     : table_(table), attribute_names_(attribute_names), values_(values), pair_amount_(pair_amount), filter_stmt_(filter_stmt)
 {}
 
+UpdateStmt::~UpdateStmt()
+{
+  if (nullptr != filter_stmt_) {
+    delete filter_stmt_;
+    filter_stmt_ = nullptr;
+  }
+}
+
 RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt)
 {
   const char *table_name = update.relation_name.c_str();
