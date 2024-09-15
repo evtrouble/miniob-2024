@@ -148,6 +148,24 @@ RC MvccTrx::insert_record(Table *table, Record &record)
   return rc;
 }
 
+RC MvccTrx::update_record(Table *table, Record &record)
+{
+  Field begin_field;
+  Field end_field;
+  trx_fields(table, begin_field, end_field);
+
+  table->update_record(record);
+
+  RC rc = RC::SUCCESS;
+
+  rc = log_handler_.insert_record(trx_id_, table, record.rid());
+  ASSERT(rc == RC::SUCCESS, "failed to append update record log. trx id=%d, table id=%d, rid=%s, record len=%d, rc=%s",
+         trx_id_, table->table_id(), record.rid().to_string().c_str(), record.len(), strrc(rc));
+
+  operations_.push_back(Operation(Operation::Type::UPDATE, table, record.rid()));
+  return rc;
+}
+
 RC MvccTrx::delete_record(Table *table, Record &record)
 {
   Field begin_field;

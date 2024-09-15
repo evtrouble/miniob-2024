@@ -26,6 +26,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/project_logical_operator.h"
 #include "sql/operator/table_get_logical_operator.h"
 #include "sql/operator/group_by_logical_operator.h"
+#include "sql/operator/update_logical_operator.h"
 
 #include "sql/stmt/calc_stmt.h"
 #include "sql/stmt/delete_stmt.h"
@@ -33,6 +34,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/stmt/filter_stmt.h"
 #include "sql/stmt/insert_stmt.h"
 #include "sql/stmt/select_stmt.h"
+#include "sql/stmt/update_stmt.h"
 #include "sql/stmt/stmt.h"
 
 #include "sql/expr/expression_iterator.h"
@@ -60,6 +62,12 @@ RC LogicalPlanGenerator::create(Stmt *stmt, unique_ptr<LogicalOperator> &logical
       InsertStmt *insert_stmt = static_cast<InsertStmt *>(stmt);
 
       rc = create_plan(insert_stmt, logical_operator);
+    } break;
+
+    case StmtType::UPDATE: {
+      UpdateStmt *update_stmt = static_cast<UpdateStmt *>(stmt);
+
+      rc = create_plan(update_stmt, logical_operator);
     } break;
 
     case StmtType::DELETE: {
@@ -233,6 +241,41 @@ RC LogicalPlanGenerator::create_plan(InsertStmt *insert_stmt, unique_ptr<Logical
   InsertLogicalOperator *insert_operator = new InsertLogicalOperator(table, values);
   logical_operator.reset(insert_operator);
   return RC::SUCCESS;
+}
+
+RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<LogicalOperator> &logical_operator)
+{
+  Table                      *table       = update_stmt->table();
+  FilterStmt                 *filter_stmt = update_stmt->filter_stmt();
+  unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, ReadWriteMode::READ_WRITE));
+  
+  std::vector<const FieldMeta *> fields;
+  const TableMeta &table_meta = table->table_meta();
+  const std::string *attribute_names = update_stmt->attribute_names();
+  for(int id = 0; id < update_stmt->pair_amount(); id++){
+    fields.push_back(table_meta.field(attribute_names[id].c_str()));
+  }
+
+  std::vector<Value> values(update_stmt->values(), update_stmt->values() + update_stmt->pair_amount());
+
+  unique_ptr<LogicalOperator> predicate_oper;
+
+  RC rc = create_plan(filter_stmt, predicate_oper);
+  if (rc != RC::SUCCESS) {
+    return rc;
+  }
+
+  unique_ptr<LogicalOperator> update_oper(new UpdateLogicalOperator(table, fields, values));
+
+  if (predicate_oper) {
+    predicate_oper->add_child(std::move(table_get_oper));
+    update_oper->add_child(std::move(predicate_oper));
+  } else {
+    update_oper->add_child(std::move(table_get_oper));
+  }
+
+  logical_operator = std::move(update_oper);
+  return rc;
 }
 
 RC LogicalPlanGenerator::create_plan(DeleteStmt *delete_stmt, unique_ptr<LogicalOperator> &logical_operator)
