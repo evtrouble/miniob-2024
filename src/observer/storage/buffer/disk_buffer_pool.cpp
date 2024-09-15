@@ -309,6 +309,19 @@ RC DiskBufferPool::close_file()
   return RC::SUCCESS;
 }
 
+RC DiskBufferPool::remove_file()
+{
+  std::string file_name = file_name_;
+  RC rc = RC::SUCCESS;
+  rc = close_file();
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to drop disk buffer pool of data file. file name=%s", file_name.c_str());
+    return rc;
+  }
+  ::remove(file_name.c_str());
+  return rc;
+}
+
 RC DiskBufferPool::get_this_page(PageNum page_num, Frame **frame)
 {
   RC rc  = RC::SUCCESS;

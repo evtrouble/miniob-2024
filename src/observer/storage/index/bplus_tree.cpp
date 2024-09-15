@@ -975,6 +975,18 @@ RC BplusTreeHandler::close()
   return RC::SUCCESS;
 }
 
+RC BplusTreeHandler::drop()
+{
+  RC rc = RC::SUCCESS;
+  if (disk_buffer_pool_ != nullptr) {
+    // 删除data数据文件
+    rc = disk_buffer_pool_->remove_file();
+  }
+
+  disk_buffer_pool_ = nullptr;
+  return rc;
+}
+
 RC BplusTreeHandler::print_leaf(Frame *frame)
 {
   BplusTreeMiniTransaction mtr(*this);

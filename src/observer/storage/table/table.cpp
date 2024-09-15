@@ -129,32 +129,38 @@ RC Table::create(Db *db, int32_t table_id, const char *path, const char *name, c
 
 RC Table::drop(const char *path)
 {
-  LOG_INFO("Begin to drop table %s:%s", base_dir_, name());
+  LOG_INFO("Begin to drop table %s:%s", base_dir_.c_str(), name());
   RC rc = RC::SUCCESS;
+
+  // 删除索引
+  for (Index *index : indexes_) {
+    //index->drop();
+    delete index;
+  }
 
   record_handler_->close();
   delete record_handler_;
   record_handler_ = nullptr;
 
-  string data_file = data_buffer_pool_->filename();
+  // 删除data数据文件
+  // rc = data_buffer_pool_->remove_file();
+  // if (rc != RC::SUCCESS) {
+  //   //LOG_ERROR("Failed to remove %s.", data_buffer_pool_->filename());
+  //   return rc;
+  // }
+
+  std::string file_name = data_buffer_pool_->filename();
+  //RC rc = RC::SUCCESS;
   rc = data_buffer_pool_->close_file();
   if (rc != RC::SUCCESS) {
-    LOG_ERROR("Failed to drop disk buffer pool of data file. file name=%s", name());
+    LOG_ERROR("Failed to drop disk buffer pool of data file. file name=%s", file_name.c_str());
     return rc;
   }
-  data_buffer_pool_ = nullptr;
-
-  // 删除索引
-  for (Index *index : indexes_) {
-    delete index;
-  }
-
-  // 删除data数据文件
-  ::remove(data_file.c_str());
+  ::remove(file_name.c_str());
 
   // 删除table文件
   ::remove(path);
-  LOG_INFO("Successfully drop table %s:%s", base_dir_, name());
+  LOG_INFO("Successfully drop table %s:%s", base_dir_.c_str(), name());
 
   return rc;
 }
