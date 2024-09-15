@@ -203,11 +203,6 @@ public:
   RC close_file();
 
   /**
-   * 删除分页文件
-   */
-  RC remove_file();
-
-  /**
    * 根据文件ID和页号获取指定页面到缓冲区，返回页面句柄指针。
    */
   RC get_this_page(PageNum page_num, Frame **frame);
@@ -278,6 +273,8 @@ public:
 
   const char *filename() const { return file_name_.c_str(); }
 
+  BufferPoolManager &bp_manager() const { return bp_manager_; }
+
 protected:
   RC allocate_frame(PageNum page_num, Frame **buf);
 
@@ -334,6 +331,7 @@ public:
   RC create_file(const char *file_name);
   RC open_file(LogHandler &log_handler, const char *file_name, DiskBufferPool *&bp);
   RC close_file(const char *file_name);
+  RC remove_file(const char *file_name);
 
   RC flush_page(Frame &frame);
 

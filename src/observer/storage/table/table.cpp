@@ -134,29 +134,24 @@ RC Table::drop(const char *path)
 
   // 删除索引
   for (Index *index : indexes_) {
-    //index->drop();
+    index->drop();
     delete index;
   }
+
+  indexes_.clear();
 
   record_handler_->close();
   delete record_handler_;
   record_handler_ = nullptr;
 
   // 删除data数据文件
-  // rc = data_buffer_pool_->remove_file();
-  // if (rc != RC::SUCCESS) {
-  //   //LOG_ERROR("Failed to remove %s.", data_buffer_pool_->filename());
-  //   return rc;
-  // }
-
-  std::string file_name = data_buffer_pool_->filename();
-  //RC rc = RC::SUCCESS;
-  rc = data_buffer_pool_->close_file();
+  BufferPoolManager &bpm       = db_->buffer_pool_manager();
+  rc                           = bpm.remove_file(data_buffer_pool_->filename());
   if (rc != RC::SUCCESS) {
-    LOG_ERROR("Failed to drop disk buffer pool of data file. file name=%s", file_name.c_str());
+    //LOG_ERROR("Failed to remove %s.", data_buffer_pool_->filename());
     return rc;
   }
-  ::remove(file_name.c_str());
+  data_buffer_pool_ = nullptr;
 
   // 删除table文件
   ::remove(path);

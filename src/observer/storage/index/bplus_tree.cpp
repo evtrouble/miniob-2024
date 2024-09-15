@@ -980,7 +980,8 @@ RC BplusTreeHandler::drop()
   RC rc = RC::SUCCESS;
   if (disk_buffer_pool_ != nullptr) {
     // 删除data数据文件
-    rc = disk_buffer_pool_->remove_file();
+    BufferPoolManager &bpm = disk_buffer_pool_->bp_manager();
+    rc = bpm.remove_file(disk_buffer_pool_->filename());
   }
 
   disk_buffer_pool_ = nullptr;

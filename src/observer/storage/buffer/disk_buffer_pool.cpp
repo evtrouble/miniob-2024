@@ -283,6 +283,7 @@ RC DiskBufferPool::close_file()
 
   hdr_frame_->unpin();
 
+
   // TODO: 理论上是在回放时回滚未提交事务，但目前没有undo log，因此不下刷数据page，只通过redo log回放
   rc = purge_all_pages();
   if (rc != RC::SUCCESS) {
@@ -305,21 +306,8 @@ RC DiskBufferPool::close_file()
   LOG_INFO("Successfully close file %d:%s.", file_desc_, file_name_.c_str());
   file_desc_ = -1;
 
-  bp_manager_.close_file(file_name_.c_str());
+  //bp_manager_.close_file(file_name_.c_str());
   return RC::SUCCESS;
-}
-
-RC DiskBufferPool::remove_file()
-{
-  std::string file_name = file_name_;
-  RC rc = RC::SUCCESS;
-  rc = close_file();
-  if (rc != RC::SUCCESS) {
-    LOG_ERROR("Failed to drop disk buffer pool of data file. file name=%s", file_name.c_str());
-    return rc;
-  }
-  ::remove(file_name.c_str());
-  return rc;
 }
 
 RC DiskBufferPool::get_this_page(PageNum page_num, Frame **frame)
@@ -897,6 +885,20 @@ RC BufferPoolManager::close_file(const char *_file_name)
 
   delete bp;
   return RC::SUCCESS;
+}
+
+RC BufferPoolManager::remove_file(const char *file_name)
+{
+  RC rc = RC::SUCCESS;
+  std::string file_name_(file_name);
+
+  rc = close_file(file_name);
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to drop disk buffer pool of data file. file name=%s", file_name_.c_str());
+    return rc;
+  }
+  ::remove(file_name_.c_str());
+  return rc;
 }
 
 RC BufferPoolManager::flush_page(Frame &frame)
