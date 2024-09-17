@@ -155,7 +155,7 @@ RC MvccTrx::update_record(Table *table, Record &record, std::vector<const FieldM
   trx_fields(table, begin_field, end_field);
 
   RC rc = RC::SUCCESS;
-  rc = table->update_record(record, fields, values);
+  rc = table->update_record(record.rid(), fields, values);
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to update record: %s", strrc(rc));
     return rc;

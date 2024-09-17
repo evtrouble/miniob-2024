@@ -39,7 +39,8 @@ Table::~Table()
   }
 
   if (data_buffer_pool_ != nullptr) {
-    data_buffer_pool_->close_file();
+    //data_buffer_pool_->close_file();
+    db_->buffer_pool_manager().close_file(data_buffer_pool_->filename());
     data_buffer_pool_ = nullptr;
   }
 
@@ -243,19 +244,21 @@ RC Table::insert_record(Record &record)
   return rc;
 }
 
-RC Table::update_record(Record &record, std::vector<const FieldMeta *> &fields, std::vector<Value> &values)
+RC Table::update_record(const RID &rid, std::vector<const FieldMeta *> &fields, std::vector<Value> &values)
 {
-
-   // for (Index *index : indexes_) {
-  //   rc = index->delete_entry(record.data(), &record.rid());
-  //   ASSERT(RC::SUCCESS == rc, 
-  //          "failed to delete entry from index. table name=%s, index name=%s, rid=%s, rc=%s",
-  //          name(), index->index_meta().name(), record.rid().to_string().c_str(), strrc(rc));
-  // }
   RC rc = RC::SUCCESS;
+
+  Record record;
+
+  rc = get_record(rid, record);
+  if (OB_FAIL(rc)) {
+    return rc;
+  }
+
   for(std::size_t id = 0; id < fields.size(); id++) {
     const FieldMeta * &field = fields[id];
     Value &value = values[id];
+
     if (field->type() != value.attr_type()) {
       Value real_value;
       rc = Value::cast_to(value, field->type(), real_value);
@@ -269,10 +272,24 @@ RC Table::update_record(Record &record, std::vector<const FieldMeta *> &fields, 
       rc = set_value_to_record(record.data(), value, field);
     }
     if (rc != RC::SUCCESS) {
-    LOG_ERROR("Update record failed. table name=%s, rc=%s", table_meta_.name(), strrc(rc));
-    return rc;
+      LOG_ERROR("Update record failed. table name=%s, rc=%s", table_meta_.name(), strrc(rc));
+      return rc;
+    }
   }
+
+  return update_record(record);
+}
+
+RC Table::update_record(const Record &record)
+{
+  RC rc = RC::SUCCESS;
+  for (Index *index : indexes_) {
+    rc = index->update_entry(record.data(), &record.rid());
+    ASSERT(RC::SUCCESS == rc, 
+           "failed to update entry from index. table name=%s, index name=%s, rid=%s, rc=%s",
+           name(), index->index_meta().name(), record.rid().to_string().c_str(), strrc(rc));
   }
+  rc = record_handler_->update_record(record.data(), record.rid());
   return rc;
 }
 

@@ -1557,6 +1557,21 @@ RC BplusTreeHandler::insert_entry(const char *user_key, const RID *rid)
   return RC::SUCCESS;
 }
 
+RC BplusTreeHandler::update_entry(const char *user_key, const RID *rid)
+{
+  if (user_key == nullptr || rid == nullptr) {
+    LOG_WARN("Invalid arguments, key is empty or rid is empty");
+    return RC::INVALID_ARGUMENT;
+  }
+
+  RC rc = RC::SUCCESS;
+
+  rc = delete_entry(user_key, rid);
+  if(rc != RC::SUCCESS)
+    return rc;
+  return insert_entry(user_key, rid);
+}
+
 RC BplusTreeHandler::get_entry(const char *user_key, int key_len, list<RID> &rids)
 {
   BplusTreeScanner scanner(*this);
