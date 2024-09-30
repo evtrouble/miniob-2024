@@ -11,7 +11,6 @@ See the Mulan PSL v2 for more details. */
 //
 // Created by WangYunlai on 2023/06/28.
 //
-
 #include "common/value.h"
 
 #include "common/lang/comparator.h"
@@ -36,6 +35,9 @@ Value::Value(const Value &other)
   switch (this->attr_type_) {
     case AttrType::CHARS: {
       set_string_from_other(other);
+    } break;
+    case AttrType::DATES: {
+      set_date_from_other(other);
     } break;
 
     default: {
@@ -67,6 +69,9 @@ Value &Value::operator=(const Value &other)
     case AttrType::CHARS: {
       set_string_from_other(other);
     } break;
+    case AttrType::DATES: {
+      set_date_from_other(other);
+    } break;
 
     default: {
       this->value_ = other.value_;
@@ -93,7 +98,7 @@ Value &Value::operator=(Value &&other)
 void Value::reset()
 {
   switch (attr_type_) {
-    case AttrType::CHARS:
+    case AttrType::CHARS: case AttrType::DATES:
       if (own_data_ && value_.pointer_value_ != nullptr) {
         delete[] value_.pointer_value_;
         value_.pointer_value_ = nullptr;
@@ -124,6 +129,9 @@ void Value::set_data(char *data, int length)
     case AttrType::BOOLEANS: {
       value_.bool_value_ = *(int *)data != 0;
       length_            = length;
+    } break;
+    case AttrType::DATES: {
+      set_date(data, length);
     } break;
     default: {
       LOG_WARN("unknown data type: %d", attr_type_);
@@ -175,6 +183,27 @@ void Value::set_string(const char *s, int len /*= 0*/)
   }
 }
 
+void Value::set_date(const char *s, int len)
+{
+  reset();
+  attr_type_ = AttrType::DATES;
+  if (s == nullptr) {
+    value_.pointer_value_ = nullptr;
+    length_               = 0;
+  } else {
+    own_data_ = true;
+    if (len > 0) {
+      len = strnlen(s, len);
+    } else {
+      len = strlen(s);
+    }
+    value_.pointer_value_ = new char[len + 1];
+    length_               = len;
+    memcpy(value_.pointer_value_, s, len);
+    value_.pointer_value_[len] = '\0';
+  }
+}
+
 void Value::set_value(const Value &value)
 {
   switch (value.attr_type_) {
@@ -189,6 +218,9 @@ void Value::set_value(const Value &value)
     } break;
     case AttrType::BOOLEANS: {
       set_boolean(value.get_boolean());
+    } break;
+    case AttrType::DATES: {
+      set_date(value.get_string().c_str());
     } break;
     default: {
       ASSERT(false, "got an invalid value type");
@@ -206,10 +238,20 @@ void Value::set_string_from_other(const Value &other)
   }
 }
 
+void Value::set_date_from_other(const Value &other)
+{
+  ASSERT(attr_type_ == AttrType::DATES, "attr type is not DATES");
+  if (own_data_ && other.value_.pointer_value_ != nullptr && length_ != 0) {
+    this->value_.pointer_value_ = new char[this->length_ + 1];
+    memcpy(this->value_.pointer_value_, other.value_.pointer_value_, this->length_);
+    this->value_.pointer_value_[this->length_] = '\0';
+  }
+}
+
 const char *Value::data() const
 {
   switch (attr_type_) {
-    case AttrType::CHARS: {
+    case AttrType::CHARS: case AttrType::DATES: {
       return value_.pointer_value_;
     } break;
     default: {

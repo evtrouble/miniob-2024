@@ -19,6 +19,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/type/attr_type.h"
 #include "common/type/data_type.h"
 
+
 /**
  * @brief 属性的值
  * @ingroup DataType
@@ -34,6 +35,7 @@ public:
   friend class FloatType;
   friend class BooleanType;
   friend class CharType;
+  friend class DateType;
 
   Value() = default;
 
@@ -113,7 +115,9 @@ private:
   void set_int(int val);
   void set_float(float val);
   void set_string(const char *s, int len = 0);
+  void set_date(const char *s, int len = 10);
   void set_string_from_other(const Value &other);
+  void set_date_from_other(const Value &other);
 
 private:
   AttrType attr_type_ = AttrType::UNDEFINED;
