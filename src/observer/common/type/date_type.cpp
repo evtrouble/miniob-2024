@@ -16,8 +16,29 @@ See the Mulan PSL v2 for more details. */
 int DateType::compare(const Value &left, const Value &right) const
 {
   ASSERT(left.attr_type() == AttrType::DATES && right.attr_type() == AttrType::DATES, "invalid type");
-  return common::compare_string(
-      (void *)left.value_.pointer_value_, left.length_, (void *)right.value_.pointer_value_, right.length_);
+  stringstream deserialize_stream;
+  deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
+  deserialize_stream.str(left.get_string());
+  int left_year, left_month, left_day;
+  deserialize_stream >> left_year >> left_month >> left_day;
+  left_month = -left_month;
+  left_day = -left_day;
+
+  deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
+  deserialize_stream.str(right.get_string());
+  int right_year, right_month, right_day;
+  deserialize_stream >> right_year >> right_month >> right_day;
+  right_month = -right_month;
+  right_day = -right_day;
+
+  if(left_year == right_year){
+    if(left_month == right_month){
+      if(left_day == right_day)return 0;
+      return (left_day < right_day ? -1 : 1);
+    }
+    return (left_month < right_month ? -1 : 1);
+  }
+  return (left_year < right_year ? -1 : 1);
 }
 
 RC DateType::set_value_from_str(Value &val, const string &data) const

@@ -383,7 +383,7 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
 {
   size_t       copy_len = field->len();
   const size_t data_len = value.length();
-  if (field->type() == AttrType::CHARS) {
+  if (field->type() == AttrType::CHARS || field->type() == AttrType::DATES) {
     if (copy_len > data_len) {
       copy_len = data_len + 1;
     }
