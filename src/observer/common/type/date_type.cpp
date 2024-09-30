@@ -22,8 +22,6 @@ int DateType::compare(const Value &left, const Value &right) const
 
 RC DateType::set_value_from_str(Value &val, const string &data) const
 {
-  if(data.length() != 10)return RC::UNIMPLEMENTED;
-  if(data.at(4) != '-' || data.at(7) != '-')return RC::UNIMPLEMENTED;
   stringstream deserialize_stream;
   deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
   deserialize_stream.str(data);
