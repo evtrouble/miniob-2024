@@ -54,7 +54,7 @@ RC DateType::set_value_from_str(Value &val, const string &data) const
   month = -month;
   day = -day;
 
-  if (year < 1970|| year > 3000 || month < 1 || month> 12 ||
+  if (year < 1000|| year > 9999 || month < 1 || month> 12 ||
 	  day < 1 || day > 31){
 		return RC::UNIMPLEMENTED;
   }
