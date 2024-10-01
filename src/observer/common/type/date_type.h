@@ -18,8 +18,6 @@ See the Mulan PSL v2 for more details. */
  * @ingroup DataType
  */
 
-class Date;
-
 class DateType : public DataType
 {
 public:

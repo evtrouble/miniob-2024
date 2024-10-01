@@ -388,6 +388,7 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
       copy_len = data_len + 1;
     }
   }
+
   memcpy(record_data + field->offset(), value.data(), copy_len);
   return RC::SUCCESS;
 }

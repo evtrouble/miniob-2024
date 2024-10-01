@@ -30,7 +30,7 @@ Value::Value(const char *s, int len /*= 0*/) { set_string(s, len); }
 Value::Value(const Date *s, int len /*= 0*/)
 {
   if(check_date((const char*)s))
-    set_date((const char*)s, len);
+    set_date((const char*)s);
   else
     set_string((const char*)s, len); 
 }
@@ -139,7 +139,7 @@ void Value::set_data(char *data, int length)
       length_            = length;
     } break;
     case AttrType::DATES: {
-      set_date(data, length);
+      set_date(data);
     } break;
     default: {
       LOG_WARN("unknown data type: %d", attr_type_);
@@ -191,7 +191,7 @@ void Value::set_string(const char *s, int len /*= 0*/)
   }
 }
 
-void Value::set_date(const char *s, int len)
+void Value::set_date(const char *s)
 {
   reset();
   attr_type_ = AttrType::DATES;
@@ -200,15 +200,27 @@ void Value::set_date(const char *s, int len)
     length_               = 0;
   } else {
     own_data_ = true;
-    if (len > 0) {
-      len = strnlen(s, len);
-    } else {
-      len = strlen(s);
-    }
-    value_.pointer_value_ = new char[len + 1];
-    length_               = len;
-    memcpy(value_.pointer_value_, s, len);
-    value_.pointer_value_[len] = '\0';
+    
+    stringstream deserialize_stream;
+    deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
+    deserialize_stream.str(s);
+    int year, month, day;
+    deserialize_stream >> year >> month >> day;
+    month = -month;
+    day = -day;
+
+    value_.pointer_value_ = new char[11];
+    memcpy(value_.pointer_value_, s, 4);
+    char* it = value_.pointer_value_ + 4;
+    *(it++) = '-';//4
+    *(it++) = month / 10 + '0';
+    *(it++) = month % 10 + '0';
+    *(it++) = '-';
+    *(it++) = day / 10 + '0';
+    *(it++) = day % 10 + '0';
+    *(it++) = '\0';//10
+
+    length_               = 10;
   }
 }
 
