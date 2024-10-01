@@ -425,8 +425,9 @@ value:
       free($1);
     }
     |DATE_VALUE {
-      char *tmp = common::substr($1,1,strlen($1)-2);
-      $$ = new Value((Date*)tmp);
+      int len = strlen($1)-2;
+      char *tmp = common::substr($1,1,len);
+      $$ = new Value((Date*)tmp, len);
       free(tmp);
       free($1);
     }

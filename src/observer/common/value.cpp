@@ -30,7 +30,7 @@ Value::Value(const char *s, int len /*= 0*/) { set_string(s, len); }
 Value::Value(const Date *s, int len /*= 0*/)
 {
   if(check_date((const char*)s))
-    set_date((const char*)s);
+    set_date((const char*)s, len);
   else
     set_string((const char*)s, len); 
 }
@@ -191,7 +191,7 @@ void Value::set_string(const char *s, int len /*= 0*/)
   }
 }
 
-void Value::set_date(const char *s)
+void Value::set_date(const char *s, int len)
 {
   reset();
   attr_type_ = AttrType::DATES;
@@ -203,7 +203,7 @@ void Value::set_date(const char *s)
     
     stringstream deserialize_stream;
     deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
-    deserialize_stream.str(s);
+    deserialize_stream.str(std::string(s, s + len));
     int year, month, day;
     deserialize_stream >> year >> month >> day;
     month = -month;

@@ -117,7 +117,7 @@ private:
   void set_int(int val);
   void set_float(float val);
   void set_string(const char *s, int len = 0);
-  void set_date(const char *s);
+  void set_date(const char *s, int len = 10);
   void set_string_from_other(const Value &other);
   void set_date_from_other(const Value &other);
   bool check_date(const char *data);
