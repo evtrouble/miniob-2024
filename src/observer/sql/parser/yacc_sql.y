@@ -137,6 +137,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %token <floats> FLOAT
 %token <string> ID
 %token <string> SSS
+%token <string> DATE_VALUE
 
 
 //非终结符
@@ -420,6 +421,12 @@ value:
     |SSS {
       char *tmp = common::substr($1,1,strlen($1)-2);
       $$ = new Value(tmp);
+      free(tmp);
+      free($1);
+    }
+    |DATE_VALUE {
+      char *tmp = common::substr($1,1,strlen($1)-2);
+      $$ = new Value((Date*)tmp);
       free(tmp);
       free($1);
     }

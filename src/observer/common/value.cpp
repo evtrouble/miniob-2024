@@ -27,6 +27,14 @@ Value::Value(bool val) { set_boolean(val); }
 
 Value::Value(const char *s, int len /*= 0*/) { set_string(s, len); }
 
+Value::Value(const Date *s, int len /*= 0*/)
+{
+  if(check_date((const char*)s))
+    set_date((const char*)s, len);
+  else
+    set_string((const char*)s, len); 
+}
+
 Value::Value(const Value &other)
 {
   this->attr_type_ = other.attr_type_;
@@ -246,6 +254,37 @@ void Value::set_date_from_other(const Value &other)
     memcpy(this->value_.pointer_value_, other.value_.pointer_value_, this->length_);
     this->value_.pointer_value_[this->length_] = '\0';
   }
+}
+
+bool Value::check_date(const char *data)
+{
+   stringstream deserialize_stream;
+  deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
+  deserialize_stream.str(data);
+  int year, month, day;
+  deserialize_stream >> year >> month >> day;
+  if (!deserialize_stream || !deserialize_stream.eof()) {
+    return false;
+  }
+  month = -month;
+  day = -day;
+
+  if (year < 1000|| year > 9999 || month < 1 || month> 12 ||
+	  day < 1 || day > 31){
+		return false;
+  }
+
+  if(month == 2)
+  {
+    if(((year & 3) == 0 && year % 100) || year % 400 == 0){
+      return day <= 29;
+    }
+    return day <= 28;
+  }
+  if(month == 4 || month == 6 || month == 9 || month == 11){
+    return day <= 30;
+  }
+  return day <= 31;
 }
 
 const char *Value::data() const
