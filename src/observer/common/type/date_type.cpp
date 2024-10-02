@@ -29,9 +29,6 @@ RC DateType::set_value_from_str(Value &val, const string &data) const
 RC DateType::cast_to(const Value &val, AttrType type, Value &result) const
 {
   switch (type) {
-    case AttrType::CHARS: 
-      result.set_string(val.data(), val.length_);
-      return RC::SUCCESS;
     default: return RC::UNIMPLEMENTED;
   }
   return RC::SUCCESS;
@@ -39,7 +36,7 @@ RC DateType::cast_to(const Value &val, AttrType type, Value &result) const
 
 int DateType::cast_cost(AttrType type)
 {
-  if (type == AttrType::DATES || type == AttrType::CHARS) {
+  if (type == AttrType::DATES) {
     return 0;
   }
   return INT32_MAX;

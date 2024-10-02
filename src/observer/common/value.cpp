@@ -27,7 +27,7 @@ Value::Value(bool val) { set_boolean(val); }
 
 Value::Value(const char *s, int len /*= 0*/) { set_string(s, len); }
 
-Value::Value(const Date *s, int len /*= 0*/)
+Value::Value(const Date *s, int len /*= 10*/)
 {
   if(check_date((const char*)s))
     set_date((const char*)s, len);
@@ -270,7 +270,7 @@ void Value::set_date_from_other(const Value &other)
 
 bool Value::check_date(const char *data)
 {
-   stringstream deserialize_stream;
+  stringstream deserialize_stream;
   deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
   deserialize_stream.str(data);
   int year, month, day;
