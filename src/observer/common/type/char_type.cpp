@@ -29,6 +29,22 @@ RC CharType::set_value_from_str(Value &val, const string &data) const
 RC CharType::cast_to(const Value &val, AttrType type, Value &result) const
 {
   switch (type) {
+    case  AttrType::INTS: {
+      stringstream deserialize_stream;
+      deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
+      deserialize_stream.str(val.data());
+      int temp;
+      deserialize_stream >> temp;
+      result.set_int(temp);
+    }break;
+    case AttrType::FLOATS: {
+      stringstream deserialize_stream;
+      deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
+      deserialize_stream.str(val.data());
+      float temp;
+      deserialize_stream >> temp;
+      result.set_float(temp);
+    }break;
     default: return RC::UNIMPLEMENTED;
   }
   return RC::SUCCESS;
@@ -39,6 +55,8 @@ int CharType::cast_cost(AttrType type)
   if (type == AttrType::CHARS) {
     return 0;
   }
+  if (type == AttrType::INTS)return 0;
+  if (type == AttrType::FLOATS)return 0;
   return INT32_MAX;
 }
 
