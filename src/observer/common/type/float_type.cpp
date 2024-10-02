@@ -81,7 +81,7 @@ RC FloatType::cast_to(const Value &val, AttrType type, Value &result) const
 int FloatType::cast_cost(AttrType type)
 {
   if (type == AttrType::FLOATS)return 0;
-  if (type == AttrType::INTS)return 10;
+  if (type == AttrType::INTS)return 100;
   if (type == AttrType::CHARS)return 10;
   return INT32_MAX;
 }
