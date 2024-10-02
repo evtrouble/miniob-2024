@@ -30,19 +30,27 @@ RC CharType::cast_to(const Value &val, AttrType type, Value &result) const
 {
   switch (type) {
     case  AttrType::INTS: {
-      stringstream deserialize_stream;
-      deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
-      deserialize_stream.str(val.data());
-      int temp;
-      deserialize_stream >> temp;
+      const char* s = val.data();
+      int temp = 0;
+      if(s[0] >= '0' && s[0] <= '9')
+      {
+        stringstream deserialize_stream;
+        deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
+        deserialize_stream.str(s);
+        deserialize_stream >> temp;
+      }
       result.set_int(temp);
     }break;
     case AttrType::FLOATS: {
-      stringstream deserialize_stream;
-      deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
-      deserialize_stream.str(val.data());
-      float temp;
-      deserialize_stream >> temp;
+      const char* s = val.data();
+      float temp = 0;
+      if(s[0] >= '0' && s[0] <= '9')
+      {
+        stringstream deserialize_stream;
+        deserialize_stream.clear();  // 清理stream的状态，防止多次解析出现异常
+        deserialize_stream.str(s);
+        deserialize_stream >> temp;
+      }
       result.set_float(temp);
     }break;
     default: return RC::UNIMPLEMENTED;

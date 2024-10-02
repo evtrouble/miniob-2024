@@ -16,6 +16,8 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/limits.h"
 #include "common/value.h"
 
+#include <cmath>
+
 int FloatType::compare(const Value &left, const Value &right) const
 {
   ASSERT(left.attr_type() == AttrType::FLOATS, "left type is not integer");
@@ -57,6 +59,31 @@ RC FloatType::negative(const Value &val, Value &result) const
 {
   result.set_float(-val.get_float());
   return RC::SUCCESS;
+}
+
+
+RC FloatType::cast_to(const Value &val, AttrType type, Value &result) const
+{
+  switch (type) {
+    case AttrType::INTS: {
+      result.set_int(round(*(float*)val.data()));
+    }break;
+    case AttrType::CHARS: {
+      stringstream ss;
+      ss << abs(*(float*)val.data());  
+      result.set_string(ss.str().c_str());
+    }break;
+    default: return RC::UNIMPLEMENTED;
+  }
+  return RC::SUCCESS;
+}
+
+int FloatType::cast_cost(AttrType type)
+{
+  if (type == AttrType::FLOATS)return 0;
+  if (type == AttrType::INTS)return 10;
+  if (type == AttrType::CHARS)return 10;
+  return INT32_MAX;
 }
 
 RC FloatType::set_value_from_str(Value &val, const string &data) const
