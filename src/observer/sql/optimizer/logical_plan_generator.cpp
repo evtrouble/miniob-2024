@@ -177,6 +177,7 @@ RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<Logical
       auto right_to_left_cost = implicit_cast_cost(right->value_type(), left->value_type());
       auto left_to_float_cost = implicit_cast_cost(left->value_type(), AttrType::FLOATS);
       auto right_to_float_cost = implicit_cast_cost(right->value_type(), AttrType::FLOATS);
+
       if(left_to_float_cost != INT32_MAX && right_to_float_cost != INT32_MAX && 
           left_to_float_cost + right_to_float_cost < min(left_to_right_cost, right_to_left_cost)){
         if(left->value_type() != AttrType::FLOATS){
@@ -204,6 +205,7 @@ RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<Logical
               LOG_WARN("failed to get value from right child", strrc(rc));
               return rc;
             }
+            std::cout<<right_val.get_float()<<endl;
             right = make_unique<ValueExpr>(right_val);
           } else {
             right = std::move(cast_expr);
