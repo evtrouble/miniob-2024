@@ -557,7 +557,7 @@ expression:
     }
     | ID LBRACE expression_list RBRACE {
       if($3->size() != 1)$$ = create_aggregate_expression("", nullptr, sql_string, &@$);
-      else $$ = create_aggregate_expression($1, $3->at(0).get(), sql_string, &@$);
+      else $$ = create_aggregate_expression($1, $3->at(0).release(), sql_string, &@$);
       free($1);
       delete $3;
     }
