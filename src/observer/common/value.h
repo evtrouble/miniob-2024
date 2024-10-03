@@ -104,11 +104,15 @@ public:
     RC rc = RC::SUCCESS;
     //null判断
     //if(!val.is_null())
-    rc = cast_to(val, AttrType::FLOATS, float_result);
-    if(rc != RC::SUCCESS)return rc;
 
-    result.set_float(result.get_float() + float_result.get_float());
     num.set_int(num.get_int() + 1);
+    if(val.attr_type() != AttrType::FLOATS){
+      rc = cast_to(val, AttrType::FLOATS, float_result);
+      if(rc != RC::SUCCESS)return rc;
+      result.set_float(result.get_float() + float_result.get_float());
+    } else
+      result.set_float(result.get_float() + val.get_float());
+    
     return rc;
   }
 

@@ -93,7 +93,6 @@ RC AvgAggregator::accumulate(const Value &value)
 RC AvgAggregator::evaluate(Value& result)
 {
   result.set_type(AttrType::FLOATS);
-  cout<<value_.get_float()<<' '<<countnum.get_float()<<endl;;
   Value::divide(value_, countnum, result);
   return RC::SUCCESS;
 }
