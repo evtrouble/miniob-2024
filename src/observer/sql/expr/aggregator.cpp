@@ -78,34 +78,36 @@ RC MinAggregator::evaluate(Value& result)
 RC AvgAggregator::accumulate(const Value &value)
 {
   if (value_.attr_type() == AttrType::UNDEFINED) {
-    value_ = value;
-    return RC::SUCCESS;
+    value_ = Value((float)0.0);
+    //之后设置null时，该处需要修改
+    countnum = Value((int)0);
   }
   
   ASSERT(value.attr_type() == value_.attr_type(), "type mismatch. value type: %s, value_.type: %s", 
         attr_type_to_string(value.attr_type()), attr_type_to_string(value_.attr_type()));
   
-  //Value::add(value, value_, value_);
+  Value::avg(value, value_, countnum);
   return RC::SUCCESS;
 }
 
 RC AvgAggregator::evaluate(Value& result)
 {
-  result = value_;
+  result.set_type(AttrType::FLOATS);
+  cout<<value_.get_float()<<' '<<countnum.get_float()<<endl;;
+  Value::divide(value_, countnum, result);
   return RC::SUCCESS;
 }
 
 RC CountAggregator::accumulate(const Value &value)
 {
   if (value_.attr_type() == AttrType::UNDEFINED) {
-    value_ = value;
-    return RC::SUCCESS;
+    value_ = Value((int)0);
   }
   
   ASSERT(value.attr_type() == value_.attr_type(), "type mismatch. value type: %s, value_.type: %s", 
         attr_type_to_string(value.attr_type()), attr_type_to_string(value_.attr_type()));
   
-  //Value::add(value, value_, value_);
+  Value::count(value_, value);
   return RC::SUCCESS;
 }
 

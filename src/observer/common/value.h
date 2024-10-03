@@ -98,15 +98,27 @@ public:
     return DataType::type_instance(result.attr_type())->min(left, right, result);
   }
 
-  // static RC avg(const Value &left, const Value &right, Value &result)
-  // {
-  //   return DataType::type_instance(result.attr_type())->add(left, right, result);
-  // }
+  static RC avg(const Value &val, Value &result, Value& num)
+  {
+    Value float_result;
+    RC rc = RC::SUCCESS;
+    //null判断
+    //if(!val.is_null())
+    rc = cast_to(val, AttrType::FLOATS, float_result);
+    if(rc != RC::SUCCESS)return rc;
 
-  // static RC count(const Value &left, const Value &right, Value &result)
-  // {
-  //   return DataType::type_instance(result.attr_type())->add(left, right, result);
-  // }
+    result.set_float(result.get_float() + float_result.get_float());
+    num.set_int(num.get_int() + 1);
+    return rc;
+  }
+
+  static RC count(Value &result, const Value& val)
+  {
+    //null判断
+    //if(!val.is_null())
+    result.set_int(result.get_int() + 1);
+    return RC::SUCCESS;
+  }
 
   void set_type(AttrType type) { this->attr_type_ = type; }
   void set_data(char *data, int length);

@@ -52,6 +52,9 @@ public:
 
 class AvgAggregator : public Aggregator
 {
+private:
+  Value countnum;
+
 public:
   RC accumulate(const Value &value) override;
   RC evaluate(Value &result) override;
