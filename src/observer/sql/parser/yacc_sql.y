@@ -561,6 +561,10 @@ expression:
       free($1);
       delete $3;
     }
+    | ID LBRACE RBRACE {
+      $$ = create_aggregate_expression("", nullptr, sql_string, &@$);
+      free($1);
+    }
     // your code here
     ;
 
