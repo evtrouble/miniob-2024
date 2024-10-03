@@ -555,6 +555,10 @@ expression:
     | '*' {
       $$ = new StarExpr();
     }
+    | ID LBRACE expression RBRACE {
+      $$ = create_aggregate_expression($1, $3, sql_string, &@$);
+      free($1);
+    }
     // your code here
     ;
 

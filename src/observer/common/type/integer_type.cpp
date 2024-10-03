@@ -50,15 +50,31 @@ RC IntegerType::negative(const Value &val, Value &result) const
   return RC::SUCCESS;
 }
 
+RC IntegerType::max(const Value &left, const Value &right, Value &result) const
+{
+  if(compare(left, right) > 0){
+    if(&left != &result)result.set_int(left.get_int());
+  }else if(&right != &result)result.set_int(right.get_int());
+  return RC::SUCCESS;
+}
+
+RC IntegerType::min(const Value &left, const Value &right, Value &result) const
+{
+  if(compare(left, right) < 0){
+    if(&left != &result)result.set_int(left.get_int());
+  }else if(&right != &result)result.set_int(right.get_int());
+  return RC::SUCCESS;
+}
+
 RC IntegerType::cast_to(const Value &val, AttrType type, Value &result) const
 {
   switch (type) {
     case AttrType::FLOATS: {
-      result.set_float(*(int*)val.data());
+      result.set_float(val.get_int());
     }break;
     case AttrType::CHARS: {
       stringstream ss;
-      ss << abs(*(int*)val.data());  
+      ss << abs(val.get_int());  
       result.set_string(ss.str().c_str());
     }break;
     default: return RC::UNIMPLEMENTED;

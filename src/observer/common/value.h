@@ -88,6 +88,26 @@ public:
     return DataType::type_instance(value.attr_type())->cast_to(value, to_type, result);
   }
 
+  static RC max(const Value &left, const Value &right, Value &result)
+  {
+    return DataType::type_instance(result.attr_type())->max(left, right, result);
+  }
+
+  static RC min(const Value &left, const Value &right, Value &result)
+  {
+    return DataType::type_instance(result.attr_type())->min(left, right, result);
+  }
+
+  // static RC avg(const Value &left, const Value &right, Value &result)
+  // {
+  //   return DataType::type_instance(result.attr_type())->add(left, right, result);
+  // }
+
+  // static RC count(const Value &left, const Value &right, Value &result)
+  // {
+  //   return DataType::type_instance(result.attr_type())->add(left, right, result);
+  // }
+
   void set_type(AttrType type) { this->attr_type_ = type; }
   void set_data(char *data, int length);
   void set_data(const char *data, int length) { this->set_data(const_cast<char *>(data), length); }

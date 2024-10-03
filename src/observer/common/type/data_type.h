@@ -78,6 +78,16 @@ public:
   virtual RC cast_to(const Value &val, AttrType type, Value &result) const { return RC::UNSUPPORTED; }
 
   /**
+   * @brief 计算 max(left, right)，并将结果保存到 result 中
+   */
+  virtual RC max(const Value &left, const Value &right, Value &result) const { return RC::UNSUPPORTED; }
+
+  /**
+   * @brief 计算 min(left, right)，并将结果保存到 result 中
+   */
+  virtual RC min(const Value &left, const Value &right, Value &result) const { return RC::UNSUPPORTED; }
+
+  /**
    * @brief 将 val 转换为 string，并将结果保存到 result 中
    */
   virtual RC to_string(const Value &val, string &result) const { return RC::UNSUPPORTED; }
