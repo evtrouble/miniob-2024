@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 
 #include <memory>
 #include <string>
+#include <regex>
 
 #include "common/value.h"
 #include "storage/field/field.h"
@@ -306,6 +307,8 @@ public:
    */
   RC compare_value(const Value &left, const Value &right, bool &value) const;
 
+  RC like_value(const Tuple &tuple, Value &value) const;
+
   template <typename T>
   RC compare_column(const Column &left, const Column &right, std::vector<uint8_t> &result) const;
 
@@ -313,6 +316,7 @@ private:
   CompOp                      comp_;
   std::unique_ptr<Expression> left_;
   std::unique_ptr<Expression> right_;
+  std::regex                  pattern;
 };
 
 /**

@@ -89,6 +89,7 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, std::unordered_m
     return RC::INVALID_ARGUMENT;
   }
 
+  AttrType left, right;
   filter_unit = new FilterUnit;
 
   if (condition.left_is_attr) {
@@ -102,10 +103,12 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, std::unordered_m
     FilterObj filter_obj;
     filter_obj.init_attr(Field(table, field));
     filter_unit->set_left(filter_obj);
+    left = field->type();
   } else {
     FilterObj filter_obj;
     filter_obj.init_value(condition.left_value);
     filter_unit->set_left(filter_obj);
+    left = condition.left_value.attr_type();
   }
 
   if (condition.right_is_attr) {
@@ -119,14 +122,18 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, std::unordered_m
     FilterObj filter_obj;
     filter_obj.init_attr(Field(table, field));
     filter_unit->set_right(filter_obj);
+    right = field->type();
   } else {
     FilterObj filter_obj;
     filter_obj.init_value(condition.right_value);
     filter_unit->set_right(filter_obj);
+    right = condition.right_value.attr_type();
   }
 
   filter_unit->set_comp(comp);
 
   // 检查两个类型是否能够比较
+  if(comp == CompOp::LIKE_OP && (left != AttrType::CHARS || right != AttrType::CHARS))
+    return RC::INVALID_ARGUMENT;
   return rc;
 }
