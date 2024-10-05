@@ -61,22 +61,6 @@ RC FloatType::negative(const Value &val, Value &result) const
   return RC::SUCCESS;
 }
 
-RC FloatType::max(const Value &left, const Value &right, Value &result) const
-{
-  if(compare(left, right) > 0){
-    if(&left != &result)result.set_float(left.get_float());
-  }else if(&right != &result)result.set_float(right.get_float());
-  return RC::SUCCESS;
-}
-
-RC FloatType::min(const Value &left, const Value &right, Value &result) const
-{
-  if(compare(left, right) < 0){
-    if(&left != &result)result.set_float(left.get_float());
-  }else if(&right != &result)result.set_float(right.get_float());
-  return RC::SUCCESS;
-}
-
 RC FloatType::cast_to(const Value &val, AttrType type, Value &result) const
 {
   switch (type) {

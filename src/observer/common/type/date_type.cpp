@@ -26,23 +26,6 @@ RC DateType::set_value_from_str(Value &val, const string &data) const
   return RC::SUCCESS;
 }
 
-
-RC DateType::max(const Value &left, const Value &right, Value &result) const
-{
-  if(compare(left, right) > 0){
-    if(&left != &result)result.set_date(left.data());
-  }else if(&right != &result)result.set_date(right.data());
-  return RC::SUCCESS;
-}
-
-RC DateType::min(const Value &left, const Value &right, Value &result) const
-{
-  if(compare(left, right) < 0){
-    result.set_date(left.data());
-  }else if(&right != &result)result.set_date(right.data());
-  return RC::SUCCESS;
-}
-
 RC DateType::cast_to(const Value &val, AttrType type, Value &result) const
 {
   switch (type) {

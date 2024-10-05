@@ -307,7 +307,7 @@ public:
    */
   RC compare_value(const Value &left, const Value &right, bool &value) const;
 
-  RC like_value(const Tuple &tuple, Value &value) const;
+  RC like_value(const Tuple &tuple, bool &result) const;
 
   template <typename T>
   RC compare_column(const Column &left, const Column &right, std::vector<uint8_t> &result) const;

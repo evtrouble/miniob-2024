@@ -115,7 +115,7 @@ RC CastExpr::try_get_value(Value &result) const
 ComparisonExpr::ComparisonExpr(CompOp comp, unique_ptr<Expression> left, unique_ptr<Expression> right)
     : comp_(comp), left_(std::move(left)), right_(std::move(right))
 {
-  if(comp_ == CompOp::LIKE_OP){
+  if(comp_ == CompOp::LIKE_OP || comp_ == CompOp::NOT_LIKE ){
     Value pattern_val;
     ((ValueExpr*)right_.get())->get_value(pattern_val);
     string right_string = pattern_val.get_string();
@@ -169,7 +169,7 @@ RC ComparisonExpr::compare_value(const Value &left, const Value &right, bool &re
   return rc;
 }
 
-RC ComparisonExpr::like_value(const Tuple &tuple, Value &value) const
+RC ComparisonExpr::like_value(const Tuple &tuple, bool &result) const
 {
   Value left_value;
 
@@ -179,7 +179,7 @@ RC ComparisonExpr::like_value(const Tuple &tuple, Value &value) const
     return rc;
   }
 
-  value.set_boolean(regex_match(left_value.get_string(), pattern));
+  result = regex_match(left_value.get_string(), pattern);
   return RC::SUCCESS;
 }
 
@@ -206,29 +206,43 @@ RC ComparisonExpr::try_get_value(Value &cell) const
 
 RC ComparisonExpr::get_value(const Tuple &tuple, Value &value) const
 {
-  if(comp_ == CompOp::LIKE_OP){
-    return like_value(tuple, value);
-  }
-
-  Value left_value;
-  Value right_value;
-
-  RC rc = left_->get_value(tuple, left_value);
-  if (rc != RC::SUCCESS) {
-    LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
-    return rc;
-  }
-  rc = right_->get_value(tuple, right_value);
-  if (rc != RC::SUCCESS) {
-    LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
-    return rc;
-  }
-
+  RC rc = RC::SUCCESS;
   bool bool_value = false;
+  
+  switch (comp_)
+  {
+    case CompOp::LIKE_OP:{
+      rc = like_value(tuple, bool_value);
+      if (rc == RC::SUCCESS) {
+        value.set_boolean(bool_value);
+      }
+    }break;
+    case CompOp::NOT_LIKE:{
+      rc = like_value(tuple, bool_value);
+      if (rc == RC::SUCCESS) {
+        value.set_boolean(!bool_value);
+      }
+    }break;
+    default:{
+      Value left_value;
+      Value right_value;
 
-  rc = compare_value(left_value, right_value, bool_value);
-  if (rc == RC::SUCCESS) {
-    value.set_boolean(bool_value);
+      rc = left_->get_value(tuple, left_value);
+      if (rc != RC::SUCCESS) {
+        LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
+        return rc;
+      }
+      rc = right_->get_value(tuple, right_value);
+      if (rc != RC::SUCCESS) {
+        LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
+        return rc;
+      }
+
+      rc = compare_value(left_value, right_value, bool_value);
+      if (rc == RC::SUCCESS) {
+      value.set_boolean(bool_value);
+      }
+    }break;
   }
   return rc;
 }

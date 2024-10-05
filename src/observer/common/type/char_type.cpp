@@ -26,22 +26,6 @@ RC CharType::set_value_from_str(Value &val, const string &data) const
   return RC::SUCCESS;
 }
 
-RC CharType::max(const Value &left, const Value &right, Value &result) const
-{
-  if(compare(left, right) > 0){
-    result.set_string_from_other(left);
-  }else if(&right != &result)result.set_string_from_other(right);
-  return RC::SUCCESS;
-}
-
-RC CharType::min(const Value &left, const Value &right, Value &result) const
-{
-  if(compare(left, right) < 0){
-    result.set_string_from_other(left);
-  }else if(&right != &result)result.set_string_from_other(right);
-  return RC::SUCCESS;
-}
-
 RC CharType::cast_to(const Value &val, AttrType type, Value &result) const
 {
   switch (type) {

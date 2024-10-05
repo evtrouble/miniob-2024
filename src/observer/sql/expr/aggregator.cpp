@@ -45,7 +45,7 @@ RC MaxAggregator::accumulate(const Value &value)
   ASSERT(value.attr_type() == value_.attr_type(), "type mismatch. value type: %s, value_.type: %s", 
         attr_type_to_string(value.attr_type()), attr_type_to_string(value_.attr_type()));
   
-  Value::max(value, value_, value_);
+  Value::max(std::move(value), std::move(value_), value_);
   return RC::SUCCESS;
 }
 
@@ -65,7 +65,7 @@ RC MinAggregator::accumulate(const Value &value)
   ASSERT(value.attr_type() == value_.attr_type(), "type mismatch. value type: %s, value_.type: %s", 
         attr_type_to_string(value.attr_type()), attr_type_to_string(value_.attr_type()));
   
-  Value::min(value, value_, value_);
+  Value::min(std::move(value), std::move(value_), value_);
   return RC::SUCCESS;
 }
 

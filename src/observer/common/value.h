@@ -88,14 +88,20 @@ public:
     return DataType::type_instance(value.attr_type())->cast_to(value, to_type, result);
   }
 
-  static RC max(const Value &left, const Value &right, Value &result)
+  static RC max(const Value &&left, const Value &&right, Value &result)
   {
-    return DataType::type_instance(result.attr_type())->max(left, right, result);
+    int cmp = left.compare(right);
+    if(cmp > 0)result = left;
+    else if(cmp < 0)result = right;
+    return RC::SUCCESS;
   }
 
-  static RC min(const Value &left, const Value &right, Value &result)
+  static RC min(const Value &&left, const Value &&right, Value &result)
   {
-    return DataType::type_instance(result.attr_type())->min(left, right, result);
+    int cmp = left.compare(right);
+    if(cmp < 0)result = std::move(left);
+    else if(cmp > 0)result = std::move(right);
+    return RC::SUCCESS;
   }
 
   static RC avg(const Value &val, Value &result, Value& num)
