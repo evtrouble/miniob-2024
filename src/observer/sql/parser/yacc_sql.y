@@ -97,6 +97,8 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         VALUES
         FROM
         WHERE
+        INNER
+        JOIN
         AND
         SET
         ON
@@ -606,6 +608,16 @@ rel_list:
       $$->insert($$->begin(), $1);
       free($1);
     }
+    | relation INNER JOIN rel_list {
+      if ($4 != nullptr) {
+        $$ = $4;
+      } else {
+        $$ = new std::vector<std::string>;
+      }
+
+      $$->insert($$->begin(), $1);
+      free($1);
+    }
     ;
 
 where:
@@ -614,6 +626,9 @@ where:
       $$ = nullptr;
     }
     | WHERE condition_list {
+      $$ = $2;
+    }
+    | ON condition_list {
       $$ = $2;
     }
     ;

@@ -115,9 +115,10 @@ RC CastExpr::try_get_value(Value &result) const
 ComparisonExpr::ComparisonExpr(CompOp comp, unique_ptr<Expression> left, unique_ptr<Expression> right)
     : comp_(comp), left_(std::move(left)), right_(std::move(right))
 {
-  if(comp_ == CompOp::LIKE_OP || comp_ == CompOp::NOT_LIKE ){
+  if((comp_ == CompOp::LIKE_OP || comp_ == CompOp::NOT_LIKE)
+     && right_->type() == ExprType::VALUE){
     Value pattern_val;
-    ((ValueExpr*)right_.get())->get_value(pattern_val);
+    static_cast<ValueExpr*>(right_.get())->get_value(pattern_val);
     string right_string = pattern_val.get_string();
     string pattern_string;
     for(auto& c : right_string){
@@ -171,6 +172,8 @@ RC ComparisonExpr::compare_value(const Value &left, const Value &right, bool &re
 
 RC ComparisonExpr::like_value(const Tuple &tuple, bool &result) const
 {
+  if(right_->type() != ExprType::VALUE)return RC::INVALID_ARGUMENT;
+
   Value left_value;
 
   RC rc = left_->get_value(tuple, left_value);

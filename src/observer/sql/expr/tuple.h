@@ -178,7 +178,11 @@ public:
     table_ = table;
     // fix:join当中会多次调用右表的open,open当中会调用set_scheme，从而导致tuple当中会存储
     // 很多无意义的field和value，因此需要先clear掉
-    this->speces_.clear();
+    for (FieldExpr *spec : speces_) {
+      delete spec;
+    }
+    speces_.clear();
+    
     this->speces_.reserve(fields->size());
     for (const FieldMeta &field : *fields) {
       speces_.push_back(new FieldExpr(table, &field));
