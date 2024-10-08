@@ -140,8 +140,9 @@ union YYSTYPE
   int                                        number;
   float                                      floats;
   Joins *                                    join_list;
+  Key_values *                               key_values;
 
-#line 145 "yacc_sql.hpp"
+#line 146 "yacc_sql.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

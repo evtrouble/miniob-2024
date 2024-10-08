@@ -138,6 +138,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
   int                                        number;
   float                                      floats;
   Joins *                                    join_list;
+  Key_values *                               key_values;
 }
 
 %token <number> NUMBER
@@ -162,6 +163,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <attr_info>           attr_def
 %type <values_list>         values_list
 %type <value_list>          value_list
+%type <key_values>          key_values
 %type <condition_list>      where
 %type <condition_list>      on
 %type <join_list>           join_list
@@ -494,19 +496,50 @@ delete_stmt:    /*  delete 语句的语法解析树*/
     }
     ;
 update_stmt:      /*  update 语句的语法解析树*/
-    UPDATE ID SET ID EQ value where
+    UPDATE ID SET key_values where
     {
       $$ = new ParsedSqlNode(SCF_UPDATE);
       $$->update.relation_name = $2;
-      $$->update.attribute_name = $4;
-      $$->update.value = *$6;
-      if ($7 != nullptr) {
-        $$->update.conditions.swap(*$7);
-        delete $7;
-      }
+      $$->update.attribute_names.swap(*($4->relation_list));
+      $$->update.values.swap(*($4->value_list));
+      
+      delete $4->relation_list;
+      delete $4->value_list;
+      delete $4;
       free($2);
-      free($4);
-      delete $6;
+
+      if($5 != nullptr){
+        $$->update.conditions.swap(*$5);
+        delete $5;
+      }
+    }
+    ;
+
+key_values:
+    ID EQ value
+    {
+      $$ = new Key_values;
+      $$->relation_list = new vector<string>;
+      $$->value_list = new vector<Value>;
+      $$->relation_list->emplace_back($1);
+      free($1);
+      $$->value_list->emplace_back(*$3);
+      delete $3;
+    }
+    | ID EQ value COMMA key_values
+    {
+      if ($5 != nullptr) {
+        $$ = $5;
+      } else {
+        $$ = new Key_values;
+        $$->relation_list = new vector<string>;
+        $$->value_list = new vector<Value>;
+      }
+      
+      $$->relation_list->emplace_back($1);
+      free($1);
+      $$->value_list->emplace_back(*$3);
+      delete $3;
     }
     ;
 select_stmt:        /*  select 语句的语法解析树*/
@@ -635,9 +668,9 @@ relation:
     ;
 rel_list:
     relation {
-      $$ = new struct Joins;
-      $$->relation_list = new std::vector<std::string>();
-      $$->condition_list = new std::vector<ConditionSqlNode>();
+      $$ = new Joins;
+      $$->relation_list = new std::vector<std::string>;
+      $$->condition_list = new std::vector<ConditionSqlNode>;
       $$->relation_list->push_back($1);
       free($1);
     }
@@ -645,18 +678,18 @@ rel_list:
       if ($3 != nullptr) {
         $$ = $3;
       } else {
-        $$ = new struct Joins;
-        $$->relation_list = new std::vector<std::string>();
-        $$->condition_list = new std::vector<ConditionSqlNode>();
+        $$ = new Joins;
+        $$->relation_list = new std::vector<std::string>;
+        $$->condition_list = new std::vector<ConditionSqlNode>;
       }
 
       $$->relation_list->insert($$->relation_list->begin(), $1);
       free($1);
     }
     | relation join_list {
-      $$ = new struct Joins;
-      $$->relation_list = new std::vector<std::string>();
-      $$->condition_list = new std::vector<ConditionSqlNode>();
+      $$ = new Joins;
+      $$->relation_list = new std::vector<std::string>;
+      $$->condition_list = new std::vector<ConditionSqlNode>;
 
       $$->relation_list->emplace_back($1);
       $$->relation_list->insert($$->relation_list->end(), 
@@ -673,9 +706,9 @@ rel_list:
       if ($4 != nullptr) {
         $$ = $4;
       } else {
-        $$ = new struct Joins;
-        $$->relation_list = new std::vector<std::string>();
-        $$->condition_list = new std::vector<ConditionSqlNode>();
+        $$ = new Joins;
+        $$->relation_list = new std::vector<std::string>;
+        $$->condition_list = new std::vector<ConditionSqlNode>;
       }
 
       $$->relation_list->insert($$->relation_list->begin(), 
@@ -694,9 +727,9 @@ rel_list:
 join_list:
     INNER JOIN relation on
     {
-      $$ = new struct Joins;
-      $$->relation_list = new std::vector<std::string>();
-      $$->condition_list = new std::vector<ConditionSqlNode>();
+      $$ = new Joins;
+      $$->relation_list = new std::vector<std::string>;
+      $$->condition_list = new std::vector<ConditionSqlNode>;
       $$->relation_list->emplace_back($3);
 
       free($3);
@@ -711,12 +744,12 @@ join_list:
       if ($5 != nullptr) {
         $$ = $5;
       } else {
-        $$ = new struct Joins;
-        $$->relation_list = new std::vector<std::string>();
-        $$->condition_list = new std::vector<ConditionSqlNode>();
+        $$ = new Joins;
+        $$->relation_list = new std::vector<std::string>;
+        $$->condition_list = new std::vector<ConditionSqlNode>;
       }
 
-      $$->relation_list->insert($$->relation_list->begin(), $3);
+      $$->relation_list->emplace($$->relation_list->begin(), $3);
       free($3);
 
       if($4 != nullptr){

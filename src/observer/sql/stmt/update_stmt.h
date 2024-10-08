@@ -20,6 +20,7 @@ See the Mulan PSL v2 for more details. */
 class Table;
 class Db;
 class FilterStmt;
+class FieldMeta;
 
 /**
  * @brief 更新语句
@@ -29,7 +30,7 @@ class UpdateStmt : public Stmt
 {
 public:
   UpdateStmt() = default;
-  UpdateStmt(Table *table, const std::string *attribute_names, const Value *values, int value_amount, FilterStmt *filter_stmt);
+  UpdateStmt(Table *table, const std::vector<const FieldMeta *>&& fields, const vector<Value>&& values, FilterStmt *filter_stmt);
   ~UpdateStmt() override;
 
   StmtType type() const override { return StmtType::UPDATE; }
@@ -39,15 +40,13 @@ public:
 
 public:
   Table *table() const { return table_; }
-  const std::string *attribute_names() const { return attribute_names_; }
-  const Value *values() const { return values_; }
-  int    pair_amount() const { return pair_amount_; }
+  const std::vector<const FieldMeta *>& fields() const { return fields_; }
+  const vector<Value>& values() const { return values_; }
   FilterStmt *filter_stmt() const { return filter_stmt_; }
 
 private:
   Table *table_        = nullptr;
-  const std::string *attribute_names_  = nullptr;
-  const Value *values_  = nullptr;
-  int    pair_amount_ = 0;
+  const std::vector<const FieldMeta *> fields_;
+  const vector<Value> values_;
   FilterStmt *filter_stmt_ = nullptr;
 };

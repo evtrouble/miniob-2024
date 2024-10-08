@@ -18,8 +18,8 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 
-UpdateStmt::UpdateStmt(Table *table, const std::string *attribute_names, const Value *values, int pair_amount, FilterStmt *filter_stmt)
-    : table_(table), attribute_names_(attribute_names), values_(values), pair_amount_(pair_amount), filter_stmt_(filter_stmt)
+UpdateStmt::UpdateStmt(Table *table, const std::vector<const FieldMeta *>&& fields, const vector<Value>&& values, FilterStmt *filter_stmt)
+    : table_(table), fields_(move(fields)), values_(move(values)), filter_stmt_(filter_stmt)
 {}
 
 UpdateStmt::~UpdateStmt()
@@ -33,10 +33,10 @@ UpdateStmt::~UpdateStmt()
 RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt)
 {
   const char *table_name = update.relation_name.c_str();
-  if (nullptr == db || nullptr == table_name || update.attribute_name.empty() || 
-  update.value.attr_type() == AttrType::UNDEFINED) {
-    LOG_WARN("invalid argument. db=%p, table_name=%p, value_num=value_num=%d",
-        db, table_name, static_cast<int>(!update.attribute_name.empty()));
+  if (nullptr == db || nullptr == table_name || update.attribute_names.empty() || 
+    update.attribute_names.size() != update.values.size()) {
+    LOG_WARN("invalid argument. db=%p, table_name=%p, attribute_num=%d value_num=%d",
+        db, table_name, update.attribute_names.size(), update.values.size());
     return RC::INVALID_ARGUMENT;
   }
 
@@ -48,14 +48,20 @@ RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt)
   }
 
   // check the fields existence
-  const int        value_num  = static_cast<int>(!update.attribute_name.empty());
   const TableMeta &table_meta = table->table_meta();
-  const FieldMeta *field  = table_meta.field(update.attribute_name.c_str());
-  if (nullptr == field) {
-    LOG_WARN("schema mismatch. field %s doesn't exist.", update.attribute_name.c_str());
-    return RC::SCHEMA_FIELD_MISSING;
-  }
+  const FieldMeta *field;
 
+  std::vector<const FieldMeta *> fields;
+
+  for(auto& attribute_name : update.attribute_names){
+    field = table_meta.field(attribute_name.c_str());
+    if (nullptr == field) {
+      LOG_WARN("schema mismatch. field %s doesn't exist.", attribute_name.c_str());
+      return RC::SCHEMA_FIELD_MISSING;
+    }
+    fields.emplace_back(field);
+  }
+    
   std::unordered_map<std::string, Table *> table_map;
   table_map.insert(std::pair<std::string, Table *>(std::string(table_name), table));
 
@@ -68,6 +74,6 @@ RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt)
   }
 
   // everything alright
-  stmt = new UpdateStmt(table, &update.attribute_name, &update.value, value_num, filter_stmt);
+  stmt = new UpdateStmt(table, move(fields), move(update.values), filter_stmt);
   return RC::SUCCESS;
 }

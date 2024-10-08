@@ -273,9 +273,9 @@ int LogicalPlanGenerator::implicit_cast_cost(AttrType from, AttrType to)
 RC LogicalPlanGenerator::create_plan(InsertStmt *insert_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
   Table        *table = insert_stmt->table();
-  vector<vector<Value>> values(insert_stmt->values_set(), insert_stmt->values_set() + insert_stmt->value_amount());
 
-  InsertLogicalOperator *insert_operator = new InsertLogicalOperator(table, values);
+  auto values_set = insert_stmt->values_set();
+  InsertLogicalOperator *insert_operator = new InsertLogicalOperator(table, move(values_set));
   logical_operator.reset(insert_operator);
   return RC::SUCCESS;
 }
@@ -285,15 +285,6 @@ RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<Logical
   Table                      *table       = update_stmt->table();
   FilterStmt                 *filter_stmt = update_stmt->filter_stmt();
   unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, ReadWriteMode::READ_WRITE));
-  
-  std::vector<const FieldMeta *> fields;
-  const TableMeta &table_meta = table->table_meta();
-  const std::string *attribute_names = update_stmt->attribute_names();
-  for(int id = 0; id < update_stmt->pair_amount(); id++){
-    fields.push_back(table_meta.field(attribute_names[id].c_str()));
-  }
-
-  std::vector<Value> values(update_stmt->values(), update_stmt->values() + update_stmt->pair_amount());
 
   unique_ptr<LogicalOperator> predicate_oper;
 
@@ -302,7 +293,9 @@ RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<Logical
     return rc;
   }
 
-  unique_ptr<LogicalOperator> update_oper(new UpdateLogicalOperator(table, fields, values));
+  auto fields = update_stmt->fields();
+  auto values = update_stmt->values();
+  unique_ptr<LogicalOperator> update_oper(new UpdateLogicalOperator(table, move(fields), move(values)));
 
   if (predicate_oper) {
     predicate_oper->add_child(std::move(table_get_oper));

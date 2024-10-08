@@ -28,7 +28,7 @@ class FieldMeta;
 class UpdateLogicalOperator : public LogicalOperator
 {
 public:
-  UpdateLogicalOperator(Table *table, std::vector<const FieldMeta *> fields, std::vector<Value> values);
+  UpdateLogicalOperator(Table *table, std::vector<const FieldMeta *>&& fields, std::vector<Value>&& values);
   virtual ~UpdateLogicalOperator() = default;
 
   LogicalOperatorType type() const override { return LogicalOperatorType::UPDATE; }

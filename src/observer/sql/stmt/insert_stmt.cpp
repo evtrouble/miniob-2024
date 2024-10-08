@@ -17,8 +17,8 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 
-InsertStmt::InsertStmt(Table *table, const vector<Value> *values_set, int values_amount)
-    : table_(table), values_set_(values_set), values_amount_(values_amount)
+InsertStmt::InsertStmt(Table *table, const vector<vector<Value>>&& values_set)
+    : table_(table), values_set_(std::move(values_set))
 {}
 
 RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
@@ -40,7 +40,7 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
   // check the fields number
   const TableMeta &table_meta = table->table_meta();
   const int        field_num  = table_meta.field_num() - table_meta.sys_field_num();
-  const vector<Value>     *values_set     = inserts.values.data();
+
   for(auto& values : inserts.values){
     const int        value_num  = static_cast<int>(values.size());
     if (field_num != value_num) {
@@ -50,6 +50,6 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
   }
  
   // everything alright
-  stmt = new InsertStmt(table, values_set, static_cast<int>(inserts.values.size()));
+  stmt = new InsertStmt(table, std::move(inserts.values));
   return RC::SUCCESS;
 }
