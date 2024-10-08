@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm>
+#include <utility>
 
 #include "common/log/log.h"
 #include "common/lang/string.h"
@@ -135,6 +136,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
   char *                                     string;
   int                                        number;
   float                                      floats;
+  Joins *                                    join_list;
 }
 
 %token <number> NUMBER
@@ -159,9 +161,11 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <attr_info>           attr_def
 %type <value_list>          value_list
 %type <condition_list>      where
+%type <condition_list>      on
+%type <join_list>           join_list
 %type <condition_list>      condition_list
 %type <string>              storage_format
-%type <relation_list>       rel_list
+%type <join_list>           rel_list
 %type <expression>          expression
 %type <expression_list>     expression_list
 %type <expression_list>     group_by
@@ -485,12 +489,18 @@ select_stmt:        /*  select 语句的语法解析树*/
       }
 
       if ($4 != nullptr) {
-        $$->selection.relations.swap(*$4);
+        $$->selection.relations.swap(*($4->relation_list));
+        $$->selection.conditions.swap(*($4->condition_list));
+        delete $4->relation_list;
+        delete $4->condition_list;
         delete $4;
       }
 
       if ($5 != nullptr) {
-        $$->selection.conditions.swap(*$5);
+        if($$->selection.conditions.size())
+          $$->selection.conditions.insert($$->selection.conditions.begin(), 
+            $5->begin(), $5->end());
+        else $$->selection.conditions.swap(*$5);
         delete $5;
       }
 
@@ -500,6 +510,7 @@ select_stmt:        /*  select 语句的语法解析树*/
       }
     }
     ;
+
 calc_stmt:
     CALC expression_list
     {
@@ -594,31 +605,108 @@ relation:
     ;
 rel_list:
     relation {
-      $$ = new std::vector<std::string>();
-      $$->push_back($1);
+      $$ = new struct Joins;
+      $$->relation_list = new std::vector<std::string>();
+      $$->condition_list = new std::vector<ConditionSqlNode>();
+      $$->relation_list->push_back($1);
       free($1);
     }
     | relation COMMA rel_list {
       if ($3 != nullptr) {
         $$ = $3;
       } else {
-        $$ = new std::vector<std::string>;
+        $$ = new struct Joins;
+        $$->relation_list = new std::vector<std::string>();
+        $$->condition_list = new std::vector<ConditionSqlNode>();
       }
 
-      $$->insert($$->begin(), $1);
+      $$->relation_list->insert($$->relation_list->begin(), $1);
       free($1);
     }
-    | relation INNER JOIN rel_list {
+    | relation join_list {
+      $$ = new struct Joins;
+      $$->relation_list = new std::vector<std::string>();
+      $$->condition_list = new std::vector<ConditionSqlNode>();
+
+      $$->relation_list->emplace_back($1);
+      $$->relation_list->insert($$->relation_list->end(), 
+        $2->relation_list->begin(), $2->relation_list->end());
+      $$->condition_list->insert($$->condition_list->begin(), 
+        $2->condition_list->begin(), $2->condition_list->end());
+
+      delete $2->relation_list;
+      delete $2->condition_list;
+      delete $2;
+      free($1);
+    }
+    | relation join_list COMMA rel_list{
       if ($4 != nullptr) {
         $$ = $4;
       } else {
-        $$ = new std::vector<std::string>;
+        $$ = new struct Joins;
+        $$->relation_list = new std::vector<std::string>();
+        $$->condition_list = new std::vector<ConditionSqlNode>();
       }
 
-      $$->insert($$->begin(), $1);
+      $$->relation_list->insert($$->relation_list->begin(), 
+        $2->relation_list->begin(), $2->relation_list->end());
+      $$->relation_list->insert($$->relation_list->begin(), $1);
+      $$->condition_list->insert($$->condition_list->begin(), 
+        $2->condition_list->begin(), $2->condition_list->end());
+
+      delete $2->relation_list;
+      delete $2->condition_list;
+      delete $2;
       free($1);
     }
     ;
+
+join_list:
+    INNER JOIN relation on
+    {
+      $$ = new struct Joins;
+      $$->relation_list = new std::vector<std::string>();
+      $$->condition_list = new std::vector<ConditionSqlNode>();
+      $$->relation_list->emplace_back($3);
+
+      free($3);
+      if($4 != nullptr){
+        $$->condition_list->insert($$->condition_list->end(), $4->begin(), $4->end());
+        delete $4;
+      }
+      
+    }
+    | INNER JOIN relation on join_list
+    {
+      if ($5 != nullptr) {
+        $$ = $5;
+      } else {
+        $$ = new struct Joins;
+        $$->relation_list = new std::vector<std::string>();
+        $$->condition_list = new std::vector<ConditionSqlNode>();
+      }
+
+      $$->relation_list->insert($$->relation_list->begin(), $3);
+      free($3);
+
+      if($4 != nullptr){
+        $$->condition_list->insert($$->condition_list->end(), $4->begin(), $4->end());
+        delete $4;
+      }
+    }
+    ;
+
+on:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | ON condition_list
+    {
+      $$ = $2;
+    }
+    ;
+
 
 where:
     /* empty */
@@ -626,9 +714,6 @@ where:
       $$ = nullptr;
     }
     | WHERE condition_list {
-      $$ = $2;
-    }
-    | ON condition_list {
       $$ = $2;
     }
     ;
