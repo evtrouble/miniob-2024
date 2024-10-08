@@ -130,6 +130,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
   Expression *                               expression;
   std::vector<std::unique_ptr<Expression>> * expression_list;
   std::vector<Value> *                       value_list;
+  std::vector<std::vector<Value>> *          values_list;
   std::vector<ConditionSqlNode> *            condition_list;
   std::vector<RelAttrSqlNode> *              rel_attr_list;
   std::vector<std::string> *                 relation_list;
@@ -159,6 +160,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <rel_attr>            rel_attr
 %type <attr_infos>          attr_def_list
 %type <attr_info>           attr_def
+%type <values_list>         values_list
 %type <value_list>          value_list
 %type <condition_list>      where
 %type <condition_list>      on
@@ -387,18 +389,46 @@ date_type:
     ;
     
 insert_stmt:        /*insert   语句的语法解析树*/
-    INSERT INTO ID VALUES LBRACE value value_list RBRACE
+    INSERT INTO ID VALUES values_list
     {
       $$ = new ParsedSqlNode(SCF_INSERT);
       $$->insertion.relation_name = $3;
-      if ($7 != nullptr) {
-        $$->insertion.values.swap(*$7);
-        delete $7;
+      if ($5 != nullptr) {
+        $$->insertion.values.swap(*$5);
+        std::reverse($$->insertion.values.begin(), $$->insertion.values.end());
+        delete $5;
       }
-      $$->insertion.values.emplace_back(*$6);
-      std::reverse($$->insertion.values.begin(), $$->insertion.values.end());
-      delete $6;
+      
       free($3);
+    }
+    ;
+
+values_list:
+    LBRACE value value_list RBRACE
+    {
+      $$ = new std::vector<std::vector<Value>>;
+
+      $3->emplace_back(*$2);
+      std::reverse($3->begin(), $3->end());
+      delete $2;
+
+      $$->emplace_back(*$3);
+      delete $3;
+    }
+    | LBRACE value value_list RBRACE COMMA values_list
+    {
+      if ($6 != nullptr) {
+        $$ = $6;
+      } else {
+        $$ = new std::vector<std::vector<Value>>;
+      }
+
+      $3->emplace_back(*$2);
+      std::reverse($3->begin(), $3->end());
+      delete $2;
+
+      $$->emplace_back(*$3);
+      delete $3;
     }
     ;
 

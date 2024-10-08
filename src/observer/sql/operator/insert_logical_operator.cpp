@@ -14,5 +14,5 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/operator/insert_logical_operator.h"
 
-InsertLogicalOperator::InsertLogicalOperator(Table *table, std::vector<Value> values) : table_(table), values_(values)
+InsertLogicalOperator::InsertLogicalOperator(Table *table, std::vector<std::vector<Value>> values_set) : table_(table), values_set_(values_set)
 {}
