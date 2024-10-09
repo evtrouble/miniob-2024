@@ -111,7 +111,7 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, std::unordered_m
     left = condition.left_value.attr_type();
   }
 
-  if (condition.right_is_attr) {
+  if (condition.right_type) {
     Table           *table = nullptr;
     const FieldMeta *field = nullptr;
     rc                     = get_table_and_field(db, default_table, tables, condition.right_attr, table, field);

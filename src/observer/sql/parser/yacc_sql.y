@@ -106,6 +106,8 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         LOAD
         DATA
         LIKE
+        EXISTS
+        IN
         NOT
         INFILE
         EXPLAIN
@@ -158,6 +160,9 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <number>              number
 %type <string>              relation
 %type <comp>                comp_op
+%type <comp>                undirect_op
+%type <comp>                select_op
+%type <comp>                unary_op
 %type <rel_attr>            rel_attr
 %type <attr_infos>          attr_def_list
 %type <attr_info>           attr_def
@@ -328,7 +333,7 @@ create_table_stmt:    /*create table 语句的语法解析树*/
         create_table.attr_infos.swap(*src_attrs);
         delete src_attrs;
       }
-      create_table.attr_infos.emplace_back(*$5);
+      create_table.attr_infos.emplace_back(move(*$5));
       std::reverse(create_table.attr_infos.begin(), create_table.attr_infos.end());
       delete $5;
       if ($8 != nullptr) {
@@ -349,7 +354,7 @@ attr_def_list:
       } else {
         $$ = new std::vector<AttrInfoSqlNode>;
       }
-      $$->emplace_back(*$2);
+      $$->emplace_back(move(*$2));
       delete $2;
     }
     ;
@@ -408,47 +413,39 @@ insert_stmt:        /*insert   语句的语法解析树*/
     ;
 
 values_list:
-    LBRACE value value_list RBRACE
+    LBRACE value_list RBRACE
     {
       $$ = new std::vector<std::vector<Value>>;
-
-      $3->emplace_back(*$2);
-      std::reverse($3->begin(), $3->end());
+      $$->emplace_back(move(*$2));
       delete $2;
-
-      $$->emplace_back(*$3);
-      delete $3;
     }
-    | LBRACE value value_list RBRACE COMMA values_list
+    | LBRACE value_list RBRACE COMMA values_list
     {
-      if ($6 != nullptr) {
-        $$ = $6;
+      if ($5 != nullptr) {
+        $$ = $5;
       } else {
         $$ = new std::vector<std::vector<Value>>;
       }
 
-      $3->emplace_back(*$2);
-      std::reverse($3->begin(), $3->end());
+      $$->emplace($$->begin(), move(*$2));
       delete $2;
-
-      $$->emplace_back(*$3);
-      delete $3;
     }
     ;
 
 value_list:
-    /* empty */
-    {
-      $$ = nullptr;
+    value {
+      $$ = new std::vector<Value>;
+      $$->emplace_back(move(*$1));
+      delete $1;
     }
-    | COMMA value value_list  {
+    | value COMMA value_list  {
       if ($3 != nullptr) {
         $$ = $3;
       } else {
         $$ = new std::vector<Value>;
       }
-      $$->emplace_back(*$2);
-      delete $2;
+      $$->emplace_back(move(*$1));
+      delete $1;
     }
     ;
 value:
@@ -523,9 +520,9 @@ key_values:
       $$ = new Key_values;
       $$->relation_list = new vector<string>;
       $$->value_list = new vector<Value>;
-      $$->relation_list->emplace_back($1);
+      $$->relation_list->emplace_back(move($1));
       free($1);
-      $$->value_list->emplace_back(*$3);
+      $$->value_list->emplace_back(move(*$3));
       delete $3;
     }
     | ID EQ value COMMA key_values
@@ -538,9 +535,9 @@ key_values:
         $$->value_list = new vector<Value>;
       }
       
-      $$->relation_list->emplace_back($1);
+      $$->relation_list->emplace_back(move($1));
       free($1);
-      $$->value_list->emplace_back(*$3);
+      $$->value_list->emplace_back(move(*$3));
       delete $3;
     }
     ;
@@ -589,7 +586,7 @@ expression_list:
     expression
     {
       $$ = new std::vector<std::unique_ptr<Expression>>;
-      $$->emplace_back($1);
+      $$->emplace_back(move($1));
     }
     | expression COMMA expression_list
     {
@@ -598,7 +595,7 @@ expression_list:
       } else {
         $$ = new std::vector<std::unique_ptr<Expression>>;
       }
-      $$->emplace($$->begin(), $1);
+      $$->emplace($$->begin(), move($1));
     }
     ;
 expression:
@@ -693,7 +690,7 @@ rel_list:
       $$->relation_list = new std::vector<std::string>;
       $$->condition_list = new std::vector<ConditionSqlNode>;
 
-      $$->relation_list->emplace_back($1);
+      $$->relation_list->emplace_back(move($1));
       $$->relation_list->insert($$->relation_list->end(), 
         $2->relation_list->begin(), $2->relation_list->end());
       $$->condition_list->insert($$->condition_list->begin(), 
@@ -732,7 +729,7 @@ join_list:
       $$ = new Joins;
       $$->relation_list = new std::vector<std::string>;
       $$->condition_list = new std::vector<ConditionSqlNode>;
-      $$->relation_list->emplace_back($3);
+      $$->relation_list->emplace_back(move($3));
 
       free($3);
       if($4 != nullptr){
@@ -751,7 +748,7 @@ join_list:
         $$->condition_list = new std::vector<ConditionSqlNode>;
       }
 
-      $$->relation_list->emplace($$->relation_list->begin(), $3);
+      $$->relation_list->emplace($$->relation_list->begin(), move($3));
       free($3);
 
       if($4 != nullptr){
@@ -789,12 +786,12 @@ condition_list:
     }
     | condition {
       $$ = new std::vector<ConditionSqlNode>;
-      $$->emplace_back(*$1);
+      $$->emplace_back(move(*$1));
       delete $1;
     }
     | condition AND condition_list {
       $$ = $3;
-      $$->emplace_back(*$1);
+      $$->emplace_back(move(*$1));
       delete $1;
     }
     ;
@@ -804,61 +801,93 @@ condition:
       $$ = new ConditionSqlNode;
       $$->left_is_attr = 1;
       $$->left_attr = *$1;
-      $$->right_is_attr = 0;
+      $$->right_type = 0;
       $$->right_value = *$3;
       $$->comp = $2;
 
       delete $1;
       delete $3;
     }
-    | value comp_op value
+    | value undirect_op value
     {
       $$ = new ConditionSqlNode;
       $$->left_is_attr = 0;
       $$->left_value = *$1;
-      $$->right_is_attr = 0;
+      $$->right_type = 0;
       $$->right_value = *$3;
       $$->comp = $2;
 
       delete $1;
       delete $3;
     }
-    | rel_attr comp_op rel_attr
+    | rel_attr undirect_op rel_attr
     {
       $$ = new ConditionSqlNode;
       $$->left_is_attr = 1;
       $$->left_attr = *$1;
-      $$->right_is_attr = 1;
+      $$->right_type = 1;
       $$->right_attr = *$3;
       $$->comp = $2;
 
       delete $1;
       delete $3;
     }
-    | value comp_op rel_attr
+    | value undirect_op rel_attr
     {
       $$ = new ConditionSqlNode;
       $$->left_is_attr = 0;
       $$->left_value = *$1;
-      $$->right_is_attr = 1;
+      $$->right_type = 1;
       $$->right_attr = *$3;
       $$->comp = $2;
 
       delete $1;
       delete $3;
     }
+    | rel_attr select_op LBRACE select_stmt RBRACE
+    {
+      $$ = new ConditionSqlNode($4);
+      $$->left_is_attr = 1;
+      $$->left_attr = *$1;
+      $$->right_type = 2;
+      $$->comp = $2;
+
+      delete $1;
+    }
+    | unary_op LBRACE select_stmt RBRACE
+    {
+      $$ = new ConditionSqlNode($3);
+      $$->right_type = 2;
+      $$->comp = $1;
+    }
     ;
 
 comp_op:
-      EQ { $$ = EQUAL_TO; }
+      undirect_op { $$ = $1; }
+    | LIKE { $$ = LIKE_OP; }
+    | NOT LIKE { $$ = NOT_LIKE; }
+    ;
+
+undirect_op:
+    EQ { $$ = EQUAL_TO; }
     | LT { $$ = LESS_THAN; }
     | GT { $$ = GREAT_THAN; }
     | LE { $$ = LESS_EQUAL; }
     | GE { $$ = GREAT_EQUAL; }
     | NE { $$ = NOT_EQUAL; }
-    | LIKE { $$ = LIKE_OP; }
-    | NOT LIKE { $$ = NOT_LIKE; }
     ;
+
+select_op:
+    undirect_op { $$ = $1; }
+    | IN { $$ = IN_OP; }
+    | NOT IN { $$ = NOT_IN; }
+    ;
+
+unary_op:
+    EXISTS { $$ = EXISTS_OP; }
+    | NOT EXISTS { $$ = NOT_EXISTS; }
+    ;
+
 
 // your code here
 group_by:

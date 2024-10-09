@@ -53,9 +53,14 @@ enum CompOp
   GREAT_THAN,   ///< ">"
   LIKE_OP,      ///< "like"
   NOT_LIKE,     ///< "not like"
+  EXISTS_OP,    ///< "exist"
+  NOT_EXISTS,   ///< "not exist"
+  IN_OP,        ///< "in"
+  NOT_IN,       ///< "not in"
   NO_OP
 };
 
+class ParsedSqlNode;
 /**
  * @brief 表示一个条件比较
  * @ingroup SQLParser
@@ -71,10 +76,12 @@ struct ConditionSqlNode
   Value          left_value;     ///< left-hand side value if left_is_attr = FALSE
   RelAttrSqlNode left_attr;      ///< left-hand side attribute
   CompOp         comp;           ///< comparison operator
-  int            right_is_attr;  ///< TRUE if right-hand side is an attribute
-                                 ///< 1时，操作符右边是属性名，0时，是属性值
-  RelAttrSqlNode right_attr;     ///< right-hand side attribute if right_is_attr = TRUE 右边的属性
-  Value          right_value;    ///< right-hand side value if right_is_attr = FALSE
+  int            right_type;     ///< right-hand side's type
+                                 ///< 1时，操作符右边是属性名，0时，是属性值，2时是子查询
+  RelAttrSqlNode right_attr;     ///< right-hand side attribute if right_type = 1 右边的属性
+  Value          right_value;    ///< right-hand side value if right_type = 0
+  std::shared_ptr<ParsedSqlNode> right_select;   ///< right-hand side select if right_type = 2
+  ConditionSqlNode(ParsedSqlNode* select = nullptr);
 };
 
 /**

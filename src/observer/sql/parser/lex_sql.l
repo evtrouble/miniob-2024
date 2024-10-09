@@ -114,6 +114,8 @@ DATE                                    RETURN_TOKEN(DATE_T);
 LOAD                                    RETURN_TOKEN(LOAD);
 DATA                                    RETURN_TOKEN(DATA);
 LIKE                                    RETURN_TOKEN(LIKE);
+EXISTS                                  RETURN_TOKEN(EXISTS);
+IN                                      RETURN_TOKEN(IN);
 NOT                                     RETURN_TOKEN(NOT);
 INFILE                                  RETURN_TOKEN(INFILE);
 EXPLAIN                                 RETURN_TOKEN(EXPLAIN);
