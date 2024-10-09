@@ -16,7 +16,8 @@ See the Mulan PSL v2 for more details. */
 
 using namespace std;
 
-ProjectLogicalOperator::ProjectLogicalOperator(vector<unique_ptr<Expression>> &&expressions)
+ProjectLogicalOperator::ProjectLogicalOperator(vector<unique_ptr<Expression>> &&expressions, bool show_table_name)
+  :show_table_name_(show_table_name)
 {
   expressions_ = std::move(expressions);
 }

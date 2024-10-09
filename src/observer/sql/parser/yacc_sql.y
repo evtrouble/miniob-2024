@@ -204,8 +204,10 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 
 commands: command_wrapper opt_semicolon  //commands or sqls. parser starts here.
   {
-    std::unique_ptr<ParsedSqlNode> sql_node = std::unique_ptr<ParsedSqlNode>($1);
-    sql_result->add_sql_node(std::move(sql_node));
+    if($1 != nullptr){
+      std::unique_ptr<ParsedSqlNode> sql_node = std::unique_ptr<ParsedSqlNode>($1);
+      sql_result->add_sql_node(std::move(sql_node));
+    } 
   }
   ;
 

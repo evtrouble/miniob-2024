@@ -24,7 +24,7 @@ See the Mulan PSL v2 for more details. */
 class ProjectPhysicalOperator : public PhysicalOperator
 {
 public:
-  ProjectPhysicalOperator(std::vector<std::unique_ptr<Expression>> &&expressions);
+  ProjectPhysicalOperator(std::vector<std::unique_ptr<Expression>> &&expressions, bool show_table_name);
 
   virtual ~ProjectPhysicalOperator() = default;
 
@@ -43,4 +43,5 @@ public:
 private:
   std::vector<std::unique_ptr<Expression>>     expressions_;
   ExpressionTuple<std::unique_ptr<Expression>> tuple_;
+  bool show_table_name_;
 };
