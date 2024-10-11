@@ -427,7 +427,7 @@ values_list:
         $$ = new std::vector<std::vector<Value>>;
       }
 
-      $$->emplace($$->begin(), move(*$2));
+      $$->emplace_back(move(*$2));
       delete $2;
     }
     ;
@@ -799,7 +799,7 @@ condition:
     rel_attr comp_op value
     {
       $$ = new ConditionSqlNode;
-      $$->left_is_attr = 1;
+      $$->left_type = 1;
       $$->left_attr = *$1;
       $$->right_type = 0;
       $$->right_value = *$3;
@@ -811,7 +811,7 @@ condition:
     | value undirect_op value
     {
       $$ = new ConditionSqlNode;
-      $$->left_is_attr = 0;
+      $$->left_type = 0;
       $$->left_value = *$1;
       $$->right_type = 0;
       $$->right_value = *$3;
@@ -823,7 +823,7 @@ condition:
     | rel_attr undirect_op rel_attr
     {
       $$ = new ConditionSqlNode;
-      $$->left_is_attr = 1;
+      $$->left_type = 1;
       $$->left_attr = *$1;
       $$->right_type = 1;
       $$->right_attr = *$3;
@@ -835,7 +835,7 @@ condition:
     | value undirect_op rel_attr
     {
       $$ = new ConditionSqlNode;
-      $$->left_is_attr = 0;
+      $$->left_type = 0;
       $$->left_value = *$1;
       $$->right_type = 1;
       $$->right_attr = *$3;
@@ -847,7 +847,7 @@ condition:
     | rel_attr select_op LBRACE select_stmt RBRACE
     {
       $$ = new ConditionSqlNode($4);
-      $$->left_is_attr = 1;
+      $$->left_type = 1;
       $$->left_attr = *$1;
       $$->right_type = 2;
       $$->comp = $2;
@@ -858,6 +858,7 @@ condition:
     {
       $$ = new ConditionSqlNode($3);
       $$->right_type = 2;
+      $$->left_type = 2;
       $$->comp = $1;
     }
     ;

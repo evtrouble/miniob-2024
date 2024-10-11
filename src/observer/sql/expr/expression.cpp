@@ -15,6 +15,10 @@ See the Mulan PSL v2 for more details. */
 #include "sql/expr/expression.h"
 #include "sql/expr/tuple.h"
 #include "sql/expr/arithmetic_operator.hpp"
+#include "sql/optimizer/physical_plan_generator.h"
+#include "sql/optimizer/logical_plan_generator.h"
+#include "sql/executor/sql_result.h"
+#include "sql/stmt/select_stmt.h"
 
 using namespace std;
 
@@ -652,4 +656,86 @@ RC AggregateExpr::type_from_string(const char *type_str, AggregateExpr::Type &ty
     rc = RC::INVALID_ARGUMENT;
   }
   return rc;
+}
+
+SelectExpr::SelectExpr(Stmt* stmt, vector<SelectExpr*>* select_exprs)
+{
+  if(stmt != nullptr){
+    LogicalPlanGenerator().create(stmt, logical_operator_);
+    value_type_ = logical_operator_->expressions().at(0)->value_type();
+    if(select_exprs != nullptr)
+      select_exprs->push_back(static_cast<SelectExpr*>(this));
+  }
+}
+
+RC SelectExpr::physical_generate()
+{
+  return PhysicalPlanGenerator().create(*logical_operator_, physical_operator_);
+}
+
+RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
+{
+  RC rc = RC::SUCCESS;
+  if(values_ == nullptr){
+    rc = physical_operator_->next();
+    
+    return rc;
+    //auto temp = make_unique<vector<Value>>();
+    //swap(values_, temp);
+  //   values_.swap(temp);
+  //   while (RC::SUCCESS == (rc = sql_result->next_tuple(tuple))) {
+  //   assert(tuple != nullptr);
+
+  //   int cell_num = tuple->cell_num();
+  //   for (int i = 0; i < cell_num; i++) {
+  //     if (i != 0) {
+  //       const char *delim = " | ";
+
+  //       rc = writer_->writen(delim, strlen(delim));
+  //       if (OB_FAIL(rc)) {
+  //         LOG_WARN("failed to send data to client. err=%s", strerror(errno));
+  //         sql_result->close();
+  //         return rc;
+  //       }
+  //     }
+
+  //     Value value;
+  //     rc = tuple->cell_at(i, value);
+  //     if (rc != RC::SUCCESS) {
+  //       LOG_WARN("failed to get tuple cell value. rc=%s", strrc(rc));
+  //       sql_result->close();
+  //       return rc;
+  //     }
+
+  //     string cell_str = value.to_string();
+
+  //     rc = writer_->writen(cell_str.data(), cell_str.size());
+  //     if (OB_FAIL(rc)) {
+  //       LOG_WARN("failed to send data to client. err=%s", strerror(errno));
+  //       sql_result->close();
+  //       return rc;
+  //     }
+  //   }
+
+  //   char newline = '\n';
+
+  //   rc = writer_->writen(&newline, 1);
+  //   if (OB_FAIL(rc)) {
+  //     LOG_WARN("failed to send data to client. err=%s", strerror(errno));
+  //     sql_result->close();
+  //     return rc;
+  //   }
+  // }
+
+  // if (rc == RC::RECORD_EOF) {
+  //   rc = RC::SUCCESS;
+  // }
+  }
+  
+  return rc;
+}
+
+RC SelectExpr::pretreatment()
+{
+  return RC::SUCCESS;
 }

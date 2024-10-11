@@ -24,6 +24,11 @@ See the Mulan PSL v2 for more details. */
 #include "storage/common/chunk.h"
 
 class Tuple;
+class Stmt;
+class LogicalOperator;
+class PhysicalOperator;
+class Session;
+class SqlResult;
 
 /**
  * @defgroup Expression
@@ -48,6 +53,7 @@ enum class ExprType
   CONJUNCTION,  ///< 多个表达式使用同一种关系(AND或OR)来联结
   ARITHMETIC,   ///< 算术运算
   AGGREGATION,  ///< 聚合运算
+  SELECT        ///< 子查询
 };
 
 /**
@@ -471,4 +477,35 @@ public:
 private:
   Type                        aggregate_type_;
   std::unique_ptr<Expression> child_;
+};
+
+/**
+ * @brief 子查询表达式
+ * @ingroup Expression
+ */
+class SelectExpr : public Expression
+{
+public:
+  SelectExpr() = default;
+  SelectExpr(Stmt* stmt, vector<SelectExpr*>* select_exprs);
+
+  virtual ~SelectExpr() = default;
+
+  ExprType type() const override { return ExprType::SELECT; }
+  AttrType value_type() const override { return value_type_;}
+
+  unique_ptr<PhysicalOperator> &physical_operator() { return physical_operator_; }
+
+  RC get_value(const Tuple &tuple, Value &value) const override;
+
+  RC pretreatment();
+
+  RC physical_generate();
+
+private:
+  AttrType value_type_;
+
+  unique_ptr<LogicalOperator> logical_operator_;
+  unique_ptr<PhysicalOperator> physical_operator_;
+  unique_ptr<vector<Value>> values_;
 };

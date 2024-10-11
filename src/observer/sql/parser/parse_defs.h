@@ -71,9 +71,9 @@ class ParsedSqlNode;
  */
 struct ConditionSqlNode
 {
-  int left_is_attr;              ///< TRUE if left-hand side is an attribute
-                                 ///< 1时，操作符左边是属性名，0时，是属性值
-  Value          left_value;     ///< left-hand side value if left_is_attr = FALSE
+  int left_type;                 ///< 1时，操作符左边是属性名，0时，是属性值
+                                 ///< 2时，无效
+  Value          left_value;     ///< left-hand side value if left_type = 0
   RelAttrSqlNode left_attr;      ///< left-hand side attribute
   CompOp         comp;           ///< comparison operator
   int            right_type;     ///< right-hand side's type

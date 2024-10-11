@@ -38,11 +38,17 @@ public:
   Stmt                               *stmt() const { return stmt_; }
   unique_ptr<PhysicalOperator>       &physical_operator() { return operator_; }
   const unique_ptr<PhysicalOperator> &physical_operator() const { return operator_; }
+  unique_ptr<vector<SelectExpr*>>       &select_exprs() { return select_exprs_; }
+  const unique_ptr<vector<SelectExpr*>> &select_exprs() const { return select_exprs_; }
+  unique_ptr<vector<vector<uint32_t>>>       &depends() { return depends_; }
+  const unique_ptr<vector<vector<uint32_t>>> &depends() const { return depends_; }
 
   void set_sql(const char *sql) { sql_ = sql; }
   void set_sql_node(unique_ptr<ParsedSqlNode> sql_node) { sql_node_ = std::move(sql_node); }
   void set_stmt(Stmt *stmt) { stmt_ = stmt; }
   void set_operator(unique_ptr<PhysicalOperator> oper) { operator_ = std::move(oper); }
+  void set_depends(unique_ptr<vector<vector<uint32_t>>> depends) { depends_ = std::move(depends); }
+  void set_exprs(unique_ptr<vector<SelectExpr*>> select_exprs) { select_exprs_ = std::move(select_exprs); }
 
 private:
   SessionEvent                *session_event_ = nullptr;
@@ -50,4 +56,6 @@ private:
   unique_ptr<ParsedSqlNode>    sql_node_;        ///< 语法解析后的SQL命令
   Stmt                        *stmt_ = nullptr;  ///< Resolver之后生成的数据结构
   unique_ptr<PhysicalOperator> operator_;        ///< 生成的执行计划，也可能没有
+  unique_ptr<vector<SelectExpr*>> select_exprs_;           ///< 子查询表达式
+  unique_ptr<vector<vector<uint32_t>>> depends_;         ///< 依赖关系
 };

@@ -12,6 +12,8 @@ See the Mulan PSL v2 for more details. */
 // Created by Wangyunlai on 2022/5/22.
 //
 
+#include <unordered_set>
+
 #include "sql/stmt/stmt.h"
 #include "common/log/log.h"
 #include "sql/stmt/calc_stmt.h"
@@ -46,7 +48,8 @@ bool stmt_type_ddl(StmtType type)
     }
   }
 }
-RC Stmt::create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt)
+RC Stmt::create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt, 
+  vector<vector<uint32_t>>* depends, std::unordered_map<const FieldMeta*, uint32_t>* field_set, int fa)
 {
   stmt = nullptr;
 
@@ -61,7 +64,7 @@ RC Stmt::create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt)
       return DeleteStmt::create(db, sql_node.deletion, stmt);
     }
     case SCF_SELECT: {
-      return SelectStmt::create(db, sql_node.selection, stmt);
+      return SelectStmt::create(db, sql_node.selection, stmt, depends, field_set, fa);
     }
 
     case SCF_EXPLAIN: {

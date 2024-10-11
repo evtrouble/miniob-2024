@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "common/rc.h"
 #include "common/type/attr_type.h"
@@ -29,18 +30,20 @@ class DeleteStmt;
 class ExplainStmt;
 class LogicalOperator;
 
+class SelectExpr;
+
 class LogicalPlanGenerator
 {
 public:
   LogicalPlanGenerator()          = default;
   virtual ~LogicalPlanGenerator() = default;
 
-  RC create(Stmt *stmt, std::unique_ptr<LogicalOperator> &logical_operator);
+  RC create(Stmt *stmt, std::unique_ptr<LogicalOperator> &logical_operator, std::vector<SelectExpr*>* select_exprs = nullptr);
 
 private:
   RC create_plan(CalcStmt *calc_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
-  RC create_plan(SelectStmt *select_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
-  RC create_plan(FilterStmt *filter_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
+  RC create_plan(SelectStmt *select_stmt, std::unique_ptr<LogicalOperator> &logical_operator, std::vector<SelectExpr*>* select_exprs);
+  RC create_plan(FilterStmt *filter_stmt, std::unique_ptr<LogicalOperator> &logical_operator, std::vector<SelectExpr*>* select_exprs = nullptr);
   RC create_plan(InsertStmt *insert_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
   RC create_plan(UpdateStmt *update_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
   RC create_plan(DeleteStmt *delete_stmt, std::unique_ptr<LogicalOperator> &logical_operator);

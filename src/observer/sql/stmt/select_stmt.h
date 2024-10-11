@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 
 #include <memory>
 #include <vector>
+#include <unordered_map>
 
 #include "common/rc.h"
 #include "sql/stmt/stmt.h"
@@ -24,7 +25,6 @@ See the Mulan PSL v2 for more details. */
 class FieldMeta;
 class FilterStmt;
 class Db;
-class Table;
 
 /**
  * @brief 表示select语句
@@ -39,7 +39,8 @@ public:
   StmtType type() const override { return StmtType::SELECT; }
 
 public:
-  static RC create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt);
+  static RC create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt, 
+    vector<vector<uint32_t>>* depends, std::unordered_map<const FieldMeta*, uint32_t>* field_set, int fa = -1);
 
 public:
   const std::vector<Table *> &tables() const { return tables_; }

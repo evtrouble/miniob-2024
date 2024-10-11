@@ -26,28 +26,37 @@ class FieldMeta;
 
 struct FilterObj
 {
-  bool  is_attr;
+  int  type;
   Field field;
   Value value;
+  Stmt* stmt = nullptr;
 
   void init_attr(const Field &field)
   {
-    is_attr     = true;
+    type     = 1;
     this->field = field;
   }
 
   void init_value(const Value &value)
   {
-    is_attr     = false;
+    type     = 0;
     this->value = value;
   }
+
+  void init_stmt(Db *db, ParsedSqlNode* sql_node, vector<vector<uint32_t>>* depends, 
+    std::unordered_map<const FieldMeta*, uint32_t>* field_set, int fa)
+  {
+    type     = 2;
+    Stmt::create_stmt(db, *sql_node, this->stmt, depends, field_set, fa);
+  }
+
 };
 
 class FilterUnit
 {
 public:
   FilterUnit() = default;
-  ~FilterUnit() {}
+  ~FilterUnit() {if(right_.stmt != nullptr)delete right_.stmt;}
 
   void set_comp(CompOp comp) { comp_ = comp; }
 
@@ -58,6 +67,7 @@ public:
 
   const FilterObj &left() const { return left_; }
   const FilterObj &right() const { return right_; }
+  FilterObj &right() { return right_; }
 
 private:
   CompOp    comp_ = NO_OP;
@@ -80,10 +90,12 @@ public:
 
 public:
   static RC create(Db *db, Table *default_table, std::unordered_map<std::string, Table *> *tables,
-      const ConditionSqlNode *conditions, int condition_num, FilterStmt *&stmt);
+      const ConditionSqlNode *conditions, int condition_num, FilterStmt *&stmt, 
+      vector<vector<uint32_t>>* depends = nullptr, 
+      std::unordered_map<const FieldMeta*, uint32_t>* field_set = nullptr, int fa = -1);
 
   static RC create_filter_unit(Db *db, Table *default_table, std::unordered_map<std::string, Table *> *tables,
-      const ConditionSqlNode &condition, FilterUnit *&filter_unit);
+      const ConditionSqlNode &condition, FilterUnit *&filter_unit, vector<const FieldMeta*>* fields = nullptr);
 
 private:
   std::vector<FilterUnit *> filter_units_;  // 默认当前都是AND关系

@@ -181,7 +181,7 @@ RC PlainCommunicator::write_result(SessionEvent *event, bool &need_disconnect)
 RC PlainCommunicator::write_result_internal(SessionEvent *event, bool &need_disconnect)
 {
   RC rc = RC::SUCCESS;
-
+  
   need_disconnect = true;
 
   SqlResult *sql_result = event->sql_result();
@@ -236,6 +236,11 @@ RC PlainCommunicator::write_result_internal(SessionEvent *event, bool &need_disc
     }
   }
 
+  rc = sql_result->pretreatment();
+  if (OB_FAIL(rc)) {
+    return rc;
+  }
+
   rc = RC::SUCCESS;
   if (event->session()->get_execution_mode() == ExecutionMode::CHUNK_ITERATOR
       && event->session()->used_chunk_mode()) {
@@ -274,6 +279,8 @@ RC PlainCommunicator::write_tuple_result(SqlResult *sql_result)
 {
   RC rc = RC::SUCCESS;
   Tuple *tuple = nullptr;
+
+
   while (RC::SUCCESS == (rc = sql_result->next_tuple(tuple))) {
     assert(tuple != nullptr);
 

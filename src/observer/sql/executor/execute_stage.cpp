@@ -60,5 +60,7 @@ RC ExecuteStage::handle_request_with_physical_operator(SQLStageEvent *sql_event)
 
   SqlResult *sql_result = sql_event->session_event()->sql_result();
   sql_result->set_operator(std::move(physical_operator));
+  sql_result->set_exprs(std::move(sql_event->select_exprs()));
+  sql_result->set_depends(std::move(sql_event->depends()));
   return rc;
 }

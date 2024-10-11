@@ -12,6 +12,7 @@ See the Mulan PSL v2 for more details. */
 // Created by Wangyunlai on 2022/5/22.
 //
 
+
 #include "sql/stmt/filter_stmt.h"
 #include "common/lang/string.h"
 #include "common/log/log.h"
@@ -28,24 +29,77 @@ FilterStmt::~FilterStmt()
 }
 
 RC FilterStmt::create(Db *db, Table *default_table, std::unordered_map<std::string, Table *> *tables,
-    const ConditionSqlNode *conditions, int condition_num, FilterStmt *&stmt)
+    const ConditionSqlNode *conditions, int condition_num, FilterStmt *&stmt, 
+    vector<vector<uint32_t>>* depends, std::unordered_map<const FieldMeta*, uint32_t>* field_set, int fa)
 {
   RC rc = RC::SUCCESS;
   stmt  = nullptr;
-
   FilterStmt *tmp_stmt = new FilterStmt();
+  if(depends == nullptr || field_set == nullptr){
+    for (int i = 0; i < condition_num; i++) {
+      FilterUnit *filter_unit = nullptr;
+
+      rc = create_filter_unit(db, default_table, tables, conditions[i], filter_unit);
+      if (rc != RC::SUCCESS) {
+        delete tmp_stmt;
+        LOG_WARN("failed to create filter unit. condition index=%d", i);
+        return rc;
+      }
+      tmp_stmt->filter_units_.push_back(filter_unit);
+    }
+
+    stmt = tmp_stmt;
+    return rc;
+  }
+
+  vector<uint32_t> select_id;
+  vector<const FieldMeta*> fields;
   for (int i = 0; i < condition_num; i++) {
     FilterUnit *filter_unit = nullptr;
 
-    rc = create_filter_unit(db, default_table, tables, conditions[i], filter_unit);
+    rc = create_filter_unit(db, default_table, tables, conditions[i], filter_unit, &fields);
     if (rc != RC::SUCCESS) {
       delete tmp_stmt;
       LOG_WARN("failed to create filter unit. condition index=%d", i);
       return rc;
     }
+    
+    if(filter_unit->right().type == 2)select_id.emplace_back(tmp_stmt->filter_units_.size());
     tmp_stmt->filter_units_.push_back(filter_unit);
   }
 
+  auto size = depends->size();
+  depends->push_back(vector<uint32_t>());
+
+  uint32_t min_depend = UINT32_MAX;
+  
+  for(auto& field : fields){
+    if(field_set->count(field))
+      min_depend = std::min(min_depend, field_set->at(field));
+  }
+
+  if( fa >= 0){
+      depends->at(fa).push_back(size);
+      if(min_depend != UINT32_MAX)
+        depends->at(size).push_back(min_depend);
+    }
+  if(select_id.size()){
+    for(auto& field : fields){
+      if(!field_set->count(field))
+        field_set->insert({field, size});
+    }
+    
+    for(auto& id : select_id){
+      tmp_stmt->filter_units_[id]->right().init_stmt(db, conditions[id].right_select.get(), 
+        depends, field_set, size);
+    }
+
+    for(auto& field : fields){
+      if(field_set->at(field) == size)
+        field_set->erase(field);
+    }
+  }
+  
   stmt = tmp_stmt;
   return rc;
 }
@@ -79,7 +133,7 @@ RC get_table_and_field(Db *db, Table *default_table, std::unordered_map<std::str
 }
 
 RC FilterStmt::create_filter_unit(Db *db, Table *default_table, std::unordered_map<std::string, Table *> *tables,
-    const ConditionSqlNode &condition, FilterUnit *&filter_unit)
+    const ConditionSqlNode &condition, FilterUnit *&filter_unit, vector<const FieldMeta*>* fields)
 {
   RC rc = RC::SUCCESS;
 
@@ -89,51 +143,76 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, std::unordered_m
     return RC::INVALID_ARGUMENT;
   }
 
-  AttrType left, right;
+  AttrType left = AttrType::UNDEFINED, right = AttrType::UNDEFINED;
   filter_unit = new FilterUnit;
 
-  if (condition.left_is_attr) {
-    Table           *table = nullptr;
-    const FieldMeta *field = nullptr;
-    rc                     = get_table_and_field(db, default_table, tables, condition.left_attr, table, field);
-    if (rc != RC::SUCCESS) {
-      LOG_WARN("cannot find attr");
-      return rc;
-    }
-    FilterObj filter_obj;
-    filter_obj.init_attr(Field(table, field));
-    filter_unit->set_left(filter_obj);
-    left = field->type();
-  } else {
-    FilterObj filter_obj;
-    filter_obj.init_value(condition.left_value);
-    filter_unit->set_left(filter_obj);
-    left = condition.left_value.attr_type();
+  switch (condition.left_type)
+  {
+    case 0:{
+      FilterObj filter_obj;
+      filter_obj.init_value(condition.left_value);
+      filter_unit->set_left(filter_obj);
+      left = condition.left_value.attr_type();
+    }break;
+    case 1:{
+      Table           *table = nullptr;
+      const FieldMeta *field = nullptr;
+      rc = get_table_and_field(db, default_table, tables, condition.left_attr, table, field);
+      if (rc != RC::SUCCESS) {
+        LOG_WARN("cannot find attr");
+        return rc;
+      }
+      if(fields != nullptr)fields->push_back(field);
+      FilterObj filter_obj;
+      filter_obj.init_attr(Field(table, field));
+      filter_unit->set_left(filter_obj);
+      left = field->type();
+    }break;
+    default: break;
   }
 
-  if (condition.right_type) {
-    Table           *table = nullptr;
-    const FieldMeta *field = nullptr;
-    rc                     = get_table_and_field(db, default_table, tables, condition.right_attr, table, field);
-    if (rc != RC::SUCCESS) {
-      LOG_WARN("cannot find attr");
-      return rc;
-    }
-    FilterObj filter_obj;
-    filter_obj.init_attr(Field(table, field));
-    filter_unit->set_right(filter_obj);
-    right = field->type();
-  } else {
-    FilterObj filter_obj;
-    filter_obj.init_value(condition.right_value);
-    filter_unit->set_right(filter_obj);
-    right = condition.right_value.attr_type();
+  switch (condition.right_type)
+  {
+    case 0:{
+      FilterObj filter_obj;
+      filter_obj.init_value(condition.right_value);
+      filter_unit->set_right(filter_obj);
+      right = condition.right_value.attr_type();
+    }break;
+    case 1:{
+      Table           *table = nullptr;
+      const FieldMeta *field = nullptr;
+      rc                     = get_table_and_field(db, default_table, tables, condition.right_attr, table, field);
+      if (rc != RC::SUCCESS) {
+        LOG_WARN("cannot find attr");
+        return rc;
+      }
+      if(fields != nullptr)fields->push_back(field);
+      FilterObj filter_obj;
+      filter_obj.init_attr(Field(table, field));
+      filter_unit->set_right(filter_obj);
+      right = field->type();
+    }case 2:{
+      FilterObj filter_obj;
+      filter_obj.type = 2;
+      filter_unit->set_right(filter_obj);
+      right = condition.right_select->selection.expressions[0]->value_type();
+    }break;
+    default: break;
   }
 
   filter_unit->set_comp(comp);
 
   // 检查两个类型是否能够比较
-  if(comp == CompOp::LIKE_OP && (left != AttrType::CHARS || right != AttrType::CHARS))
-    return RC::INVALID_ARGUMENT;
+  switch (comp)
+  {
+    case CompOp::LIKE_OP: case CompOp::NOT_LIKE:
+      if(left != AttrType::CHARS || right != AttrType::CHARS)
+        return RC::INVALID_ARGUMENT;
+    break;
+  
+    default:
+      break;
+  }
   return rc;
 }
