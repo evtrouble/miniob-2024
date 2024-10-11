@@ -17,6 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include <memory>
 #include <string>
 #include <regex>
+#include <unordered_set>
 
 #include "common/value.h"
 #include "storage/field/field.h"
@@ -83,6 +84,8 @@ public:
    * @brief 根据具体的tuple，来计算当前表达式的值。tuple有可能是一个具体某个表的行数据
    */
   virtual RC get_value(const Tuple &tuple, Value &value) const = 0;
+
+  virtual RC get_value_set(const Tuple &tuple, Value &value, bool &result) const {return RC::UNIMPLEMENTED;}
 
   /**
    * @brief 在没有实际运行的情况下，也就是无法获取tuple的情况下，尝试获取表达式的值
@@ -315,6 +318,10 @@ public:
 
   RC like_value(const Tuple &tuple, bool &result) const;
 
+  RC value_exists(const Tuple &tuple, bool &result) const;
+
+  RC value_in(const Tuple &tuple, bool &result) const;
+
   template <typename T>
   RC compare_column(const Column &left, const Column &right, std::vector<uint8_t> &result) const;
 
@@ -494,15 +501,16 @@ public:
   ExprType type() const override { return ExprType::SELECT; }
   AttrType value_type() const override { return value_type_;}
 
-  unique_ptr<PhysicalOperator> &physical_operator() { return physical_operator_; }
-
   RC get_value(const Tuple &tuple, Value &value) const override;
+  RC get_value_set(const Tuple &tuple, Value &value, bool &result) const;
 
   RC pretreatment();
 
+  RC physical_generate();
+
   RC next_tuple(Tuple *&tuple, Tuple *upper_tuple = nullptr) const;
 
-  RC physical_generate();
+  void set_trx(Trx *trx) { trx_ = trx; };
 
 private:
   AttrType value_type_;
@@ -510,4 +518,5 @@ private:
   unique_ptr<LogicalOperator> logical_operator_;
   unique_ptr<PhysicalOperator> physical_operator_;
   unique_ptr<vector<vector<Value>>> values_;
+  Trx*      trx_ = nullptr;
 };

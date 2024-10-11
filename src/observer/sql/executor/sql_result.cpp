@@ -34,8 +34,7 @@ RC SqlResult::open()
 
   if(select_exprs_ !=nullptr){
     for(auto& select_expr : *select_exprs_){
-      rc = select_expr->physical_operator()->open(trx);
-      if(rc != RC::SUCCESS)return rc;
+      select_expr->set_trx(trx);
     }
 
     rc = pretreatment();

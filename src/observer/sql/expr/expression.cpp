@@ -190,6 +190,46 @@ RC ComparisonExpr::like_value(const Tuple &tuple, bool &result) const
   return RC::SUCCESS;
 }
 
+RC ComparisonExpr::value_exists(const Tuple &tuple, bool &result) const
+{
+  if(right_->type() != ExprType::SELECT)return RC::INVALID_ARGUMENT;
+
+  Value right_value;
+
+  RC rc = right_->get_value(tuple, right_value);
+  if(rc == RC::VARIABLE_NOT_VALID){
+    result = true;
+    return RC::SUCCESS;
+  }
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
+    return rc;
+  }
+
+  result = (right_value.attr_type() != AttrType::UNDEFINED); 
+  return RC::SUCCESS;
+}
+
+RC ComparisonExpr::value_in(const Tuple &tuple, bool &result) const
+{
+  if(right_->type() != ExprType::SELECT)return RC::INVALID_ARGUMENT;
+
+  Value left_value;
+
+  RC rc = left_->get_value(tuple, left_value);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
+    return rc;
+  }
+  rc = right_->get_value_set(tuple, left_value, result);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
+    return rc;
+  }
+
+  return RC::SUCCESS;
+}
+
 RC ComparisonExpr::try_get_value(Value &cell) const
 {
   if (left_->type() == ExprType::VALUE && right_->type() == ExprType::VALUE) {
@@ -226,6 +266,30 @@ RC ComparisonExpr::get_value(const Tuple &tuple, Value &value) const
     }break;
     case CompOp::NOT_LIKE:{
       rc = like_value(tuple, bool_value);
+      if (rc == RC::SUCCESS) {
+        value.set_boolean(!bool_value);
+      }
+    }break;
+    case CompOp::EXISTS_OP:{
+      rc = value_exists(tuple, bool_value);
+      if (rc == RC::SUCCESS) {
+        value.set_boolean(bool_value);
+      }
+    }break;
+    case CompOp::NOT_EXISTS:{
+      rc = value_exists(tuple, bool_value);
+      if (rc == RC::SUCCESS) {
+        value.set_boolean(!bool_value);
+      }
+    }break;
+    case CompOp::IN_OP:{
+      rc = value_in(tuple, bool_value);
+      if (rc == RC::SUCCESS) {
+        value.set_boolean(bool_value);
+      }
+    }break;
+    case CompOp::NOT_IN:{
+      rc = value_in(tuple, bool_value);
       if (rc == RC::SUCCESS) {
         value.set_boolean(!bool_value);
       }
@@ -679,22 +743,80 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
     if(values_->size() == 0)
       return RC::SUCCESS;
 
+    if(values_->size() > 1)return RC::VARIABLE_NOT_VALID;
     value = values_->at(0)[0];
     return rc;
   }
 
+  physical_operator_->open(trx_);
   Tuple *ret_tuple = nullptr;
-  rc = next_tuple(ret_tuple, const_cast<Tuple*>(&tuple));
-  if (rc != RC::SUCCESS) {
+  auto temp = const_cast<Tuple*>(&tuple);
+  int num = 0;
+  while (RC::SUCCESS == (rc = next_tuple(ret_tuple, temp))) {   
+    assert(ret_tuple != nullptr);
+
+    num++;
+    if(num > 1){
+      physical_operator_->close();
+      return RC::VARIABLE_NOT_VALID;
+    }
+    
+    ret_tuple->cell_at(0, value);
+    if (rc != RC::SUCCESS) {
+      LOG_WARN("failed to get tuple cell value. rc=%s", strrc(rc));
+      return rc;
+    }
+  }
+
+  physical_operator_->close();
+
+  if (rc == RC::RECORD_EOF) {
+    rc = RC::SUCCESS;
+  }
+  return rc;
+}
+
+RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result) const
+{
+  RC rc = RC::SUCCESS;
+  result = false;
+  if(values_ != nullptr){
+    for(auto& values : *values_){
+      if(values.size() == 0)return RC::NOT_EXIST;
+      if(value.compare(values[0]) == 0){
+        result = true;
+        return rc;
+      }
+    }
     return rc;
   }
 
-  rc = ret_tuple->cell_at(0, value);
-  if (rc != RC::SUCCESS) {
-    LOG_WARN("failed to get tuple cell value. rc=%s", strrc(rc));
-    return rc;
+  physical_operator_->open(trx_);
+  Tuple *ret_tuple = nullptr;
+  auto temp = const_cast<Tuple*>(&tuple);
+
+  Value value_get;
+  while (RC::SUCCESS == (rc = next_tuple(ret_tuple, temp))) {   
+    assert(ret_tuple != nullptr);
+    
+    rc = ret_tuple->cell_at(0, value_get);
+    if (rc != RC::SUCCESS) {
+      LOG_WARN("failed to get tuple cell value. rc=%s", strrc(rc));
+      return rc;
+    }
+
+    if(value.compare(value_get) == 0){
+      physical_operator_->close();
+      result = true;
+      return rc;
+    }
   }
 
+  physical_operator_->close();
+
+  if (rc == RC::RECORD_EOF) {
+    rc = RC::SUCCESS;
+  }
   return rc;
 }
 
@@ -716,6 +838,7 @@ RC SelectExpr::pretreatment()
 {
   RC rc = RC::SUCCESS;
   Tuple *tuple = nullptr;
+  physical_operator_->open(trx_);
   if(values_ == nullptr)
     values_ = make_unique<vector<vector<Value>>>();
 
@@ -737,10 +860,12 @@ RC SelectExpr::pretreatment()
     }
   }
 
+  physical_operator_->close();
+
   if (rc == RC::RECORD_EOF) {
     rc = RC::SUCCESS;
   }
-  return RC::SUCCESS;
+  return rc;
 }
 
 SelectExpr::~SelectExpr()

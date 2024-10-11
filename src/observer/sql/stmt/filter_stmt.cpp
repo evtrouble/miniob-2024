@@ -142,7 +142,11 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, tables_t* table_
       filter_unit->set_left(filter_obj);
       left = field->type();
     }break;
-    default: break;
+    default: {
+      FilterObj filter_obj;
+      filter_obj.type = 2;
+      filter_unit->set_left(filter_obj);
+    }break;
   }
 
   switch (condition.right_type)
