@@ -32,13 +32,15 @@ RC SqlResult::open()
   Trx *trx = session_->current_trx();
   trx->start_if_need();
 
-  for(auto& select_expr : *select_exprs_){
-    rc = select_expr->physical_operator()->open(trx);
+  if(select_exprs_ !=nullptr){
+    for(auto& select_expr : *select_exprs_){
+      rc = select_expr->physical_operator()->open(trx);
+      if(rc != RC::SUCCESS)return rc;
+    }
+
+    rc = pretreatment();
     if(rc != RC::SUCCESS)return rc;
   }
-
-  rc = pretreatment();
-  if(rc != RC::SUCCESS)return rc;
 
   return operator_->open(trx);
 }
@@ -113,8 +115,8 @@ void SqlResult::targan(int u = 0)
         int v = depends_->at(u)[i];
         if (dfn[v] == 0)
         {
-            targan(v);
-            low[u] = std::min(low[u], low[v]);
+          targan(v);
+          low[u] = std::min(low[u], low[v]);
         }
         else if (instack[v])low[u] = std::min(low[u], dfn[v]);
     }

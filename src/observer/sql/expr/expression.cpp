@@ -680,21 +680,30 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
       return RC::SUCCESS;
 
     value = values_->at(0)[0];
-    cout<<value.to_string()<<endl;
-    //rc = physical_operator_->next();
-    
     return rc;
   }
-  // RC rc = physical_operator_->get_value(tuple, value);
-  // if (rc != RC::SUCCESS) {
-  //   return rc;
-  // }
+
+  Tuple *ret_tuple = nullptr;
+  rc = next_tuple(ret_tuple, const_cast<Tuple*>(&tuple));
+  if (rc != RC::SUCCESS) {
+    return rc;
+  }
+
+  rc = ret_tuple->cell_at(0, value);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to get tuple cell value. rc=%s", strrc(rc));
+    return rc;
+  }
+
   return rc;
 }
 
-RC SelectExpr::next_tuple(Tuple *&tuple)
+RC SelectExpr::next_tuple(Tuple *&tuple, Tuple *upper_tuple) const
 {
-  RC rc = physical_operator_->next();
+  RC rc = RC::SUCCESS;
+  if(upper_tuple == nullptr)
+    rc = physical_operator_->next();
+  else rc = physical_operator_->next(upper_tuple); 
   if (rc != RC::SUCCESS) {
     return rc;
   }

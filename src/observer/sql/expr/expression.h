@@ -500,7 +500,7 @@ public:
 
   RC pretreatment();
 
-  RC next_tuple(Tuple *&tuple);
+  RC next_tuple(Tuple *&tuple, Tuple *upper_tuple = nullptr) const;
 
   RC physical_generate();
 

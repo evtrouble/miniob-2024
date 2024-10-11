@@ -39,13 +39,14 @@ public:
   RC open(Trx *trx) override;
   RC next() override;
   RC close() override;
+  RC next(Tuple *upper_tuple) override;
 
   Tuple *current_tuple() override;
 
   void set_predicates(std::vector<std::unique_ptr<Expression>> &&exprs);
 
 private:
-  RC filter(RowTuple &tuple, bool &result);
+  RC filter(Tuple &tuple, bool &result);
 
 private:
   Table                                   *table_ = nullptr;

@@ -48,6 +48,14 @@ RC ProjectPhysicalOperator::next()
   return children_[0]->next();
 }
 
+RC ProjectPhysicalOperator::next(Tuple *upper_tuple)
+{
+  if (children_.empty()) {
+    return RC::RECORD_EOF;
+  }
+  return children_[0]->next(upper_tuple);
+}
+
 RC ProjectPhysicalOperator::close()
 {
   if (!children_.empty()) {

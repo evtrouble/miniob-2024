@@ -53,6 +53,35 @@ RC TableScanPhysicalOperator::next()
   return rc;
 }
 
+RC TableScanPhysicalOperator::next(Tuple *upper_tuple)
+{
+  RC rc = RC::SUCCESS;
+
+  bool filter_result = false;
+  while (OB_SUCC(rc = record_scanner_.next(current_record_))) {
+    LOG_TRACE("got a record. rid=%s", current_record_.rid().to_string().c_str());
+    
+    tuple_.set_record(&current_record_);
+    JoinedTuple join_tuple;
+    join_tuple.set_left(upper_tuple);
+    join_tuple.set_right(&tuple_);
+
+    rc = filter(tuple_, filter_result);
+    if (rc != RC::SUCCESS) {
+      LOG_TRACE("record filtered failed=%s", strrc(rc));
+      return rc;
+    }
+
+    if (filter_result) {
+      sql_debug("get a tuple: %s", tuple_.to_string().c_str());
+      break;
+    } else {
+      sql_debug("a tuple is filtered: %s", tuple_.to_string().c_str());
+    }
+  }
+  return rc;
+}
+
 RC TableScanPhysicalOperator::close() { return record_scanner_.close_scan(); }
 
 Tuple *TableScanPhysicalOperator::current_tuple()
@@ -68,7 +97,7 @@ void TableScanPhysicalOperator::set_predicates(vector<unique_ptr<Expression>> &&
   predicates_ = std::move(exprs);
 }
 
-RC TableScanPhysicalOperator::filter(RowTuple &tuple, bool &result)
+RC TableScanPhysicalOperator::filter(Tuple &tuple, bool &result)
 {
   RC    rc = RC::SUCCESS;
   Value value;

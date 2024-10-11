@@ -33,6 +33,36 @@ RC PredicatePhysicalOperator::open(Trx *trx)
   return children_[0]->open(trx);
 }
 
+RC PredicatePhysicalOperator::next(Tuple *upper_tuple)
+{
+  RC                rc   = RC::SUCCESS;
+  PhysicalOperator *oper = children_.front().get();
+  
+  while (RC::SUCCESS == (rc = oper->next())) {
+    Tuple *tuple = oper->current_tuple();
+    if (nullptr == tuple) {
+      rc = RC::INTERNAL;
+      LOG_WARN("failed to get tuple from operator");
+      break;
+    }
+
+    JoinedTuple join_tuple;
+    join_tuple.set_left(upper_tuple);
+    join_tuple.set_right(tuple);
+
+    Value value;
+    rc = expression_->get_value(join_tuple, value);
+    if (rc != RC::SUCCESS) {
+      return rc;
+    }
+
+    if (value.get_boolean()) {
+      return rc;
+    }
+  }
+  return rc;
+}
+
 RC PredicatePhysicalOperator::next()
 {
   RC                rc   = RC::SUCCESS;
