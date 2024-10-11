@@ -19,6 +19,7 @@ See the Mulan PSL v2 for more details. */
 
 #include "common/rc.h"
 #include "common/type/attr_type.h"
+#include "sql/expr/expression.h"
 
 class Stmt;
 class CalcStmt;
@@ -30,24 +31,22 @@ class DeleteStmt;
 class ExplainStmt;
 class LogicalOperator;
 
-class SelectExpr;
-
 class LogicalPlanGenerator
 {
 public:
   LogicalPlanGenerator()          = default;
   virtual ~LogicalPlanGenerator() = default;
 
-  RC create(Stmt *stmt, std::unique_ptr<LogicalOperator> &logical_operator, std::vector<SelectExpr*>* select_exprs = nullptr);
+  RC create(Stmt *stmt, std::unique_ptr<LogicalOperator> &logical_operator, std::vector<SelectExpr*>* select_exprs);
 
 private:
   RC create_plan(CalcStmt *calc_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
   RC create_plan(SelectStmt *select_stmt, std::unique_ptr<LogicalOperator> &logical_operator, std::vector<SelectExpr*>* select_exprs);
-  RC create_plan(FilterStmt *filter_stmt, std::unique_ptr<LogicalOperator> &logical_operator, std::vector<SelectExpr*>* select_exprs = nullptr);
+  RC create_plan(FilterStmt *filter_stmt, std::unique_ptr<LogicalOperator> &logical_operator, std::vector<SelectExpr*>* select_exprs);
   RC create_plan(InsertStmt *insert_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
-  RC create_plan(UpdateStmt *update_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
-  RC create_plan(DeleteStmt *delete_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
-  RC create_plan(ExplainStmt *explain_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
+  RC create_plan(UpdateStmt *update_stmt, std::unique_ptr<LogicalOperator> &logical_operator, vector<SelectExpr*>* select_exprs);
+  RC create_plan(DeleteStmt *delete_stmt, std::unique_ptr<LogicalOperator> &logical_operator, vector<SelectExpr*>* select_exprs);
+  RC create_plan(ExplainStmt *explain_stmt, std::unique_ptr<LogicalOperator> &logical_operator, vector<SelectExpr*>* select_exprs);
 
   RC create_group_by_plan(SelectStmt *select_stmt, std::unique_ptr<LogicalOperator> &logical_operator);
 

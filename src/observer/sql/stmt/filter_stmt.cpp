@@ -43,6 +43,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const C
 
     rc = create_filter_unit(db, default_table, table_map, conditions[i], filter_unit, &min_depend);
     if (rc != RC::SUCCESS) {
+      delete filter_unit;
       delete tmp_stmt;
       LOG_WARN("failed to create filter unit. condition index=%d", i);
       return rc;
@@ -62,8 +63,12 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const C
     }
   if(select_id.size()){
     for(auto& id : select_id){
-      tmp_stmt->filter_units_[id]->right().init_stmt(db, conditions[id].right_select.get(), 
+      rc = tmp_stmt->filter_units_[id]->right().init_stmt(db, conditions[id].right_select.get(), 
         depends, table_map, size);
+      if(rc != RC::SUCCESS){
+        delete tmp_stmt;
+        return rc;
+      }
     }
   }
   

@@ -48,8 +48,6 @@ public:
   RC                 return_code() const { return return_code_; }
   const std::string &state_string() const { return state_string_; }
 
-  RC                 pretreatment();
-
   RC open();
   RC close();
   RC next_tuple(Tuple *&tuple);
@@ -57,6 +55,7 @@ public:
 
 private:
   void targan(int u);
+  RC                 pretreatment();
 
 private:
   Session                          *session_ = nullptr;  ///< 当前所属会话

@@ -43,11 +43,11 @@ struct FilterObj
     this->value = value;
   }
 
-  void init_stmt(Db *db, ParsedSqlNode* sql_node, vector<vector<uint32_t>>* depends, 
+  RC init_stmt(Db *db, ParsedSqlNode* sql_node, vector<vector<uint32_t>>* depends, 
     tables_t* tables_map, int fa)
   {
     type     = 2;
-    Stmt::create_stmt(db, *sql_node, this->stmt, depends, tables_map, fa);
+    return Stmt::create_stmt(db, *sql_node, this->stmt, depends, tables_map, fa);
   }
 };
 

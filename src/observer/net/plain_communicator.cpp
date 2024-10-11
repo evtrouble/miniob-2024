@@ -236,11 +236,6 @@ RC PlainCommunicator::write_result_internal(SessionEvent *event, bool &need_disc
     }
   }
 
-  rc = sql_result->pretreatment();
-  if (OB_FAIL(rc)) {
-    return rc;
-  }
-
   rc = RC::SUCCESS;
   if (event->session()->get_execution_mode() == ExecutionMode::CHUNK_ITERATOR
       && event->session()->used_chunk_mode()) {

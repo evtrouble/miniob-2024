@@ -37,6 +37,9 @@ RC SqlResult::open()
     if(rc != RC::SUCCESS)return rc;
   }
 
+  rc = pretreatment();
+  if(rc != RC::SUCCESS)return rc;
+
   return operator_->open(trx);
 }
 
@@ -51,10 +54,6 @@ RC SqlResult::close()
   }
 
   operator_.reset();
-
-  for(auto& select_expr : *select_exprs_){
-    select_expr->physical_operator()->close();
-  }
 
   if (session_ && !session_->is_trx_multi_operation_mode()) {
     if (rc == RC::SUCCESS) {
@@ -96,10 +95,6 @@ void SqlResult::set_operator(std::unique_ptr<PhysicalOperator> oper)
 void SqlResult::set_depends(unique_ptr<vector<vector<uint32_t>>> depends)
 {
   depends_ = std::move(depends); 
-  auto size = depends_->size();
-  dfn.resize(size);
-  instack.resize(size);
-  low.resize(size);
 }
 
 void SqlResult::set_exprs(unique_ptr<vector<SelectExpr*>> select_exprs)
@@ -141,15 +136,16 @@ RC SqlResult::pretreatment()
 {
   if(depends_->size() == 0 || depends_->size() == 1)return RC::SUCCESS;
   if(scc.size() == 0){
+    auto size = depends_->size();
+    dfn.resize(size);
+    instack.resize(size);
+    low.resize(size);
     targan();
     std::sort(scc.begin(), scc.end());
   }
 
   RC rc = RC::SUCCESS;
-  for(int id = scc.size() - 1; id; id--){
-    cout<<scc[id] - 1<<endl;
-  }
-  return RC::NOT_EXIST;
+
   for(int id = scc.size() - 1; id; id--){
     rc = select_exprs_->at(scc[id] - 1)->pretreatment();
     if(rc != RC::SUCCESS)return rc;

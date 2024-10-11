@@ -489,7 +489,7 @@ public:
   SelectExpr() = default;
   SelectExpr(Stmt* stmt, vector<SelectExpr*>* select_exprs);
 
-  virtual ~SelectExpr() = default;
+  virtual ~SelectExpr();
 
   ExprType type() const override { return ExprType::SELECT; }
   AttrType value_type() const override { return value_type_;}
@@ -500,6 +500,8 @@ public:
 
   RC pretreatment();
 
+  RC next_tuple(Tuple *&tuple);
+
   RC physical_generate();
 
 private:
@@ -507,5 +509,5 @@ private:
 
   unique_ptr<LogicalOperator> logical_operator_;
   unique_ptr<PhysicalOperator> physical_operator_;
-  unique_ptr<vector<Value>> values_;
+  unique_ptr<vector<vector<Value>>> values_;
 };
