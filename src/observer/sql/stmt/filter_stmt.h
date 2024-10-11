@@ -44,12 +44,11 @@ struct FilterObj
   }
 
   void init_stmt(Db *db, ParsedSqlNode* sql_node, vector<vector<uint32_t>>* depends, 
-    std::unordered_map<const FieldMeta*, uint32_t>* field_set, int fa)
+    tables_t* tables_map, int fa)
   {
     type     = 2;
-    Stmt::create_stmt(db, *sql_node, this->stmt, depends, field_set, fa);
+    Stmt::create_stmt(db, *sql_node, this->stmt, depends, tables_map, fa);
   }
-
 };
 
 class FilterUnit
@@ -89,13 +88,12 @@ public:
   const std::vector<FilterUnit *> &filter_units() const { return filter_units_; }
 
 public:
-  static RC create(Db *db, Table *default_table, std::unordered_map<std::string, Table *> *tables,
-      const ConditionSqlNode *conditions, int condition_num, FilterStmt *&stmt, 
-      vector<vector<uint32_t>>* depends = nullptr, 
-      std::unordered_map<const FieldMeta*, uint32_t>* field_set = nullptr, int fa = -1);
+  static RC create(Db *db, Table *default_table, tables_t* table_map, const ConditionSqlNode *conditions, 
+    int condition_num, FilterStmt *&stmt, vector<vector<uint32_t>>* depends, int fa = -1);
 
-  static RC create_filter_unit(Db *db, Table *default_table, std::unordered_map<std::string, Table *> *tables,
-      const ConditionSqlNode &condition, FilterUnit *&filter_unit, vector<const FieldMeta*>* fields = nullptr);
+
+  static RC create_filter_unit(Db *db, Table *default_table, tables_t* table_map,
+    const ConditionSqlNode &condition, FilterUnit *&filter_unit, size_t *min_depend);
 
 private:
   std::vector<FilterUnit *> filter_units_;  // 默认当前都是AND关系

@@ -36,7 +36,8 @@ public:
   StmtType type() const override { return StmtType::DELETE; }
 
 public:
-  static RC create(Db *db, const DeleteSqlNode &delete_sql, Stmt *&stmt);
+  static RC create(Db *db, const DeleteSqlNode &delete_sql, Stmt *&stmt, 
+    vector<vector<uint32_t>>* depends = nullptr, tables_t* table_map = nullptr, int fa = -1);
 
 private:
   Table      *table_       = nullptr;

@@ -49,7 +49,7 @@ bool stmt_type_ddl(StmtType type)
   }
 }
 RC Stmt::create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt, 
-  vector<vector<uint32_t>>* depends, std::unordered_map<const FieldMeta*, uint32_t>* field_set, int fa)
+  vector<vector<uint32_t>>* depends, tables_t* table_map, int fa)
 {
   stmt = nullptr;
 
@@ -58,17 +58,17 @@ RC Stmt::create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt,
       return InsertStmt::create(db, sql_node.insertion, stmt);
     }
     case SCF_UPDATE: {
-      return UpdateStmt::create(db, sql_node.update, stmt);
+      return UpdateStmt::create(db, sql_node.update, stmt, depends, table_map, fa);
     }
     case SCF_DELETE: {
-      return DeleteStmt::create(db, sql_node.deletion, stmt);
+      return DeleteStmt::create(db, sql_node.deletion, stmt, depends, table_map, fa);
     }
     case SCF_SELECT: {
-      return SelectStmt::create(db, sql_node.selection, stmt, depends, field_set, fa);
+      return SelectStmt::create(db, sql_node.selection, stmt, depends, table_map, fa);
     }
 
     case SCF_EXPLAIN: {
-      return ExplainStmt::create(db, sql_node.explain, stmt);
+      return ExplainStmt::create(db, sql_node.explain, stmt, depends, table_map, fa);
     }
 
     case SCF_CREATE_INDEX: {

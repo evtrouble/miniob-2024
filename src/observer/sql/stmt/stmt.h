@@ -21,6 +21,9 @@ See the Mulan PSL v2 for more details. */
 
 class Db;
 class FieldMeta;
+class Table;
+
+using tables_t = std::unordered_map<std::string, std::pair<Table*, size_t>>;
 
 /**
  * @brief Statement SQL语句解析后通过Resolver转换成Stmt
@@ -91,8 +94,7 @@ public:
 
 public:
   static RC create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt, 
-    vector<vector<uint32_t>>* depends = nullptr, 
-    std::unordered_map<const FieldMeta*, uint32_t>* field_set = nullptr, int fa = -1);
+    vector<vector<uint32_t>>* depends, tables_t* table_map, int fa = -1);
 
 private:
 };

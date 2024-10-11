@@ -28,36 +28,20 @@ FilterStmt::~FilterStmt()
   filter_units_.clear();
 }
 
-RC FilterStmt::create(Db *db, Table *default_table, std::unordered_map<std::string, Table *> *tables,
-    const ConditionSqlNode *conditions, int condition_num, FilterStmt *&stmt, 
-    vector<vector<uint32_t>>* depends, std::unordered_map<const FieldMeta*, uint32_t>* field_set, int fa)
+RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const ConditionSqlNode *conditions, 
+    int condition_num, FilterStmt *&stmt, vector<vector<uint32_t>>* depends, int fa)
 {
   RC rc = RC::SUCCESS;
   stmt  = nullptr;
   FilterStmt *tmp_stmt = new FilterStmt();
-  if(depends == nullptr || field_set == nullptr){
-    for (int i = 0; i < condition_num; i++) {
-      FilterUnit *filter_unit = nullptr;
-
-      rc = create_filter_unit(db, default_table, tables, conditions[i], filter_unit);
-      if (rc != RC::SUCCESS) {
-        delete tmp_stmt;
-        LOG_WARN("failed to create filter unit. condition index=%d", i);
-        return rc;
-      }
-      tmp_stmt->filter_units_.push_back(filter_unit);
-    }
-
-    stmt = tmp_stmt;
-    return rc;
-  }
 
   vector<uint32_t> select_id;
-  vector<const FieldMeta*> fields;
+  vector<Table*> tables;
+  size_t min_depend = UINT32_MAX;
   for (int i = 0; i < condition_num; i++) {
     FilterUnit *filter_unit = nullptr;
 
-    rc = create_filter_unit(db, default_table, tables, conditions[i], filter_unit, &fields);
+    rc = create_filter_unit(db, default_table, table_map, conditions[i], filter_unit, &min_depend);
     if (rc != RC::SUCCESS) {
       delete tmp_stmt;
       LOG_WARN("failed to create filter unit. condition index=%d", i);
@@ -71,32 +55,15 @@ RC FilterStmt::create(Db *db, Table *default_table, std::unordered_map<std::stri
   auto size = depends->size();
   depends->push_back(vector<uint32_t>());
 
-  uint32_t min_depend = UINT32_MAX;
-  
-  for(auto& field : fields){
-    if(field_set->count(field))
-      min_depend = std::min(min_depend, field_set->at(field));
-  }
-
   if( fa >= 0){
       depends->at(fa).push_back(size);
-      if(min_depend != UINT32_MAX)
+      if(min_depend < size)
         depends->at(size).push_back(min_depend);
     }
   if(select_id.size()){
-    for(auto& field : fields){
-      if(!field_set->count(field))
-        field_set->insert({field, size});
-    }
-    
     for(auto& id : select_id){
       tmp_stmt->filter_units_[id]->right().init_stmt(db, conditions[id].right_select.get(), 
-        depends, field_set, size);
-    }
-
-    for(auto& field : fields){
-      if(field_set->at(field) == size)
-        field_set->erase(field);
+        depends, table_map, size);
     }
   }
   
@@ -104,15 +71,16 @@ RC FilterStmt::create(Db *db, Table *default_table, std::unordered_map<std::stri
   return rc;
 }
 
-RC get_table_and_field(Db *db, Table *default_table, std::unordered_map<std::string, Table *> *tables,
-    const RelAttrSqlNode &attr, Table *&table, const FieldMeta *&field)
+RC get_table_and_field(Db *db, Table *default_table, tables_t *table_map,
+    const RelAttrSqlNode &attr, Table *&table, const FieldMeta *&field, size_t *min_depend)
 {
   if (common::is_blank(attr.relation_name.c_str())) {
     table = default_table;
-  } else if (nullptr != tables) {
-    auto iter = tables->find(attr.relation_name);
-    if (iter != tables->end()) {
-      table = iter->second;
+  } else if (nullptr != table_map) {
+    auto iter = table_map->find(attr.relation_name);
+    if (iter != table_map->end()) {
+      table = iter->second.first;
+      *min_depend = std::min(*min_depend, iter->second.second);
     }
   } else {
     table = db->find_table(attr.relation_name.c_str());
@@ -132,8 +100,8 @@ RC get_table_and_field(Db *db, Table *default_table, std::unordered_map<std::str
   return RC::SUCCESS;
 }
 
-RC FilterStmt::create_filter_unit(Db *db, Table *default_table, std::unordered_map<std::string, Table *> *tables,
-    const ConditionSqlNode &condition, FilterUnit *&filter_unit, vector<const FieldMeta*>* fields)
+RC FilterStmt::create_filter_unit(Db *db, Table *default_table, tables_t* table_map,
+    const ConditionSqlNode &condition, FilterUnit *&filter_unit, size_t *min_depend)
 {
   RC rc = RC::SUCCESS;
 
@@ -157,12 +125,13 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, std::unordered_m
     case 1:{
       Table           *table = nullptr;
       const FieldMeta *field = nullptr;
-      rc = get_table_and_field(db, default_table, tables, condition.left_attr, table, field);
+        
+      rc = get_table_and_field(db, default_table, table_map, condition.left_attr, table, field, min_depend);
       if (rc != RC::SUCCESS) {
         LOG_WARN("cannot find attr");
         return rc;
       }
-      if(fields != nullptr)fields->push_back(field);
+
       FilterObj filter_obj;
       filter_obj.init_attr(Field(table, field));
       filter_unit->set_left(filter_obj);
@@ -182,17 +151,17 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, std::unordered_m
     case 1:{
       Table           *table = nullptr;
       const FieldMeta *field = nullptr;
-      rc                     = get_table_and_field(db, default_table, tables, condition.right_attr, table, field);
+      rc = get_table_and_field(db, default_table, table_map, condition.right_attr, table, field, min_depend);
       if (rc != RC::SUCCESS) {
         LOG_WARN("cannot find attr");
         return rc;
       }
-      if(fields != nullptr)fields->push_back(field);
       FilterObj filter_obj;
       filter_obj.init_attr(Field(table, field));
       filter_unit->set_right(filter_obj);
       right = field->type();
-    }case 2:{
+    }break;
+    case 2:{
       FilterObj filter_obj;
       filter_obj.type = 2;
       filter_unit->set_right(filter_obj);

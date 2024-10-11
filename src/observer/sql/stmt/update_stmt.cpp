@@ -30,7 +30,8 @@ UpdateStmt::~UpdateStmt()
   }
 }
 
-RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt)
+RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt, 
+  vector<vector<uint32_t>>* depends, tables_t* table_map, int fa)
 {
   const char *table_name = update.relation_name.c_str();
   if (nullptr == db || nullptr == table_name || update.attribute_names.empty() || 
@@ -53,6 +54,7 @@ RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt)
 
   std::vector<const FieldMeta *> fields;
 
+  auto size = depends->size();
   for(auto& attribute_name : update.attribute_names){
     field = table_meta.field(attribute_name.c_str());
     if (nullptr == field) {
@@ -62,15 +64,22 @@ RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt)
     fields.emplace_back(field);
   }
     
-  std::unordered_map<std::string, Table *> table_map;
-  table_map.insert(std::pair<std::string, Table *>(std::string(table_name), table));
+  if(!table_map->count(table_name)){
+    auto temp = std::make_pair(table, size);
+    table_map->insert({table_name, temp});
+  }
 
   FilterStmt *filter_stmt = nullptr;
   RC          rc          = FilterStmt::create(
-      db, table, &table_map, update.conditions.data(), static_cast<int>(update.conditions.size()), filter_stmt);
+      db, table, table_map, update.conditions.data(), static_cast<int>(update.conditions.size()), 
+      filter_stmt, depends, fa);
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to create filter statement. rc=%d:%s", rc, strrc(rc));
     return rc;
+  }
+
+  if(table_map->at(table_name).second == size){
+    table_map->erase(table_name);
   }
 
   // everything alright

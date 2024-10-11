@@ -32,7 +32,7 @@ SelectStmt::~SelectStmt()
 }
 
 RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt, 
-  vector<vector<uint32_t>>* depends, std::unordered_map<const FieldMeta*, uint32_t>* field_set, int fa)
+  vector<vector<uint32_t>>* depends, tables_t* table_map, int fa)
 {
   if (nullptr == db) {
     LOG_WARN("invalid argument. db is null");
@@ -43,7 +43,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
 
   // collect tables in `from` statement
   vector<Table *>                tables;
-  unordered_map<string, Table *> table_map;
+  auto size = depends->size();
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
     const char *table_name = select_sql.relations[i].c_str();
     if (nullptr == table_name) {
@@ -59,7 +59,11 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
 
     binder_context.add_table(table);
     tables.push_back(table);
-    table_map.insert({table_name, table});
+    
+    if(!table_map->count(table_name)){
+      auto temp = make_pair(table, size);
+      table_map->insert({table_name, temp});
+    }
   }
 
   // collect query fields in `select` statement
@@ -93,13 +97,20 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
 
   RC          rc          = FilterStmt::create(db,
       default_table,
-      &table_map,
+      table_map,
       select_sql.conditions.data(),
       static_cast<int>(select_sql.conditions.size()),
-      filter_stmt, depends, field_set, fa);
+      filter_stmt, depends, fa);
   if (rc != RC::SUCCESS) {
     LOG_WARN("cannot construct filter stmt");
     return rc;
+  }
+
+  for (size_t i = 0; i < select_sql.relations.size(); i++) {
+    const char *table_name = select_sql.relations[i].c_str();
+    if(table_map->at(table_name).second == size){
+      table_map->erase(table_name);
+    }
   }
 
   // everything alright

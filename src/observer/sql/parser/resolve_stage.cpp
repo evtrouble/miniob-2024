@@ -46,8 +46,8 @@ RC ResolveStage::handle_request(SQLStageEvent *sql_event)
   ParsedSqlNode *sql_node = sql_event->sql_node().get();
   Stmt          *stmt     = nullptr;
   auto depends = make_unique<vector<vector<uint32_t>>>();
-  auto field_set = make_unique<std::unordered_map<const FieldMeta*, uint32_t>>();
-  rc = Stmt::create_stmt(db, *sql_node, stmt, depends.get(), field_set.get());
+  auto table_map = make_unique<tables_t>();
+  rc = Stmt::create_stmt(db, *sql_node, stmt, depends.get(), table_map.get());
   if (rc != RC::SUCCESS && rc != RC::UNIMPLEMENTED) {
     LOG_WARN("failed to create stmt. rc=%d:%s", rc, strrc(rc));
     sql_result->set_return_code(rc);

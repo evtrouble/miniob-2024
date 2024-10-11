@@ -16,7 +16,6 @@ See the Mulan PSL v2 for more details. */
 
 #include <memory>
 #include <vector>
-#include <unordered_map>
 
 #include "common/rc.h"
 #include "sql/stmt/stmt.h"
@@ -40,7 +39,7 @@ public:
 
 public:
   static RC create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt, 
-    vector<vector<uint32_t>>* depends, std::unordered_map<const FieldMeta*, uint32_t>* field_set, int fa = -1);
+    vector<vector<uint32_t>>* depends, tables_t* table_map, int fa = -1);
 
 public:
   const std::vector<Table *> &tables() const { return tables_; }
