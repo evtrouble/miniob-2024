@@ -51,6 +51,8 @@ RC DeleteStmt::create(Db *db, const DeleteSqlNode &delete_sql, Stmt *&stmt,
     table_map->insert({table_name, temp});
   }
 
+  depends->push_back(vector<uint32_t>());
+
   FilterStmt *filter_stmt = nullptr;
   RC          rc          = FilterStmt::create(
       db, table, table_map, delete_sql.conditions.data(), static_cast<int>(delete_sql.conditions.size()), 

@@ -725,19 +725,21 @@ RC AggregateExpr::type_from_string(const char *type_str, AggregateExpr::Type &ty
 SelectExpr::SelectExpr(Stmt* stmt, vector<SelectExpr*>* select_exprs)
 {
   if(stmt != nullptr){
-    select_exprs->push_back(static_cast<SelectExpr*>(this));
-    LogicalPlanGenerator().create(stmt, logical_operator_, select_exprs);
+    if(select_exprs != nullptr)select_exprs->push_back(static_cast<SelectExpr*>(this));
+    rc_ = LogicalPlanGenerator().create(stmt, logical_operator_, select_exprs);
     value_type_ = logical_operator_->expressions().at(0)->value_type();
   }
 }
 
 RC SelectExpr::physical_generate()
 {
+  if(rc_ != RC::SUCCESS)return rc_;
   return PhysicalPlanGenerator().create(*logical_operator_, physical_operator_);
 }
 
 RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
 {
+  if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   if(values_ != nullptr){
     if(values_->size() == 0)
@@ -778,6 +780,7 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
 
 RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result) const
 {
+  if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   result = false;
   if(values_ != nullptr){
@@ -822,6 +825,7 @@ RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result) con
 
 RC SelectExpr::next_tuple(Tuple *&tuple, Tuple *upper_tuple) const
 {
+  if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   if(upper_tuple == nullptr)
     rc = physical_operator_->next();
@@ -836,6 +840,7 @@ RC SelectExpr::next_tuple(Tuple *&tuple, Tuple *upper_tuple) const
 
 RC SelectExpr::pretreatment()
 {
+  if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   Tuple *tuple = nullptr;
   physical_operator_->open(trx_);
@@ -868,7 +873,4 @@ RC SelectExpr::pretreatment()
   return rc;
 }
 
-SelectExpr::~SelectExpr()
-{
-  physical_operator_->close();
-}
+SelectExpr::~SelectExpr() = default;

@@ -53,14 +53,10 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const C
     tmp_stmt->filter_units_.push_back(filter_unit);
   }
 
-  auto size = depends->size();
-  depends->push_back(vector<uint32_t>());
+  auto size = depends->size() - 1;
+  if(fa >= 0 && min_depend < size)
+    depends->at(size).push_back(min_depend);
 
-  if( fa >= 0){
-      depends->at(fa).push_back(size);
-      if(min_depend < size)
-        depends->at(size).push_back(min_depend);
-    }
   if(select_id.size()){
     for(auto& id : select_id){
       rc = tmp_stmt->filter_units_[id]->right().init_stmt(db, conditions[id].right_select.get(), 

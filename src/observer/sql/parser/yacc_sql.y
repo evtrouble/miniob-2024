@@ -169,6 +169,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <values_list>         values_list
 %type <value_list>          value_list
 %type <key_values>          key_values
+%type <value>               assign_value
 %type <condition_list>      where
 %type <condition_list>      on
 %type <join_list>           join_list
@@ -515,7 +516,7 @@ update_stmt:      /*  update 语句的语法解析树*/
     ;
 
 key_values:
-    ID EQ value
+    ID EQ assign_value
     {
       $$ = new Key_values;
       $$->relation_list = new vector<string>;
@@ -525,7 +526,7 @@ key_values:
       $$->value_list->emplace_back(move(*$3));
       delete $3;
     }
-    | ID EQ value COMMA key_values
+    | ID EQ assign_value COMMA key_values
     {
       if ($5 != nullptr) {
         $$ = $5;
@@ -541,6 +542,15 @@ key_values:
       delete $3;
     }
     ;
+
+assign_value:
+    value { $$ = $1; }
+    | LBRACE select_stmt RBRACE
+    {
+      $$ = new Value($2);
+    }
+    ;
+
 select_stmt:        /*  select 语句的语法解析树*/
     SELECT expression_list FROM rel_list where group_by
     {

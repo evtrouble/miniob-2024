@@ -514,6 +514,7 @@ public:
 
 private:
   AttrType value_type_;
+  RC        rc_ = RC::SUCCESS;
 
   unique_ptr<LogicalOperator> logical_operator_;
   unique_ptr<PhysicalOperator> physical_operator_;

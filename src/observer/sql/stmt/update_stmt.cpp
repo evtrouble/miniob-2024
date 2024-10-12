@@ -18,8 +18,9 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 
-UpdateStmt::UpdateStmt(Table *table, const std::vector<const FieldMeta *>&& fields, const vector<Value>&& values, FilterStmt *filter_stmt)
-    : table_(table), fields_(move(fields)), values_(move(values)), filter_stmt_(filter_stmt)
+UpdateStmt::UpdateStmt(Table *table, const std::vector<const FieldMeta *>&& fields, 
+  const vector<Value>&& values, FilterStmt *filter_stmt, std::unordered_map<size_t, void*>&& stmt_map)
+  : table_(table), fields_(move(fields)), values_(move(values)), filter_stmt_(filter_stmt), stmt_map_(move(stmt_map))
 {}
 
 UpdateStmt::~UpdateStmt()
@@ -69,6 +70,8 @@ RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt,
     table_map->insert({table_name, temp});
   }
 
+  depends->push_back(vector<uint32_t>());
+
   FilterStmt *filter_stmt = nullptr;
   RC          rc          = FilterStmt::create(
       db, table, table_map, update.conditions.data(), static_cast<int>(update.conditions.size()), 
@@ -78,11 +81,25 @@ RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt,
     return rc;
   }
 
+  std::unordered_map<size_t, void*> stmt_map;
+  vector<Value> values;
+  Stmt* sub_stmt;
+  for(auto& value : update.values){
+    if(value.attr_type() == AttrType::SELECT){
+      rc = Stmt::create_stmt(db, *(ParsedSqlNode*)value.data(), sub_stmt, depends, table_map, size);
+      if(rc != RC::SUCCESS)return rc;
+      stmt_map.insert({values.size(), sub_stmt});
+      values.emplace_back(Value());
+    }else{
+      values.emplace_back(std::move(value));
+    }
+  }
+
   if(table_map->at(table_name).second == size){
     table_map->erase(table_name);
   }
 
   // everything alright
-  stmt = new UpdateStmt(table, move(fields), move(update.values), filter_stmt);
+  stmt = new UpdateStmt(table, move(fields), move(values), filter_stmt, move(stmt_map));
   return RC::SUCCESS;
 }

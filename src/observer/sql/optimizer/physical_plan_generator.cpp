@@ -277,8 +277,10 @@ RC PhysicalPlanGenerator::create_plan(UpdateLogicalOperator &update_oper, std::u
 
   Table                  *table           = update_oper.table();
   std::vector<const FieldMeta *>& fields  = update_oper.fields();
-  std::vector<Value> &values = update_oper.values();
-  oper = unique_ptr<PhysicalOperator>(new UpdatePhysicalOperator(table, std::move(fields), std::move(values)));
+  std::vector<Value>& values = update_oper.values();
+  std::unordered_map<size_t, void*>& select_map = update_oper.stmt_map();
+  oper = unique_ptr<PhysicalOperator>(new UpdatePhysicalOperator(table, std::move(fields), 
+    std::move(values), std::move(select_map)));
 
   if (child_physical_oper) {
     oper->add_child(std::move(child_physical_oper));

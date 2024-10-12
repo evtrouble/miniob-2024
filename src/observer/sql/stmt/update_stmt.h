@@ -14,6 +14,8 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include <unordered_map>
+
 #include "common/rc.h"
 #include "sql/stmt/stmt.h"
 
@@ -30,7 +32,8 @@ class UpdateStmt : public Stmt
 {
 public:
   UpdateStmt() = default;
-  UpdateStmt(Table *table, const std::vector<const FieldMeta *>&& fields, const vector<Value>&& values, FilterStmt *filter_stmt);
+  UpdateStmt(Table *table, const std::vector<const FieldMeta *>&& fields, 
+    const vector<Value>&& values, FilterStmt *filter_stmt, std::unordered_map<size_t, void*>&& stmt_map);
   ~UpdateStmt() override;
 
   StmtType type() const override { return StmtType::UPDATE; }
@@ -43,6 +46,7 @@ public:
   Table *table() const { return table_; }
   const std::vector<const FieldMeta *>& fields() const { return fields_; }
   const vector<Value>& values() const { return values_; }
+  std::unordered_map<size_t, void*>& stmt_map() { return stmt_map_; }
   FilterStmt *filter_stmt() const { return filter_stmt_; }
 
 private:
@@ -50,4 +54,5 @@ private:
   const std::vector<const FieldMeta *> fields_;
   const vector<Value> values_;
   FilterStmt *filter_stmt_ = nullptr;
+  std::unordered_map<size_t, void*> stmt_map_;
 };

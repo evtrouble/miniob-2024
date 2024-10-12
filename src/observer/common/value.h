@@ -20,6 +20,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/type/data_type.h"
 
 class Date;
+class ParsedSqlNode;
 
 /**
  * @brief 属性的值
@@ -38,7 +39,7 @@ public:
   friend class CharType;
   friend class DateType;
 
-  Value() = default;
+  Value() { attr_type_ = AttrType::UNDEFINED; }
 
   ~Value() { reset(); }
 
@@ -49,6 +50,7 @@ public:
   explicit Value(bool val);
   explicit Value(const char *s, int len = 0);
   explicit Value(const Date *s, int len = 0);
+  explicit Value(ParsedSqlNode *select);
 
   Value(const Value &other);
   Value(Value &&other);
@@ -174,7 +176,7 @@ private:
     float   float_value_;
     bool    bool_value_;
     char   *pointer_value_;
-    Date   *date_value_;
+    ParsedSqlNode   *select_value_;
   } value_ = {.int_value_ = 0};
 
   /// 是否申请并占有内存, 目前对于 CHARS 类型 own_data_ 为true, 其余类型 own_data_ 为false

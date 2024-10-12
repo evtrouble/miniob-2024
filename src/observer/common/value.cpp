@@ -18,6 +18,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/sstream.h"
 #include "common/lang/string.h"
 #include "common/log/log.h"
+#include "sql/expr/expression.h"
 
 Value::Value(int val) { set_int(val); }
 
@@ -33,6 +34,19 @@ Value::Value(const Date *s, int len /*= 10*/)
     set_date((const char*)s, len);
   else
     set_string((const char*)s, len); 
+}
+
+Value::Value(ParsedSqlNode *select)
+{
+  reset();
+  attr_type_ = AttrType::SELECT;
+  if (select == nullptr) {
+    value_.select_value_ = nullptr;
+    length_               = 0;
+  } else {
+    own_data_ = true;
+    value_.select_value_ = select;
+  }
 }
 
 Value::Value(const Value &other)
@@ -106,10 +120,16 @@ Value &Value::operator=(Value &&other)
 void Value::reset()
 {
   switch (attr_type_) {
-    case AttrType::CHARS: case AttrType::DATES:
+    case AttrType::CHARS: case AttrType::DATES: 
       if (own_data_ && value_.pointer_value_ != nullptr) {
         delete[] value_.pointer_value_;
         value_.pointer_value_ = nullptr;
+      }
+      break;
+    case AttrType::SELECT:
+      if (own_data_ && value_.select_value_ != nullptr) {
+        delete value_.select_value_;
+        value_.select_value_ = nullptr;
       }
       break;
     default: break;
@@ -304,6 +324,9 @@ const char *Value::data() const
   switch (attr_type_) {
     case AttrType::CHARS: case AttrType::DATES: {
       return value_.pointer_value_;
+    } break;
+    case AttrType::SELECT:{
+      return (const char *)value_.select_value_;
     } break;
     default: {
       return (const char *)&value_;

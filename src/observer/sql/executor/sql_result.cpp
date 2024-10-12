@@ -32,7 +32,7 @@ RC SqlResult::open()
   Trx *trx = session_->current_trx();
   trx->start_if_need();
 
-  if(select_exprs_ !=nullptr){
+  if(select_exprs_ != nullptr){
     for(auto& select_expr : *select_exprs_){
       select_expr->set_trx(trx);
     }
@@ -141,6 +141,7 @@ RC SqlResult::pretreatment()
     dfn.resize(size);
     instack.resize(size);
     low.resize(size);
+
     targan();
     std::sort(scc.begin(), scc.end());
   }

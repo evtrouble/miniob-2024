@@ -28,9 +28,10 @@ class FieldMeta;
 class UpdatePhysicalOperator : public PhysicalOperator
 {
 public:
-  UpdatePhysicalOperator(Table *table, std::vector<const FieldMeta *> &&fields, std::vector<Value> &&values);
+  UpdatePhysicalOperator(Table *table, std::vector<const FieldMeta *> &&fields, 
+    std::vector<Value> &&values, std::unordered_map<size_t, void*>&& select_map);
 
-  virtual ~UpdatePhysicalOperator() = default;
+  virtual ~UpdatePhysicalOperator();
 
   PhysicalOperatorType type() const override { return PhysicalOperatorType::UPDATE; }
 
@@ -45,5 +46,5 @@ private:
   std::vector<const FieldMeta *> fields_;
   std::vector<Value> values_;
   Trx                *trx_   = nullptr;
-  std::vector<Record> records_;
+  std::unordered_map<size_t, void*> select_map_;
 };
