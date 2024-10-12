@@ -445,7 +445,7 @@ value_list:
       } else {
         $$ = new std::vector<Value>;
       }
-      $$->emplace_back(move(*$1));
+      $$->emplace($$->begin(), move(*$1));
       delete $1;
     }
     ;

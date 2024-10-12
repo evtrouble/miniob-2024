@@ -38,7 +38,7 @@ RC PredicatePhysicalOperator::next(Tuple *upper_tuple)
   RC                rc   = RC::SUCCESS;
   PhysicalOperator *oper = children_.front().get();
   
-  while (RC::SUCCESS == (rc = oper->next())) {
+  while (RC::SUCCESS == (rc = oper->next(upper_tuple))) {
     Tuple *tuple = oper->current_tuple();
     if (nullptr == tuple) {
       rc = RC::INTERNAL;

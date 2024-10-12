@@ -2061,7 +2061,7 @@ yyreduce:
       } else {
         (yyval.value_list) = new std::vector<Value>;
       }
-      (yyval.value_list)->emplace_back(move(*(yyvsp[-2].value)));
+      (yyval.value_list)->emplace((yyval.value_list)->begin(), move(*(yyvsp[-2].value)));
       delete (yyvsp[-2].value);
     }
 #line 2068 "yacc_sql.cpp"
