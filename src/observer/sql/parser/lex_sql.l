@@ -117,6 +117,7 @@ LIKE                                    RETURN_TOKEN(LIKE);
 EXISTS                                  RETURN_TOKEN(EXISTS);
 IN                                      RETURN_TOKEN(IN);
 NOT                                     RETURN_TOKEN(NOT);
+NULL                                  RETURN_TOKEN(NULL_T);
 INFILE                                  RETURN_TOKEN(INFILE);
 EXPLAIN                                 RETURN_TOKEN(EXPLAIN);
 GROUP                                   RETURN_TOKEN(GROUP);

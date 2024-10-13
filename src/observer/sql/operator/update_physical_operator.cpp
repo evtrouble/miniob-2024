@@ -41,18 +41,23 @@ RC UpdatePhysicalOperator::open(Trx *trx)
 
   trx_ = trx;
 
-  //只支持不相关子查询
-  Value value;
   vector<size_t> select_ids;
+
+  Tuple *tuple = nullptr;
   for(size_t id = 0; id < values_.size(); id++){
-    if(values_[id].attr_type() == AttrType::UNDEFINED){
-      select_ids.emplace_back(id);
+    if(select_map_.count(id)){
+      SelectExpr* temp = (SelectExpr*)select_map_[id];
+      if(temp->check()){
+        temp->get_value(*tuple, values_[id]); 
+        if(rc != RC::SUCCESS)return rc;
+      }
+      else select_ids.emplace_back(id);
     }
   }
 
   // 记录的有效性由事务来保证，如果事务不保证更新的有效性，那说明此事务类型不支持并发控制，比如VacuousTrx
   while (OB_SUCC(rc = child->next())) {
-    Tuple *tuple = child->current_tuple();
+    tuple = child->current_tuple();
     if (nullptr == tuple) {
       LOG_WARN("failed to get current record: %s", strrc(rc));
       return rc;
@@ -61,9 +66,8 @@ RC UpdatePhysicalOperator::open(Trx *trx)
     RowTuple *row_tuple = static_cast<RowTuple *>(tuple);
     Record   &record    = row_tuple->record();
     for(auto& id : select_ids){
-      rc = ((SelectExpr*)select_map_[id])->get_value(*tuple, value);
+      rc = ((SelectExpr*)select_map_[id])->get_value(*tuple, values_[id]);
       if(rc != RC::SUCCESS)return rc;
-      values_[id] = move(value);
     }
 
     rc = trx_->update_record(table_, record, fields_, values_);

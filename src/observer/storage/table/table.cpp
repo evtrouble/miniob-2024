@@ -356,7 +356,15 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
   for (int i = 0; i < value_num && OB_SUCC(rc); i++) {
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &    value = values[i];
-    if (field->type() != value.attr_type()) {
+
+    if (!(value.attr_type() == AttrType::NULLS && field->is_null())
+      && field->type() != value.attr_type()) {
+      if(value.attr_type() == AttrType::NULLS){
+        LOG_WARN("value is null. table name:%s,field name:%s",
+            table_meta_.name(), field->name());
+        rc = RC::INVALID_ARGUMENT;
+        break;
+      }
       Value real_value;
       rc = Value::cast_to(value, field->type(), real_value);
       if (OB_FAIL(rc)) {
@@ -388,6 +396,7 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
       copy_len = data_len + 1;
     }
   }
+  if(value.attr_type() == AttrType::NULLS)copy_len = 1;
 
   memcpy(record_data + field->offset(), value.data(), copy_len);
   return RC::SUCCESS;

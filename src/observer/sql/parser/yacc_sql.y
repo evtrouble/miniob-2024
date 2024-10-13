@@ -106,6 +106,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         LOAD
         DATA
         LIKE
+        NULL_T
         EXISTS
         IN
         NOT
@@ -155,6 +156,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 /** type 定义了各种解析后的结果输出的是什么类型。类型对应了 union 中的定义的成员变量名称 **/
 %type <number>              type
 %type <number>              date_type
+%type <number>              is_null
 %type <condition>           condition
 %type <value>               value
 %type <number>              number
@@ -361,31 +363,41 @@ attr_def_list:
     ;
 
 attr_def:
-    ID type LBRACE number RBRACE
+    ID type LBRACE number RBRACE is_null
     {
       $$ = new AttrInfoSqlNode;
       $$->type = (AttrType)$2;
       $$->name = $1;
       $$->length = $4;
+      $$->is_null = $6;
       free($1);
     }
-    | ID type
+    | ID type is_null
     {
       $$ = new AttrInfoSqlNode;
       $$->type = (AttrType)$2;
       $$->name = $1;
       $$->length = 4;
+      $$->is_null = $3;
       free($1);
     }
-    | ID date_type
+    | ID date_type is_null
     {
       $$ = new AttrInfoSqlNode;
       $$->type = (AttrType)$2;
       $$->name = $1;
       $$->length = 10;
+      $$->is_null = $3;
       free($1);
     }
     ;
+
+is_null:
+    /* empty */
+    {$$ = 0;}
+    | NULL_T {$$ = 1;}
+    ;
+
 number:
     NUMBER {$$ = $1;}
     ;
@@ -470,6 +482,9 @@ value:
       $$ = new Value((Date*)tmp, len);
       free(tmp);
       free($1);
+    }
+    |NULL_T {
+      $$ = new Value((void*)nullptr);
     }
     ;
 storage_format:

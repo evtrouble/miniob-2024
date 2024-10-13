@@ -76,6 +76,8 @@ See the Mulan PSL v2 for more details. */
   DEFINE_RC(LOGBUF_FULL)                 \
   DEFINE_RC(LOG_FILE_FULL)               \
   DEFINE_RC(LOG_ENTRY_INVALID)           \
+  DEFINE_RC(NULL_TUPLE)                  \
+  DEFINE_RC(MUTI_TUPLE)                  \
   DEFINE_RC(UNSUPPORTED)
 
 enum class RC

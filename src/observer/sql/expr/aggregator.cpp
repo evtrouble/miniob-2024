@@ -17,7 +17,8 @@ See the Mulan PSL v2 for more details. */
 
 RC SumAggregator::accumulate(const Value &value)
 {
-  if (value_.attr_type() == AttrType::UNDEFINED) {
+  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
+  else if (value_.attr_type() == AttrType::UNDEFINED) {
     value_ = value;
     return RC::SUCCESS;
   }
@@ -31,13 +32,16 @@ RC SumAggregator::accumulate(const Value &value)
 
 RC SumAggregator::evaluate(Value& result)
 {
-  result = value_;
+  if (value_.attr_type() == AttrType::UNDEFINED)
+    result.set_null();
+  else result = std::move(value_);
   return RC::SUCCESS;
 }
 
 RC MaxAggregator::accumulate(const Value &value)
 {
-  if (value_.attr_type() == AttrType::UNDEFINED) {
+  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
+  else if (value_.attr_type() == AttrType::UNDEFINED) {
     value_ = value;
     return RC::SUCCESS;
   }
@@ -51,13 +55,16 @@ RC MaxAggregator::accumulate(const Value &value)
 
 RC MaxAggregator::evaluate(Value& result)
 {
-  result = value_;
+  if (value_.attr_type() == AttrType::UNDEFINED)
+    result.set_null();
+  else result = std::move(value_);
   return RC::SUCCESS;
 }
 
 RC MinAggregator::accumulate(const Value &value)
 {
-  if (value_.attr_type() == AttrType::UNDEFINED) {
+  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
+  else if (value_.attr_type() == AttrType::UNDEFINED) {
     value_ = value;
     return RC::SUCCESS;
   }
@@ -71,15 +78,17 @@ RC MinAggregator::accumulate(const Value &value)
 
 RC MinAggregator::evaluate(Value& result)
 {
-  result = value_;
+  if (value_.attr_type() == AttrType::UNDEFINED)
+    result.set_null();
+  else result = std::move(value_);
   return RC::SUCCESS;
 }
 
 RC AvgAggregator::accumulate(const Value &value)
 {
-  if (value_.attr_type() == AttrType::UNDEFINED) {
+  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
+  else if (value_.attr_type() == AttrType::UNDEFINED) {
     value_ = Value((float)0.0);
-    //之后设置null时，该处需要修改
     countnum = Value((int)0);
   }
   
@@ -99,7 +108,8 @@ RC AvgAggregator::evaluate(Value& result)
 
 RC CountAggregator::accumulate(const Value &value)
 {
-  if (value_.attr_type() == AttrType::UNDEFINED) {
+  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
+  else if (value_.attr_type() == AttrType::UNDEFINED) {
     value_ = Value((int)0);
   }
   
@@ -112,6 +122,8 @@ RC CountAggregator::accumulate(const Value &value)
 
 RC CountAggregator::evaluate(Value& result)
 {
-  result = value_;
+  if (value_.attr_type() == AttrType::UNDEFINED)
+    result.set_null();
+  else result = std::move(value_);
   return RC::SUCCESS;
 }

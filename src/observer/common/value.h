@@ -39,7 +39,8 @@ public:
   friend class CharType;
   friend class DateType;
 
-  Value() { attr_type_ = AttrType::UNDEFINED; }
+  Value() = default;
+  Value(void*) { set_null(); }
 
   ~Value() { reset(); }
 
@@ -87,6 +88,10 @@ public:
 
   static RC cast_to(const Value &value, AttrType to_type, Value &result)
   {
+    if(value.attr_type_ == AttrType::NULLS){
+      result = std::move(value);
+      return RC::SUCCESS;
+    }
     return DataType::type_instance(value.attr_type())->cast_to(value, to_type, result);
   }
 
@@ -110,8 +115,6 @@ public:
   {
     Value float_result;
     RC rc = RC::SUCCESS;
-    //null判断
-    //if(!val.is_null())
 
     num.set_int(num.get_int() + 1);
     if(val.attr_type() != AttrType::FLOATS){
@@ -126,8 +129,6 @@ public:
 
   static RC count(Value &result, const Value& val)
   {
-    //null判断
-    //if(!val.is_null())
     result.set_int(result.get_int() + 1);
     return RC::SUCCESS;
   }
@@ -137,6 +138,7 @@ public:
   void set_data(const char *data, int length) { this->set_data(const_cast<char *>(data), length); }
   void set_value(const Value &value);
   void set_boolean(bool val);
+  void set_null();
 
   string to_string() const;
 

@@ -143,6 +143,10 @@ ComparisonExpr::~ComparisonExpr() {}
 
 RC ComparisonExpr::compare_value(const Value &left, const Value &right, bool &result) const
 {
+  if(left.attr_type() == AttrType::NULLS || right.attr_type() == AttrType::NULLS){
+    result = false;
+    return RC::SUCCESS;
+  }
   RC  rc         = RC::SUCCESS;
   int cmp_result = left.compare(right);
   result         = false;
@@ -186,6 +190,12 @@ RC ComparisonExpr::like_value(const Tuple &tuple, bool &result) const
     return rc;
   }
 
+  if(left_value.attr_type() == AttrType::NULLS)
+  {
+    result = false;
+    return RC::SUCCESS;
+  }
+
   result = regex_match(left_value.get_string(), pattern);
   return RC::SUCCESS;
 }
@@ -197,16 +207,13 @@ RC ComparisonExpr::value_exists(const Tuple &tuple, bool &result) const
   Value right_value;
 
   RC rc = right_->get_value(tuple, right_value);
-  if(rc == RC::VARIABLE_NOT_VALID){
-    result = true;
-    return RC::SUCCESS;
-  }
-  if (rc != RC::SUCCESS) {
+  
+  if (rc != RC::SUCCESS && rc != RC::NULL_TUPLE && rc != RC::MUTI_TUPLE) {
     LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
     return rc;
   }
 
-  result = (right_value.attr_type() != AttrType::UNDEFINED); 
+  result = !(rc == RC::NULL_TUPLE); 
   return RC::SUCCESS;
 }
 
@@ -221,6 +228,11 @@ RC ComparisonExpr::value_in(const Tuple &tuple, bool &result) const
     LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
     return rc;
   }
+  if(left_value.attr_type() == AttrType::NULLS){
+    result = false;
+    return RC::SUCCESS;
+  }
+
   rc = right_->get_value_set(tuple, left_value, result);
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
@@ -311,7 +323,7 @@ RC ComparisonExpr::get_value(const Tuple &tuple, Value &value) const
 
       rc = compare_value(left_value, right_value, bool_value);
       if (rc == RC::SUCCESS) {
-      value.set_boolean(bool_value);
+        value.set_boolean(bool_value);
       }
     }break;
   }
@@ -743,9 +755,9 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
   RC rc = RC::SUCCESS;
   if(values_ != nullptr){
     if(values_->size() == 0)
-      return RC::SUCCESS;
+      return RC::NULL_TUPLE;
 
-    if(values_->size() > 1)return RC::VARIABLE_NOT_VALID;
+    if(values_->size() > 1)return RC::MUTI_TUPLE;
     value = values_->at(0)[0];
     return rc;
   }
@@ -760,7 +772,7 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
     num++;
     if(num > 1){
       physical_operator_->close();
-      return RC::VARIABLE_NOT_VALID;
+      return RC::MUTI_TUPLE;
     }
     
     ret_tuple->cell_at(0, value);
@@ -775,6 +787,7 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
   if (rc == RC::RECORD_EOF) {
     rc = RC::SUCCESS;
   }
+  if(num == 0)return RC::NULL_TUPLE;
   return rc;
 }
 
@@ -785,8 +798,8 @@ RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result) con
   result = false;
   if(values_ != nullptr){
     for(auto& values : *values_){
-      if(values.size() == 0)return RC::NOT_EXIST;
-      if(value.compare(values[0]) == 0){
+      if(values.size() == 0)return RC::NULL_TUPLE;
+      if(values[0].attr_type() != AttrType::NULLS && value.compare(values[0]) == 0){
         result = true;
         return rc;
       }
@@ -808,7 +821,7 @@ RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result) con
       return rc;
     }
 
-    if(value.compare(value_get) == 0){
+    if(value_get.attr_type() != AttrType::NULLS &&value.compare(value_get) == 0){
       physical_operator_->close();
       result = true;
       return rc;

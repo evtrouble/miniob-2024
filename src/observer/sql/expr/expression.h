@@ -508,6 +508,8 @@ public:
 
   RC physical_generate();
 
+  bool check() {return values_ != nullptr;}
+
   RC next_tuple(Tuple *&tuple, Tuple *upper_tuple = nullptr) const;
 
   void set_trx(Trx *trx) { trx_ = trx; };
