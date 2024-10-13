@@ -689,6 +689,12 @@ rel_attr:
       free($1);
       free($3);
     }
+    | ID DOT '*' {
+      $$ = new RelAttrSqlNode;
+      $$->relation_name  = $1;
+      $$->attribute_name = '*';
+      free($1);
+    }
     ;
 
 relation:
