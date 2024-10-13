@@ -323,6 +323,8 @@ public:
   RC value_in(const Tuple &tuple, bool &result) const;
   RC value_not_in(const Tuple &tuple, bool &result) const;
 
+  RC value_is_null(const Tuple &tuple, bool &result) const;
+
   template <typename T>
   RC compare_column(const Column &left, const Column &right, std::vector<uint8_t> &result) const;
 

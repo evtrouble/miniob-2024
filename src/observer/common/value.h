@@ -127,7 +127,7 @@ public:
     return rc;
   }
 
-  static RC count(Value &result, const Value& val)
+  static RC count(Value &result)
   {
     result.set_int(result.get_int() + 1);
     return RC::SUCCESS;

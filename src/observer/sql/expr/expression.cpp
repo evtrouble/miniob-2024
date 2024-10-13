@@ -271,6 +271,19 @@ RC ComparisonExpr::value_not_in(const Tuple &tuple, bool &result) const
   return RC::SUCCESS;
 }
 
+RC ComparisonExpr::value_is_null(const Tuple &tuple, bool &result) const
+{
+  Value left_value;
+  RC rc = left_->get_value(tuple, left_value);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
+    return rc;
+  }
+  result = (left_value.attr_type() == AttrType::NULLS);
+  
+  return RC::SUCCESS;
+}
+
 RC ComparisonExpr::try_get_value(Value &cell) const
 {
   if (left_->type() == ExprType::VALUE && right_->type() == ExprType::VALUE) {
@@ -333,6 +346,18 @@ RC ComparisonExpr::get_value(const Tuple &tuple, Value &value) const
       rc = value_not_in(tuple, bool_value);
       if (rc == RC::SUCCESS) {
         value.set_boolean(bool_value);
+      }
+    }break;
+    case CompOp::IS_NULL:{
+      rc = value_is_null(tuple, bool_value);
+      if (rc == RC::SUCCESS) {
+        value.set_boolean(bool_value);
+      }
+    }break;
+    case CompOp::IS_NOT_NULL:{
+      rc = value_is_null(tuple, bool_value);
+      if (rc == RC::SUCCESS) {
+        value.set_boolean(!bool_value);
       }
     }break;
     default:{

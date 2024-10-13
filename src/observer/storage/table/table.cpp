@@ -394,7 +394,7 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
 
 RC Table::set_value_to_record(char *record_data, const Value &value, const FieldMeta *field)
 {
-  size_t       copy_len = field->len();
+  size_t       copy_len = field->len() - 1;
   const size_t data_len = value.length();
   if (field->type() == AttrType::CHARS || field->type() == AttrType::DATES) {
     if (copy_len > data_len) {
@@ -404,7 +404,8 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
 
   field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
 
-  memcpy(record_data + field->offset(), value.data(), copy_len);
+  if(value.attr_type() != AttrType::NULLS)
+    memcpy(record_data + field->offset(), value.data(), copy_len);
   return RC::SUCCESS;
 }
 

@@ -115,6 +115,7 @@ LOAD                                    RETURN_TOKEN(LOAD);
 DATA                                    RETURN_TOKEN(DATA);
 LIKE                                    RETURN_TOKEN(LIKE);
 EXISTS                                  RETURN_TOKEN(EXISTS);
+IS                                      RETURN_TOKEN(IS);
 IN                                      RETURN_TOKEN(IN);
 NOT                                     RETURN_TOKEN(NOT);
 NULL                                    RETURN_TOKEN(NULL_T);

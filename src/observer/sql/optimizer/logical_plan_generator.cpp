@@ -174,6 +174,12 @@ RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<Logical
                                      : static_cast<Expression *>(new SelectExpr(filter_obj_right.stmt, select_exprs)))
                                      : static_cast<Expression *>(new ValueExpr(filter_obj_right.value)));
 
+    if(left->value_type() == AttrType::NULLS || right->value_type() == AttrType::NULLS){
+      ComparisonExpr *cmp_expr = new ComparisonExpr(filter_unit->comp(), std::move(left), std::move(right));
+      cmp_exprs.emplace_back(cmp_expr);
+      continue;
+    }
+
     if (filter_obj_right.type != 2 && left->value_type() != right->value_type()) {
       auto left_to_right_cost = implicit_cast_cost(left->value_type(), right->value_type());
       auto right_to_left_cost = implicit_cast_cost(right->value_type(), left->value_type());
