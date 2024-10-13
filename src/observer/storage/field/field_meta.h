@@ -30,10 +30,10 @@ class FieldMeta
 {
 public:
   FieldMeta();
-  FieldMeta(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, int field_id, bool is_null = false);
+  FieldMeta(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, int field_id, bool nullable = false);
   ~FieldMeta() = default;
 
-  RC init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, int field_id, bool is_null = false);
+  RC init(const char *name, AttrType attr_type, int attr_offset, int attr_len, bool visible, int field_id, bool nullable = false);
 
 public:
   const char *name() const;
@@ -42,10 +42,13 @@ public:
   int         len() const;
   bool        visible() const;
   int         field_id() const;
-  bool        is_null() const;
+  bool        nullable() const;
 
 public:
   void desc(ostream &os) const;
+  int null_index() const;
+  bool is_field_null(const char *data) const;
+  void set_field_null(char *data, bool is_null) const; 
 
 public:
   void      to_json(Json::Value &json_value) const;
@@ -58,5 +61,5 @@ protected:
   int      attr_len_;
   bool     visible_;
   int      field_id_;
-  bool     is_null_;  //字段值能否为null
+  bool     nullable_;  //字段值能否为null
 };

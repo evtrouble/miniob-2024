@@ -200,12 +200,11 @@ public:
 
     FieldExpr       *field_expr = speces_[index];
     const FieldMeta *field_meta = field_expr->field().meta();
-    
-    const char* p = this->record_->data() + field_meta->offset();
-    if(p[0] == '\0')cell.set_type(AttrType::NULLS);
+
+    if(field_meta->is_field_null(this->record_->data()))cell.set_null();
     else {
       cell.set_type(field_meta->type());
-      cell.set_data(p, field_meta->len());
+      cell.set_data(this->record_->data() + field_meta->offset(), field_meta->len());
     }
     return RC::SUCCESS;
   }

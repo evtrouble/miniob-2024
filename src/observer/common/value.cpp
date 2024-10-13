@@ -270,8 +270,7 @@ void Value::set_value(const Value &value)
       set_date(value.get_string().c_str());
     } break;
     case AttrType::NULLS: {
-      reset();
-      attr_type_ = AttrType::NULLS;
+      set_null();
     } break;
     default: {
       ASSERT(false, "got an invalid value type");
@@ -339,9 +338,6 @@ const char *Value::data() const
     case AttrType::SELECT:{
       return (const char *)value_.select_value_;
     } break;
-    case AttrType::NULLS:{
-      return "";
-    } break;
     default: {
       return (const char *)&value_;
     } break;
@@ -383,7 +379,7 @@ int Value::get_int() const
       return (int)(value_.bool_value_);
     }
     case AttrType::NULLS: {
-      return false;
+      return 0;
     } break;
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);
@@ -413,8 +409,8 @@ float Value::get_float() const
     case AttrType::BOOLEANS: {
       return float(value_.bool_value_);
     } break;
-        case AttrType::NULLS: {
-      return false;
+    case AttrType::NULLS: {
+      return 0;
     } break;
     default: {
       LOG_WARN("unknown data type. type=%d", attr_type_);

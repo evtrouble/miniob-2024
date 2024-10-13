@@ -70,6 +70,8 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         CREATE
         DROP
         GROUP
+        ORDER
+        HAVING
         TABLE
         TABLES
         INDEX
@@ -140,6 +142,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
   char *                                     string;
   int                                        number;
   float                                      floats;
+  bool                                       boolean;
   Joins *                                    join_list;
   Key_values *                               key_values;
 }
@@ -156,7 +159,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 /** type 定义了各种解析后的结果输出的是什么类型。类型对应了 union 中的定义的成员变量名称 **/
 %type <number>              type
 %type <number>              date_type
-%type <number>              is_null
+%type <boolean>             is_null
 %type <condition>           condition
 %type <value>               value
 %type <number>              number
@@ -181,6 +184,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <expression>          expression
 %type <expression_list>     expression_list
 %type <expression_list>     group_by
+%type <expression_list>     having_list
 %type <sql_node>            calc_stmt
 %type <sql_node>            select_stmt
 %type <sql_node>            insert_stmt
@@ -394,8 +398,9 @@ attr_def:
 
 is_null:
     /* empty */
-    {$$ = 0;}
-    | NULL_T {$$ = 1;}
+    {$$ = false;}
+    | NULL_T {$$ = true;}
+    | NOT NULL_T {$$ = false;}
     ;
 
 number:
@@ -567,7 +572,7 @@ assign_value:
     ;
 
 select_stmt:        /*  select 语句的语法解析树*/
-    SELECT expression_list FROM rel_list where group_by
+    SELECT expression_list FROM rel_list where group_by having_list
     {
       $$ = new ParsedSqlNode(SCF_SELECT);
       if ($2 != nullptr) {
@@ -914,14 +919,29 @@ unary_op:
     | NOT EXISTS { $$ = NOT_EXISTS; }
     ;
 
-
 // your code here
 group_by:
     /* empty */
     {
       $$ = nullptr;
     }
+    | GROUP BY expression_list
+    {
+      $$ = $3;
+    }
     ;
+
+having_list:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | HAVING condition_list 
+    {
+      $$ = $2;
+    }
+    ;
+
 load_data_stmt:
     LOAD DATA INFILE SSS INTO TABLE ID
     {

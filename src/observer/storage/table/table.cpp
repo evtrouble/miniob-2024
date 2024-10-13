@@ -259,7 +259,13 @@ RC Table::update_record(const RID &rid, std::vector<const FieldMeta *> &fields, 
     const FieldMeta * &field = fields[id];
     Value &value = values[id];
 
-    if (field->type() != value.attr_type()) {
+    if(value.attr_type() == AttrType::NULLS && !field->nullable()){
+      LOG_WARN("value is null. table name:%s,field name:%s",
+        table_meta_.name(), field->name());
+      return RC::INVALID_ARGUMENT;
+    }
+
+    if (value.attr_type() != AttrType::NULLS && field->type() != value.attr_type()) {
       Value real_value;
       rc = Value::cast_to(value, field->type(), real_value);
       if (OB_FAIL(rc)) {
@@ -357,14 +363,13 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
     const Value &    value = values[i];
 
-    if (!(value.attr_type() == AttrType::NULLS && field->is_null())
-      && field->type() != value.attr_type()) {
-      if(value.attr_type() == AttrType::NULLS){
-        LOG_WARN("value is null. table name:%s,field name:%s",
-            table_meta_.name(), field->name());
-        rc = RC::INVALID_ARGUMENT;
-        break;
-      }
+    if(value.attr_type() == AttrType::NULLS && !field->nullable()){
+      LOG_WARN("value is null. table name:%s,field name:%s",
+        table_meta_.name(), field->name());
+      return RC::INVALID_ARGUMENT;
+    }
+
+    if (value.attr_type() != AttrType::NULLS && field->type() != value.attr_type()) {
       Value real_value;
       rc = Value::cast_to(value, field->type(), real_value);
       if (OB_FAIL(rc)) {
@@ -396,7 +401,8 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
       copy_len = data_len + 1;
     }
   }
-  if(value.attr_type() == AttrType::NULLS)copy_len = 1;
+
+  field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
 
   memcpy(record_data + field->offset(), value.data(), copy_len);
   return RC::SUCCESS;
