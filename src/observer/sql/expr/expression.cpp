@@ -242,6 +242,35 @@ RC ComparisonExpr::value_in(const Tuple &tuple, bool &result) const
   return RC::SUCCESS;
 }
 
+RC ComparisonExpr::value_not_in(const Tuple &tuple, bool &result) const
+{
+  if(right_->type() != ExprType::SELECT)return RC::INVALID_ARGUMENT;
+
+  Value left_value;
+
+  RC rc = left_->get_value(tuple, left_value);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
+    return rc;
+  }
+  if(left_value.attr_type() == AttrType::NULLS){
+    result = false;
+    return RC::SUCCESS;
+  }
+
+  bool have_null;
+  rc = right_->get_value_set(tuple, left_value, result, &have_null);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
+    return rc;
+  }
+
+  if(have_null)result = false;
+  else result = true;
+
+  return RC::SUCCESS;
+}
+
 RC ComparisonExpr::try_get_value(Value &cell) const
 {
   if (left_->type() == ExprType::VALUE && right_->type() == ExprType::VALUE) {
@@ -301,9 +330,9 @@ RC ComparisonExpr::get_value(const Tuple &tuple, Value &value) const
       }
     }break;
     case CompOp::NOT_IN:{
-      rc = value_in(tuple, bool_value);
+      rc = value_not_in(tuple, bool_value);
       if (rc == RC::SUCCESS) {
-        value.set_boolean(!bool_value);
+        value.set_boolean(bool_value);
       }
     }break;
     default:{
@@ -791,17 +820,26 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
   return rc;
 }
 
-RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result) const
+RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null) const
 {
   if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   result = false;
+  if(have_null != nullptr) *have_null=false;
   if(values_ != nullptr){
     for(auto& values : *values_){
       if(values.size() == 0)return RC::NULL_TUPLE;
-      if(values[0].attr_type() != AttrType::NULLS && value.compare(values[0]) == 0){
+      if(values[0].attr_type() == AttrType::NULLS)
+      {
+        if(have_null != nullptr)
+        {
+          *have_null = true;
+          return RC::SUCCESS;
+        }
+      }
+      else if(value.compare(values[0]) == 0){
         result = true;
-        return rc;
+        if(have_null == nullptr)return RC::SUCCESS;
       }
     }
     return rc;
@@ -821,10 +859,20 @@ RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result) con
       return rc;
     }
 
-    if(value_get.attr_type() != AttrType::NULLS &&value.compare(value_get) == 0){
-      physical_operator_->close();
+    if(value_get.attr_type() == AttrType::NULLS)
+    {
+      if(have_null != nullptr)
+      {
+        *have_null = true;
+        return RC::SUCCESS;
+      }
+    }
+    else if(value.compare(value_get) == 0){
       result = true;
-      return rc;
+      if(have_null == nullptr){
+        physical_operator_->close();
+        return RC::SUCCESS;
+      }
     }
   }
 
@@ -883,6 +931,7 @@ RC SelectExpr::pretreatment()
   if (rc == RC::RECORD_EOF) {
     rc = RC::SUCCESS;
   }
+
   return rc;
 }
 

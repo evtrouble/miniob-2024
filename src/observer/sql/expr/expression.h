@@ -85,7 +85,7 @@ public:
    */
   virtual RC get_value(const Tuple &tuple, Value &value) const = 0;
 
-  virtual RC get_value_set(const Tuple &tuple, Value &value, bool &result) const {return RC::UNIMPLEMENTED;}
+  virtual RC get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null = nullptr) const {return RC::UNIMPLEMENTED;}
 
   /**
    * @brief 在没有实际运行的情况下，也就是无法获取tuple的情况下，尝试获取表达式的值
@@ -321,6 +321,7 @@ public:
   RC value_exists(const Tuple &tuple, bool &result) const;
 
   RC value_in(const Tuple &tuple, bool &result) const;
+  RC value_not_in(const Tuple &tuple, bool &result) const;
 
   template <typename T>
   RC compare_column(const Column &left, const Column &right, std::vector<uint8_t> &result) const;
@@ -502,7 +503,7 @@ public:
   AttrType value_type() const override { return value_type_;}
 
   RC get_value(const Tuple &tuple, Value &value) const override;
-  RC get_value_set(const Tuple &tuple, Value &value, bool &result) const;
+  RC get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null = nullptr) const;
 
   RC pretreatment();
 
