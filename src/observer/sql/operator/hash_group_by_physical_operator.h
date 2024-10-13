@@ -37,6 +37,7 @@ public:
   RC open(Trx *trx) override;
   RC next() override;
   RC close() override;
+  RC next(Tuple *upper_tuple) override;
 
   Tuple *current_tuple() override;
 
@@ -59,4 +60,5 @@ private:
 
   std::vector<GroupType>::iterator current_group_;
   bool                             first_emited_ = false;  /// 第一条数据是否已经输出
+  bool                             have_value = false;
 };

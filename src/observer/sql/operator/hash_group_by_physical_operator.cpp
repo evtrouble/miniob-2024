@@ -37,63 +37,148 @@ RC HashGroupByPhysicalOperator::open(Trx *trx)
     return rc;
   }
 
-  ExpressionTuple<Expression *> group_value_expression_tuple(value_expressions_);
-
-  ValueListTuple group_by_evaluated_tuple;
-
-  while (OB_SUCC(rc = child.next())) {
-    Tuple *child_tuple = child.current_tuple();
-    if (nullptr == child_tuple) {
-      LOG_WARN("failed to get tuple from child operator. rc=%s", strrc(rc));
-      return RC::INTERNAL;
-    }
-
-    // 找到对应的group
-    GroupType *found_group = nullptr;
-    rc                     = find_group(*child_tuple, found_group);
-    if (OB_FAIL(rc)) {
-      LOG_WARN("failed to find group. rc=%s", strrc(rc));
-      return rc;
-    }
-
-    // 计算需要做聚合的值
-    group_value_expression_tuple.set_tuple(child_tuple);
-
-    // 计算聚合值
-    GroupValueType &group_value = get<1>(*found_group);
-    rc = aggregate(get<0>(group_value), group_value_expression_tuple);
-    if (OB_FAIL(rc)) {
-      LOG_WARN("failed to aggregate values. rc=%s", strrc(rc));
-      return rc;
-    }
-  }
-
-  if (RC::RECORD_EOF == rc) {
-    rc = RC::SUCCESS;
-  }
-
-  if (OB_FAIL(rc)) {
-    LOG_WARN("failed to get next tuple. rc=%s", strrc(rc));
-    return rc;
-  }
-
-  // 得到最终聚合后的值
-  for (GroupType &group : groups_) {
-    GroupValueType &group_value = get<1>(group);
-    rc = evaluate(group_value);
-    if (OB_FAIL(rc)) {
-      LOG_WARN("failed to evaluate group value. rc=%s", strrc(rc));
-      return rc;
-    }
-  }
-
-  current_group_ = groups_.begin();
-  first_emited_  = false;
+  have_value = false;
+  groups_.clear();
   return rc;
 }
 
 RC HashGroupByPhysicalOperator::next()
 {
+  if(!have_value){
+    PhysicalOperator &child = *children_[0];
+    RC                rc    = RC::SUCCESS;
+    ExpressionTuple<Expression *> group_value_expression_tuple(value_expressions_);
+
+    ValueListTuple group_by_evaluated_tuple;
+
+    while (OB_SUCC(rc = child.next())) {
+      Tuple *child_tuple = child.current_tuple();
+      if (nullptr == child_tuple) {
+        LOG_WARN("failed to get tuple from child operator. rc=%s", strrc(rc));
+        return RC::INTERNAL;
+      }
+
+      // 找到对应的group
+      GroupType *found_group = nullptr;
+      rc                     = find_group(*child_tuple, found_group);
+      if (OB_FAIL(rc)) {
+        LOG_WARN("failed to find group. rc=%s", strrc(rc));
+        return rc;
+      }
+
+      // 计算需要做聚合的值
+      group_value_expression_tuple.set_tuple(child_tuple);
+
+      // 计算聚合值
+      GroupValueType &group_value = get<1>(*found_group);
+      rc = aggregate(get<0>(group_value), group_value_expression_tuple);
+      if (OB_FAIL(rc)) {
+        LOG_WARN("failed to aggregate values. rc=%s", strrc(rc));
+        return rc;
+      }
+    }
+
+    if (RC::RECORD_EOF == rc) {
+      rc = RC::SUCCESS;
+    }
+
+    if (OB_FAIL(rc)) {
+      LOG_WARN("failed to get next tuple. rc=%s", strrc(rc));
+      return rc;
+    }
+
+  // 得到最终聚合后的值
+    for (GroupType &group : groups_) {
+      GroupValueType &group_value = get<1>(group);
+      rc = evaluate(group_value);
+      if (OB_FAIL(rc)) {
+        LOG_WARN("failed to evaluate group value. rc=%s", strrc(rc));
+        return rc;
+      }
+    }
+
+    current_group_ = groups_.begin();
+    first_emited_  = false;
+    have_value = true;
+  }
+
+  if (current_group_ == groups_.end()) {
+    return RC::RECORD_EOF;
+  }
+
+  if (first_emited_) {
+    ++current_group_;
+  } else {
+    first_emited_ = true;
+  }
+  if (current_group_ == groups_.end()) {
+    return RC::RECORD_EOF;
+  }
+
+  return RC::SUCCESS;
+}
+
+RC HashGroupByPhysicalOperator::next(Tuple *upper_tuple)
+{
+  if(!have_value){
+    PhysicalOperator &child = *children_[0];
+    RC                rc    = RC::SUCCESS;
+    ExpressionTuple<Expression *> group_value_expression_tuple(value_expressions_);
+
+    ValueListTuple group_by_evaluated_tuple;
+
+    while (OB_SUCC(rc = child.next(upper_tuple))) {
+      Tuple *child_tuple = child.current_tuple();
+      if (nullptr == child_tuple) {
+        LOG_WARN("failed to get tuple from child operator. rc=%s", strrc(rc));
+        return RC::INTERNAL;
+      }
+
+      // 找到对应的group
+      GroupType *found_group = nullptr;
+      rc                     = find_group(*child_tuple, found_group);
+      if (OB_FAIL(rc)) {
+        LOG_WARN("failed to find group. rc=%s", strrc(rc));
+        return rc;
+      }
+
+      // 计算需要做聚合的值
+      group_value_expression_tuple.set_tuple(child_tuple);
+
+      // 计算聚合值
+      GroupValueType &group_value = get<1>(*found_group);
+      rc = aggregate(get<0>(group_value), group_value_expression_tuple);
+      if (OB_FAIL(rc)) {
+        LOG_WARN("failed to aggregate values. rc=%s", strrc(rc));
+        return rc;
+      }
+    }
+
+    if (RC::RECORD_EOF == rc) {
+      rc = RC::SUCCESS;
+    }
+
+    if (OB_FAIL(rc)) {
+      LOG_WARN("failed to get next tuple. rc=%s", strrc(rc));
+      return rc;
+    }
+
+  // 得到最终聚合后的值
+    for (GroupType &group : groups_) {
+      GroupValueType &group_value = get<1>(group);
+      rc = evaluate(group_value);
+      if (OB_FAIL(rc)) {
+        LOG_WARN("failed to evaluate group value. rc=%s", strrc(rc));
+        return rc;
+      }
+    }
+
+    current_group_ = groups_.begin();
+    first_emited_  = false;
+    have_value = true;
+  }
+
+
   if (current_group_ == groups_.end()) {
     return RC::RECORD_EOF;
   }
