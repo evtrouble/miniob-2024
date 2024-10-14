@@ -104,6 +104,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         INNER
         JOIN
         AND
+        OR
         SET
         ON
         LOAD
@@ -831,6 +832,12 @@ condition_list:
     }
     | condition AND condition_list {
       $$ = $3;
+      $$->emplace_back(move(*$1));
+      delete $1;
+    }
+    | condition OR condition_list {
+      $$ = $3;
+      $1->and_or = true;
       $$->emplace_back(move(*$1));
       delete $1;
     }
