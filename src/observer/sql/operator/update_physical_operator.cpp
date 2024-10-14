@@ -48,7 +48,7 @@ RC UpdatePhysicalOperator::open(Trx *trx)
     if(select_map_.count(id)){
       SelectExpr* temp = (SelectExpr*)select_map_[id];
       if(temp->check()){
-        temp->get_value(*tuple, values_[id]); 
+        rc = temp->get_value(*tuple, values_[id]); 
         if(rc != RC::SUCCESS)return rc;
       }
       else select_ids.emplace_back(id);
@@ -60,6 +60,7 @@ RC UpdatePhysicalOperator::open(Trx *trx)
     tuple = child->current_tuple();
     if (nullptr == tuple) {
       LOG_WARN("failed to get current record: %s", strrc(rc));
+      child->close();
       return rc;
     }
 
@@ -67,12 +68,16 @@ RC UpdatePhysicalOperator::open(Trx *trx)
     Record   &record    = row_tuple->record();
     for(auto& id : select_ids){
       rc = ((SelectExpr*)select_map_[id])->get_value(*tuple, values_[id]);
-      if(rc != RC::SUCCESS)return rc;
+      if(rc != RC::SUCCESS){
+        child->close();
+        return rc;
+      }
     }
 
     rc = trx_->update_record(table_, record, fields_, values_);
     if (rc != RC::SUCCESS) {
       LOG_WARN("failed to update record: %s", strrc(rc));
+      child->close();
       return rc;
     }
   }
