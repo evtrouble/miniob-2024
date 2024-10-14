@@ -895,6 +895,17 @@ condition:
 
       delete $1;
     }
+    | value comp_op LBRACE select_stmt RBRACE
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 0;
+      $$->left_value = *$1;
+      $$->right_type = 2;
+      $$->right_select = unique_ptr<ParsedSqlNode>($4);
+      $$->comp = $2;
+
+      delete $1;
+    }
     | unary_op LBRACE select_stmt RBRACE
     {
       $$ = new ConditionSqlNode;
@@ -942,6 +953,17 @@ condition:
       $$->left_select = unique_ptr<ParsedSqlNode>($2);
       $$->right_type = 0;
       $$->right_value = *$5;
+      $$->comp = $4;
+
+      delete $5;
+    }
+    | LBRACE select_stmt RBRACE comp_op rel_attr
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 2;
+      $$->left_select = unique_ptr<ParsedSqlNode>($2);
+      $$->right_type = 1;
+      $$->right_attr = *$5;
       $$->comp = $4;
 
       delete $5;

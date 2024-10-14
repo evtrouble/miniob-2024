@@ -101,8 +101,12 @@ RC AvgAggregator::accumulate(const Value &value)
 
 RC AvgAggregator::evaluate(Value& result)
 {
-  result.set_type(AttrType::FLOATS);
-  Value::divide(value_, countnum, result);
+  if (value_.attr_type() == AttrType::UNDEFINED)
+    result.set_null();
+  else {
+    result.set_type(AttrType::FLOATS);
+    Value::divide(value_, countnum, result);
+  }
   return RC::SUCCESS;
 }
 
