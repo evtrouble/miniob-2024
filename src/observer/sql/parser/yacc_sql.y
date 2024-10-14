@@ -890,7 +890,7 @@ condition:
       $$->left_type = 1;
       $$->left_attr = *$1;
       $$->right_type = 2;
-      $$->right_select = $4;
+      $$->right_select = unique_ptr<ParsedSqlNode>($4);
       $$->comp = $2;
 
       delete $1;
@@ -899,7 +899,7 @@ condition:
     {
       $$ = new ConditionSqlNode;
       $$->right_type = 2;
-      $$->right_select = $3;
+      $$->right_select = unique_ptr<ParsedSqlNode>($3);
       $$->left_type = 0;
       $$->left_value = Value((void*)nullptr);
       $$->comp = $1;
@@ -930,16 +930,16 @@ condition:
     {
       $$ = new ConditionSqlNode;
       $$->left_type = 2;
-      $$->left_select = $2;
+      $$->left_select = unique_ptr<ParsedSqlNode>($2);
       $$->right_type = 2;
-      $$->right_select = $6;
+      $$->right_select = unique_ptr<ParsedSqlNode>($6);
       $$->comp = $4;
     }
     | LBRACE select_stmt RBRACE comp_op value
     {
       $$ = new ConditionSqlNode;
       $$->left_type = 2;
-      $$->left_select = $2;
+      $$->left_select = unique_ptr<ParsedSqlNode>($2);
       $$->right_type = 0;
       $$->right_value = *$5;
       $$->comp = $4;

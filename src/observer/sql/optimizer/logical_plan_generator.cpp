@@ -171,7 +171,7 @@ RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<Logical
       break;
     case 1:temp = static_cast<Expression *>(new FieldExpr(filter_obj_left.field));
       break;
-    case 2:temp = static_cast<Expression *>(new SelectExpr(filter_obj_right.stmt, select_exprs));
+    case 2:temp = static_cast<Expression *>(new SelectExpr(filter_obj_left.stmt, select_exprs));
       break;
     case 3:temp = static_cast<Expression *>(new ValueListExpr(move(filter_obj_left.value_list)));
       break;

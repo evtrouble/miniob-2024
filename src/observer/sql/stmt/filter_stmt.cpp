@@ -60,10 +60,10 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const C
 
   if(select_id.size()){
     for(auto& id : select_id){
-      auto left = tmp_stmt->filter_units_[id]->left();
-      auto right = tmp_stmt->filter_units_[id]->right();
+      auto& left = tmp_stmt->filter_units_[id]->left();
+      auto& right = tmp_stmt->filter_units_[id]->right();
       if(left.type == 2){
-        rc = left.init_stmt(db, (conditions[id]).left_select, depends, table_map, size);
+        rc = left.init_stmt(db, conditions[id].left_select.get(), depends, table_map, size);
       }
       if(rc != RC::SUCCESS){
         delete tmp_stmt;
@@ -71,14 +71,14 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const C
       }
       
       if(right.type == 2)
-        rc = right.init_stmt(db, conditions[id].right_select, depends, table_map, size);
+        rc = right.init_stmt(db, conditions[id].right_select.get(), depends, table_map, size);
       if(rc != RC::SUCCESS){
         delete tmp_stmt;
         return rc;
       }
     }
   }
-  
+
   stmt = tmp_stmt;
   return rc;
 }

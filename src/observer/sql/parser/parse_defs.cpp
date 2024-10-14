@@ -11,7 +11,5 @@ See the Mulan PSL v2 for more details. */
 #include "sql/expr/expression.h"
 #include "sql/parser/parse_defs.h"
 
-ConditionSqlNode::~ConditionSqlNode(){
-  if(left_select != nullptr)delete left_select;
-  if(right_select != nullptr)delete right_select;
-}
+ConditionSqlNode::ConditionSqlNode() = default;
+ConditionSqlNode::~ConditionSqlNode() = default;

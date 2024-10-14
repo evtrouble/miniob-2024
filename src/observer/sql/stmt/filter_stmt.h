@@ -62,7 +62,10 @@ class FilterUnit
 {
 public:
   FilterUnit() = default;
-  ~FilterUnit() {if(right_.stmt != nullptr)delete right_.stmt;}
+  ~FilterUnit() {
+    if(left_.stmt != nullptr)delete left_.stmt;
+    if(right_.stmt != nullptr)delete right_.stmt;
+  }
 
   void set_comp(CompOp comp) { comp_ = comp; }
 
@@ -73,6 +76,7 @@ public:
 
   const FilterObj &left() const { return left_; }
   const FilterObj &right() const { return right_; }
+  FilterObj &left() { return left_; }
   FilterObj &right() { return right_; }
 
 private:

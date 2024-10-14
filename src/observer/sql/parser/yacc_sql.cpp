@@ -2728,7 +2728,7 @@ yyreduce:
       (yyval.condition)->left_type = 1;
       (yyval.condition)->left_attr = *(yyvsp[-4].rel_attr);
       (yyval.condition)->right_type = 2;
-      (yyval.condition)->right_select = (yyvsp[-1].sql_node);
+      (yyval.condition)->right_select = unique_ptr<ParsedSqlNode>((yyvsp[-1].sql_node));
       (yyval.condition)->comp = (yyvsp[-3].comp);
 
       delete (yyvsp[-4].rel_attr);
@@ -2741,7 +2741,7 @@ yyreduce:
     {
       (yyval.condition) = new ConditionSqlNode;
       (yyval.condition)->right_type = 2;
-      (yyval.condition)->right_select = (yyvsp[-1].sql_node);
+      (yyval.condition)->right_select = unique_ptr<ParsedSqlNode>((yyvsp[-1].sql_node));
       (yyval.condition)->left_type = 0;
       (yyval.condition)->left_value = Value((void*)nullptr);
       (yyval.condition)->comp = (yyvsp[-3].comp);
@@ -2784,9 +2784,9 @@ yyreduce:
     {
       (yyval.condition) = new ConditionSqlNode;
       (yyval.condition)->left_type = 2;
-      (yyval.condition)->left_select = (yyvsp[-5].sql_node);
+      (yyval.condition)->left_select = unique_ptr<ParsedSqlNode>((yyvsp[-5].sql_node));
       (yyval.condition)->right_type = 2;
-      (yyval.condition)->right_select = (yyvsp[-1].sql_node);
+      (yyval.condition)->right_select = unique_ptr<ParsedSqlNode>((yyvsp[-1].sql_node));
       (yyval.condition)->comp = (yyvsp[-3].comp);
     }
 #line 2793 "yacc_sql.cpp"
@@ -2797,7 +2797,7 @@ yyreduce:
     {
       (yyval.condition) = new ConditionSqlNode;
       (yyval.condition)->left_type = 2;
-      (yyval.condition)->left_select = (yyvsp[-3].sql_node);
+      (yyval.condition)->left_select = unique_ptr<ParsedSqlNode>((yyvsp[-3].sql_node));
       (yyval.condition)->right_type = 0;
       (yyval.condition)->right_value = *(yyvsp[0].value);
       (yyval.condition)->comp = (yyvsp[-1].comp);

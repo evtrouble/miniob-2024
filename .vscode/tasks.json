@@ -2,11 +2,33 @@
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
     "version": "2.0.0",
+    "options": {
+        "cwd": "${workspaceFolder}/build"
+    },
     "tasks": [
         {
             "label": "init",
             "type": "shell",
             "command": "sudo -E env PATH=$PATH bash ${workspaceFolder}/build.sh init"
+        },
+        {
+            "label": "cmake",
+            "command": "cmake",
+            "args": [
+                "-DDEBUG=ON",
+                ".."
+            ]
+        },
+        {
+            "label": "make",
+            "command": "make"
+        },
+        {
+            "label": "CMake Build",
+            "dependsOn": [
+                "cmake",
+                "make"
+            ]
         },
         {
             "label": "build_debug",
