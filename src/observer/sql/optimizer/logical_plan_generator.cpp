@@ -162,17 +162,38 @@ RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<Logical
   const std::vector<FilterUnit *>    &filter_units = filter_stmt->filter_units();
   for (const FilterUnit *filter_unit : filter_units) {
     const FilterObj &filter_obj_left  = filter_unit->left();
-    const FilterObj &filter_obj_right = filter_unit->right();
+    const FilterObj &filter_obj_right = filter_unit->right(); 
 
-    unique_ptr<Expression> left(filter_obj_left.type
-                                    ? static_cast<Expression *>(new FieldExpr(filter_obj_left.field))
-                                    : static_cast<Expression *>(new ValueExpr(filter_obj_left.value)));
+    Expression* temp;
+    switch (filter_obj_left.type)
+    {
+    case 0:temp = static_cast<Expression *>(new ValueExpr(filter_obj_left.value));
+      break;
+    case 1:temp = static_cast<Expression *>(new FieldExpr(filter_obj_left.field));
+      break;
+    case 2:temp = static_cast<Expression *>(new SelectExpr(filter_obj_right.stmt, select_exprs));
+      break;
+    case 3:temp = static_cast<Expression *>(new ValueListExpr(move(filter_obj_left.value_list)));
+      break;
+    default:
+      break;
+    }
+    unique_ptr<Expression> left(temp);
 
-    unique_ptr<Expression> right(filter_obj_right.type
-                                     ? (filter_obj_right.type == 1 ?
-                                     static_cast<Expression *>(new FieldExpr(filter_obj_right.field))
-                                     : static_cast<Expression *>(new SelectExpr(filter_obj_right.stmt, select_exprs)))
-                                     : static_cast<Expression *>(new ValueExpr(filter_obj_right.value)));
+    switch (filter_obj_right.type)
+    {
+    case 0:temp = static_cast<Expression *>(new ValueExpr(filter_obj_right.value));
+      break;
+    case 1:temp = static_cast<Expression *>(new FieldExpr(filter_obj_right.field));
+      break;
+    case 2:temp = static_cast<Expression *>(new SelectExpr(filter_obj_right.stmt, select_exprs));
+      break;
+    case 3:temp = static_cast<Expression *>(new ValueListExpr(move(filter_obj_right.value_list)));
+      break;
+    default:
+      break;
+    }
+    unique_ptr<Expression> right(temp);
 
     if(left->value_type() == AttrType::NULLS || right->value_type() == AttrType::NULLS){
       ComparisonExpr *cmp_expr = new ComparisonExpr(filter_unit->comp(), std::move(left), std::move(right));

@@ -29,6 +29,7 @@ struct FilterObj
   int  type;
   Field field;
   Value value;
+  vector<Value> value_list;
   Stmt* stmt = nullptr;
 
   void init_attr(const Field &field)
@@ -37,10 +38,10 @@ struct FilterObj
     this->field = field;
   }
 
-  void init_value(const Value &value)
+  void init_value(const Value&& value)
   {
     type     = 0;
-    this->value = value;
+    this->value = std::move(value);
   }
 
   RC init_stmt(Db *db, ParsedSqlNode* sql_node, vector<vector<uint32_t>>* depends, 
@@ -48,6 +49,12 @@ struct FilterObj
   {
     type     = 2;
     return Stmt::create_stmt(db, *sql_node, this->stmt, depends, tables_map, fa);
+  }
+
+  void init_value_list(const vector<Value>&& value_list)
+  {
+    type     = 3;
+    this->value_list = move(value_list);
   }
 };
 

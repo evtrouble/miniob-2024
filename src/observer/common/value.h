@@ -53,11 +53,11 @@ public:
   explicit Value(const Date *s, int len = 0);
   explicit Value(ParsedSqlNode *select);
 
-  Value(const Value &other);
+  Value(const Value &other) noexcept;
   Value(Value &&other) noexcept;
 
-  Value &operator=(const Value &other);
-  Value &operator=(Value &&other);
+  Value &operator=(const Value &other) noexcept;
+  Value &operator=(Value &&other) noexcept;
 
   void reset();
 

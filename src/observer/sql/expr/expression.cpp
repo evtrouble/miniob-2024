@@ -219,7 +219,8 @@ RC ComparisonExpr::value_exists(const Tuple &tuple, bool &result) const
 
 RC ComparisonExpr::value_in(const Tuple &tuple, bool &result) const
 {
-  if(right_->type() != ExprType::SELECT)return RC::INVALID_ARGUMENT;
+  if(right_->type() != ExprType::SELECT && right_->type() != ExprType::VALUE_LIST)
+    return RC::INVALID_ARGUMENT;
 
   Value left_value;
 
@@ -244,7 +245,8 @@ RC ComparisonExpr::value_in(const Tuple &tuple, bool &result) const
 
 RC ComparisonExpr::value_not_in(const Tuple &tuple, bool &result) const
 {
-  if(right_->type() != ExprType::SELECT)return RC::INVALID_ARGUMENT;
+  if(right_->type() != ExprType::SELECT && right_->type() != ExprType::VALUE_LIST)
+    return RC::INVALID_ARGUMENT;
 
   Value left_value;
 
@@ -265,8 +267,8 @@ RC ComparisonExpr::value_not_in(const Tuple &tuple, bool &result) const
     return rc;
   }
 
+  result = !result;
   if(have_null)result = false;
-  else result = true;
 
   return RC::SUCCESS;
 }
@@ -850,21 +852,16 @@ RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result, boo
   if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   result = false;
-  if(have_null != nullptr) *have_null=false;
+  if(have_null != nullptr){
+    *have_null = this->have_null;
+    if(this->have_null)return RC::SUCCESS;
+  }
   if(values_ != nullptr){
     for(auto& values : *values_){
       if(values.size() == 0)return RC::NULL_TUPLE;
-      if(values[0].attr_type() == AttrType::NULLS)
-      {
-        if(have_null != nullptr)
-        {
-          *have_null = true;
-          return RC::SUCCESS;
-        }
-      }
-      else if(value.compare(values[0]) == 0){
+      else if(values[0].attr_type() != AttrType::NULLS && value.compare(values[0]) == 0){
         result = true;
-        if(have_null == nullptr)return RC::SUCCESS;
+        return RC::SUCCESS;
       }
     }
     return rc;
@@ -947,6 +944,7 @@ RC SelectExpr::pretreatment()
         LOG_WARN("failed to get tuple cell value. rc=%s", strrc(rc));
         return rc;
       }
+      if(value.attr_type() == AttrType::NULLS)have_null = true;
       values_->at(size).emplace_back(move(value));
     }
   }
@@ -961,3 +959,25 @@ RC SelectExpr::pretreatment()
 }
 
 SelectExpr::~SelectExpr() = default;
+
+RC ValueListExpr::get_value(const Tuple &tuple, Value &value) const 
+{
+  value = value_list_[0];
+  return RC::SUCCESS;
+}
+
+RC ValueListExpr::get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null) const
+{
+  result = false;
+  if(have_null != nullptr){
+    *have_null = this->have_null;
+    if(this->have_null)return RC::SUCCESS;
+  }
+  for(auto& value_temp : value_list_){
+    if(value_temp.attr_type() != AttrType::NULLS && value.compare(value_temp) == 0){
+      result = true;
+      return RC::SUCCESS;
+    }
+  }
+  return RC::SUCCESS;
+}

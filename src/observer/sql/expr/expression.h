@@ -54,7 +54,8 @@ enum class ExprType
   CONJUNCTION,  ///< 多个表达式使用同一种关系(AND或OR)来联结
   ARITHMETIC,   ///< 算术运算
   AGGREGATION,  ///< 聚合运算
-  SELECT        ///< 子查询
+  SELECT,        ///< 子查询
+  VALUE_LIST     
 };
 
 /**
@@ -505,7 +506,7 @@ public:
   AttrType value_type() const override { return value_type_;}
 
   RC get_value(const Tuple &tuple, Value &value) const override;
-  RC get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null = nullptr) const;
+  RC get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null = nullptr) const override;
 
   RC pretreatment();
 
@@ -525,4 +526,31 @@ private:
   unique_ptr<PhysicalOperator> physical_operator_;
   unique_ptr<vector<vector<Value>>> values_;
   Trx*      trx_ = nullptr;
+  bool have_null = false;
+};
+
+class ValueListExpr : public Expression
+{
+public:
+  ValueListExpr() = default;
+  explicit ValueListExpr(const vector<Value>&& value_list) : value_list_(move(value_list)) {
+    for(auto& value : value_list_){
+      if(value.attr_type() == AttrType::NULLS){
+        have_null = true;
+        break;
+      }
+    }
+  }
+
+  virtual ~ValueListExpr() = default;
+
+  RC get_value(const Tuple &tuple, Value &value) const override;
+  RC get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null = nullptr) const override;
+
+  ExprType type() const override { return ExprType::VALUE_LIST; }
+  AttrType value_type() const override { return value_list_[0].attr_type(); }
+
+private:
+  vector<Value> value_list_;
+  bool have_null = false;
 };

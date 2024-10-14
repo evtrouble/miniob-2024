@@ -169,8 +169,6 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <number>              number
 %type <string>              relation
 %type <comp>                comp_op
-%type <comp>                undirect_op
-%type <comp>                select_op
 %type <comp>                unary_op
 %type <rel_attr>            rel_attr
 %type <attr_infos>          attr_def_list
@@ -850,7 +848,7 @@ condition:
       delete $1;
       delete $3;
     }
-    | value undirect_op value
+    | value comp_op value
     {
       $$ = new ConditionSqlNode;
       $$->left_type = 0;
@@ -862,7 +860,7 @@ condition:
       delete $1;
       delete $3;
     }
-    | rel_attr undirect_op rel_attr
+    | rel_attr comp_op rel_attr
     {
       $$ = new ConditionSqlNode;
       $$->left_type = 1;
@@ -874,7 +872,7 @@ condition:
       delete $1;
       delete $3;
     }
-    | value undirect_op rel_attr
+    | value comp_op rel_attr
     {
       $$ = new ConditionSqlNode;
       $$->left_type = 0;
@@ -886,26 +884,29 @@ condition:
       delete $1;
       delete $3;
     }
-    | rel_attr select_op LBRACE select_stmt RBRACE
+    | rel_attr comp_op LBRACE select_stmt RBRACE
     {
-      $$ = new ConditionSqlNode($4);
+      $$ = new ConditionSqlNode;
       $$->left_type = 1;
       $$->left_attr = *$1;
       $$->right_type = 2;
+      $$->right_select = $4;
       $$->comp = $2;
 
       delete $1;
     }
     | unary_op LBRACE select_stmt RBRACE
     {
-      $$ = new ConditionSqlNode($3);
+      $$ = new ConditionSqlNode;
       $$->right_type = 2;
-      $$->left_type = 2;
+      $$->right_select = $3;
+      $$->left_type = 0;
+      $$->left_value = Value((void*)nullptr);
       $$->comp = $1;
     }
     | rel_attr IS NULL_T
     {
-      $$ = new ConditionSqlNode();
+      $$ = new ConditionSqlNode;
       $$->right_type = 0;
       $$->right_value = Value((void*)nullptr);
       $$->left_type = 1;
@@ -916,7 +917,7 @@ condition:
     }
     | rel_attr IS NOT NULL_T
     {
-      $$ = new ConditionSqlNode();
+      $$ = new ConditionSqlNode;
       $$->right_type = 0;
       $$->right_value = Value((void*)nullptr);
       $$->left_type = 1;
@@ -925,25 +926,49 @@ condition:
 
       delete $1;
     }
+    | LBRACE select_stmt RBRACE comp_op LBRACE select_stmt RBRACE
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 2;
+      $$->left_select = $2;
+      $$->right_type = 2;
+      $$->right_select = $6;
+      $$->comp = $4;
+    }
+    | LBRACE select_stmt RBRACE comp_op value
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 2;
+      $$->left_select = $2;
+      $$->right_type = 0;
+      $$->right_value = *$5;
+      $$->comp = $4;
+
+      delete $5;
+    }
+    | rel_attr comp_op LBRACE value_list RBRACE
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 1;
+      $$->left_attr = *$1;
+      $$->right_type = 3;
+      $$->right_value_list.swap(*$4);
+      $$->comp = $2;
+
+      delete $1;
+      delete $4;
+    }
     ;
 
 comp_op:
-      undirect_op { $$ = $1; }
-    | LIKE { $$ = LIKE_OP; }
+    LIKE { $$ = LIKE_OP; }
     | NOT LIKE { $$ = NOT_LIKE; }
-    ;
-
-undirect_op:
-    EQ { $$ = EQUAL_TO; }
+    | EQ { $$ = EQUAL_TO; }
     | LT { $$ = LESS_THAN; }
     | GT { $$ = GREAT_THAN; }
     | LE { $$ = LESS_EQUAL; }
     | GE { $$ = GREAT_EQUAL; }
     | NE { $$ = NOT_EQUAL; }
-    ;
-
-select_op:
-    undirect_op { $$ = $1; }
     | IN { $$ = IN_OP; }
     | NOT IN { $$ = NOT_IN; }
     ;

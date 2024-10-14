@@ -49,7 +49,8 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const C
       return rc;
     }
     
-    if(filter_unit->right().type == 2)select_id.emplace_back(tmp_stmt->filter_units_.size());
+    if(filter_unit->right().type == 2 || filter_unit->left().type == 2)
+      select_id.emplace_back(tmp_stmt->filter_units_.size());
     tmp_stmt->filter_units_.push_back(filter_unit);
   }
 
@@ -59,8 +60,18 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const C
 
   if(select_id.size()){
     for(auto& id : select_id){
-      rc = tmp_stmt->filter_units_[id]->right().init_stmt(db, conditions[id].right_select.get(), 
-        depends, table_map, size);
+      auto left = tmp_stmt->filter_units_[id]->left();
+      auto right = tmp_stmt->filter_units_[id]->right();
+      if(left.type == 2){
+        rc = left.init_stmt(db, (conditions[id]).left_select, depends, table_map, size);
+      }
+      if(rc != RC::SUCCESS){
+        delete tmp_stmt;
+        return rc;
+      }
+      
+      if(right.type == 2)
+        rc = right.init_stmt(db, conditions[id].right_select, depends, table_map, size);
       if(rc != RC::SUCCESS){
         delete tmp_stmt;
         return rc;
@@ -119,9 +130,9 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, tables_t* table_
   {
     case 0:{
       FilterObj filter_obj;
-      filter_obj.init_value(condition.left_value);
-      filter_unit->set_left(filter_obj);
       left = condition.left_value.attr_type();
+      filter_obj.init_value(std::move(condition.left_value));
+      filter_unit->set_left(filter_obj);
     }break;
     case 1:{
       Table           *table = nullptr;
@@ -138,29 +149,39 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, tables_t* table_
       filter_unit->set_left(filter_obj);
       left = field->type();
     }break;
-    default: {
+    case 2:{
       FilterObj filter_obj;
       filter_obj.type = 2;
       filter_unit->set_left(filter_obj);
+      left = condition.left_select->selection.expressions[0]->value_type();
     }break;
+    case 3:{
+      FilterObj filter_obj;
+      left = condition.left_value_list[0].attr_type();
+      filter_obj.init_value_list(std::move(condition.left_value_list));
+      filter_unit->set_left(filter_obj);
+    }break;
+    default: break;
   }
 
   switch (condition.right_type)
   {
     case 0:{
       FilterObj filter_obj;
-      filter_obj.init_value(condition.right_value);
-      filter_unit->set_right(filter_obj);
       right = condition.right_value.attr_type();
+      filter_obj.init_value(std::move(condition.right_value));
+      filter_unit->set_right(filter_obj);
     }break;
     case 1:{
       Table           *table = nullptr;
       const FieldMeta *field = nullptr;
+        
       rc = get_table_and_field(db, default_table, table_map, condition.right_attr, table, field, min_depend);
       if (rc != RC::SUCCESS) {
         LOG_WARN("cannot find attr");
         return rc;
       }
+
       FilterObj filter_obj;
       filter_obj.init_attr(Field(table, field));
       filter_unit->set_right(filter_obj);
@@ -171,6 +192,12 @@ RC FilterStmt::create_filter_unit(Db *db, Table *default_table, tables_t* table_
       filter_obj.type = 2;
       filter_unit->set_right(filter_obj);
       right = condition.right_select->selection.expressions[0]->value_type();
+    }break;
+    case 3:{
+      FilterObj filter_obj;
+      right = condition.right_value_list[0].attr_type();
+      filter_obj.init_value_list(std::move(condition.right_value_list));
+      filter_unit->set_right(filter_obj);
     }break;
     default: break;
   }

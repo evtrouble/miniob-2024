@@ -49,7 +49,7 @@ Value::Value(ParsedSqlNode *select)
   }
 }
 
-Value::Value(const Value &other)
+Value::Value(const Value &other) noexcept
 {
   this->attr_type_ = other.attr_type_;
   this->length_    = other.length_;
@@ -78,7 +78,7 @@ Value::Value(Value &&other) noexcept
   other.length_    = 0;
 }
 
-Value &Value::operator=(const Value &other)
+Value &Value::operator=(const Value &other) noexcept
 {
   if (this == &other) {
     return *this;
@@ -102,7 +102,7 @@ Value &Value::operator=(const Value &other)
   return *this;
 }
 
-Value &Value::operator=(Value &&other)
+Value &Value::operator=(Value &&other) noexcept
 {
   if (this == &other) {
     return *this;
