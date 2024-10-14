@@ -87,7 +87,6 @@ struct ConditionSqlNode
   Value          right_value;    ///< right-hand side value if right_type = 0
   std::shared_ptr<ParsedSqlNode> right_select;  ///< right-hand side select if right_type = 2
   vector<Value>  right_value_list;
-  bool           and_or = false; ///< 表示是and还是or
   ConditionSqlNode();
   ~ConditionSqlNode();
 };

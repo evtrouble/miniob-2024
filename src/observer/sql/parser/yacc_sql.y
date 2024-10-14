@@ -837,7 +837,6 @@ condition_list:
     }
     | condition OR condition_list {
       $$ = $3;
-      $1->and_or = true;
       $$->emplace_back(move(*$1));
       delete $1;
     }
