@@ -72,12 +72,13 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         GROUP
         ORDER
         HAVING
+        ASC
+        DESC
         TABLE
         TABLES
         INDEX
         CALC
         SELECT
-        DESC
         SHOW
         SYNC
         INSERT
@@ -135,6 +136,8 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
   AttrInfoSqlNode *                          attr_info;
   Expression *                               expression;
   std::vector<std::unique_ptr<Expression>> * expression_list;
+  std::vector<OrderByNode> *                 order_by_list;
+  OrderByNode *                              order_by_unit;
   std::vector<Value> *                       value_list;
   std::vector<std::vector<Value>> *          values_list;
   std::vector<ConditionSqlNode> *            condition_list;
@@ -185,7 +188,10 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <expression>          expression
 %type <expression_list>     expression_list
 %type <expression_list>     group_by
-%type <expression_list>     having_list
+%type <condition_list>      having_list
+%type <order_by_list>       order_by
+%type <order_by_list>       order_by_list
+%type <order_by_unit>       order_by_unit
 %type <sql_node>            calc_stmt
 %type <sql_node>            select_stmt
 %type <sql_node>            insert_stmt
@@ -521,11 +527,9 @@ update_stmt:      /*  update 语句的语法解析树*/
     {
       $$ = new ParsedSqlNode(SCF_UPDATE);
       $$->update.relation_name = $2;
-      $$->update.attribute_names.swap(*($4->relation_list));
-      $$->update.values.swap(*($4->value_list));
+      $$->update.attribute_names.swap($4->relation_list);
+      $$->update.values.swap($4->value_list);
       
-      delete $4->relation_list;
-      delete $4->value_list;
       delete $4;
       free($2);
 
@@ -540,11 +544,9 @@ key_values:
     ID EQ assign_value
     {
       $$ = new Key_values;
-      $$->relation_list = new vector<string>;
-      $$->value_list = new vector<Value>;
-      $$->relation_list->emplace_back(move($1));
+      $$->relation_list.emplace_back(move($1));
       free($1);
-      $$->value_list->emplace_back(move(*$3));
+      $$->value_list.emplace_back(move(*$3));
       delete $3;
     }
     | ID EQ assign_value COMMA key_values
@@ -553,13 +555,11 @@ key_values:
         $$ = $5;
       } else {
         $$ = new Key_values;
-        $$->relation_list = new vector<string>;
-        $$->value_list = new vector<Value>;
       }
-      
-      $$->relation_list->emplace_back(move($1));
+
+      $$->relation_list.emplace_back(move($1));
       free($1);
-      $$->value_list->emplace_back(move(*$3));
+      $$->value_list.emplace_back(move(*$3));
       delete $3;
     }
     ;
@@ -573,7 +573,7 @@ assign_value:
     ;
 
 select_stmt:        /*  select 语句的语法解析树*/
-    SELECT expression_list FROM rel_list where group_by having_list
+    SELECT expression_list FROM rel_list where group_by having_list order_by
     {
       $$ = new ParsedSqlNode(SCF_SELECT);
       if ($2 != nullptr) {
@@ -600,6 +600,11 @@ select_stmt:        /*  select 语句的语法解析树*/
       if ($6 != nullptr) {
         $$->selection.group_by.swap(*$6);
         delete $6;
+      }
+
+      if($8 != nullptr){
+        $$->selection.order_by.swap(*$8);
+        delete $8;
       }
     }
     ;
@@ -964,6 +969,61 @@ having_list:
     /* empty */
     {
       $$ = nullptr;
+    }
+    | HAVING condition_list
+    {
+      $$ =$2;
+    }
+    ;
+
+order_by:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | ORDER BY order_by_list
+    {
+      $$ = $3;
+    }
+    ;
+
+order_by_list:
+    order_by_unit
+    {
+      $$ = new std::vector<OrderByNode>;
+      $$->emplace_back(move(*$1));
+      delete $1;
+    }
+    | order_by_unit COMMA order_by_list
+    {
+      if($3 != nullptr){
+        $$ = $3;
+      } else {
+        $$ = new std::vector<OrderByNode>;
+      }
+      $$->emplace($$->begin(), move(*$1));
+      delete $1;
+    }
+    ;
+
+order_by_unit:
+    expression
+    {
+      $$ = new OrderByNode;
+      $$->is_asc = true;
+      $$->expression = $1;
+    }
+    | expression ASC
+    {
+      $$ = new OrderByNode;
+      $$->is_asc = true;
+      $$->expression = $1;
+    }
+    | expression DESC
+    {
+      $$ = new OrderByNode;
+      $$->is_asc = false;
+      $$->expression = $1;
     }
     ;
 

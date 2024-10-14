@@ -54,7 +54,7 @@ public:
   explicit Value(ParsedSqlNode *select);
 
   Value(const Value &other);
-  Value(Value &&other);
+  Value(Value &&other) noexcept;
 
   Value &operator=(const Value &other);
   Value &operator=(Value &&other);

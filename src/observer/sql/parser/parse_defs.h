@@ -86,9 +86,10 @@ struct ConditionSqlNode
   ConditionSqlNode(ParsedSqlNode* select = nullptr);
 };
 
-struct OrderByNode{
-  std::string attribute_name; ///< 属性名
-  bool        asc;            ///< 升序or讲叙
+struct OrderByNode
+{
+  Expression* expression = nullptr; 
+  bool        is_asc;     ///< 升序or降序
 };
 
 /**
@@ -108,7 +109,7 @@ struct SelectSqlNode
   std::vector<std::string>                 relations;    ///< 查询的表
   std::vector<ConditionSqlNode>            conditions;   ///< 查询条件，使用AND串联起来多个条件
   std::vector<std::unique_ptr<Expression>> group_by;     ///< group by clause
-  std::vector<std::unique_ptr<Expression>> order_by;    ///< order by clause
+  std::vector<OrderByNode>                 order_by;    ///< order by clause
 };
 
 /**
@@ -340,12 +341,14 @@ private:
   std::vector<std::unique_ptr<ParsedSqlNode>> sql_nodes_;  ///< 这里记录SQL命令。虽然看起来支持多个，但是当前仅处理一个
 };
 
-struct Joins{
+struct Joins
+{
     std::vector<std::string> *                 relation_list;
     std::vector<ConditionSqlNode> *            condition_list;
 };
 
-struct Key_values{
-  std::vector<std::string> *                 relation_list;
-  std::vector<Value> *                       value_list;
+struct Key_values
+{
+  std::vector<std::string>                relation_list;
+  std::vector<Value>                      value_list;
 };

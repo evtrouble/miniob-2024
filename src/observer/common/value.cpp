@@ -68,7 +68,7 @@ Value::Value(const Value &other)
   }
 }
 
-Value::Value(Value &&other)
+Value::Value(Value &&other) noexcept
 {
   this->attr_type_ = other.attr_type_;
   this->length_    = other.length_;
