@@ -50,8 +50,10 @@ RC UpdatePhysicalOperator::open(Trx *trx)
       SelectExpr* temp = (SelectExpr*)select_map_[id];
       if(temp->check()){
         rc = temp->get_value(*tuple, values_[id]); 
-        if(rc != RC::SUCCESS && rc != RC::NULL_TUPLE && rc != RC::MUTI_TUPLE)
+        if(rc != RC::SUCCESS)
         {
+          if(rc == RC::NULL_TUPLE || rc == RC::MUTI_TUPLE)
+            break;
           child->close();
           return rc;
         }
