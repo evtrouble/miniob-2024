@@ -141,7 +141,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
   OrderByNode *                              order_by_unit;
   std::vector<Value> *                       value_list;
   std::vector<std::vector<Value>> *          values_list;
-  std::vector<ConditionSqlNode> *            condition_list;
+  Conditions *                               condition_list;
   std::vector<RelAttrSqlNode> *              rel_attr_list;
   std::vector<std::string> *                 relation_list;
   char *                                     string;
@@ -515,7 +515,7 @@ delete_stmt:    /*  delete 语句的语法解析树*/
       $$ = new ParsedSqlNode(SCF_DELETE);
       $$->deletion.relation_name = $3;
       if ($4 != nullptr) {
-        $$->deletion.conditions.swap(*$4);
+        swap($$->deletion.conditions, *$4);
         delete $4;
       }
       free($3);
@@ -533,7 +533,7 @@ update_stmt:      /*  update 语句的语法解析树*/
       free($2);
 
       if($5 != nullptr){
-        $$->update.conditions.swap(*$5);
+        swap($$->update.conditions, *$5);
         delete $5;
       }
     }
@@ -581,18 +581,19 @@ select_stmt:        /*  select 语句的语法解析树*/
       }
 
       if ($4 != nullptr) {
-        $$->selection.relations.swap(*($4->relation_list));
-        $$->selection.conditions.swap(*($4->condition_list));
-        delete $4->relation_list;
-        delete $4->condition_list;
+        $$->selection.relations.swap($4->relation_list);
+        swap($$->selection.conditions, $4->condition_list);
         delete $4;
       }
 
       if ($5 != nullptr) {
-        if($$->selection.conditions.size())
-          $$->selection.conditions.insert($$->selection.conditions.begin(), 
-            $5->begin(), $5->end());
-        else $$->selection.conditions.swap(*$5);
+        auto& conditions = $$->selection.conditions;
+        if(conditions.conditions.size()){
+          conditions.conditions.insert(conditions.conditions.begin(), 
+            $5->conditions.begin(), $5->conditions.end());
+          conditions.and_or = $5->and_or;
+        }
+        else swap(conditions, *$5);
         delete $5;
       }
 
@@ -709,9 +710,7 @@ relation:
 rel_list:
     relation {
       $$ = new Joins;
-      $$->relation_list = new std::vector<std::string>;
-      $$->condition_list = new std::vector<ConditionSqlNode>;
-      $$->relation_list->push_back($1);
+      $$->relation_list.push_back($1);
       free($1);
     }
     | relation COMMA rel_list {
@@ -719,26 +718,22 @@ rel_list:
         $$ = $3;
       } else {
         $$ = new Joins;
-        $$->relation_list = new std::vector<std::string>;
-        $$->condition_list = new std::vector<ConditionSqlNode>;
       }
 
-      $$->relation_list->insert($$->relation_list->begin(), $1);
+      $$->relation_list.insert($$->relation_list.begin(), $1);
       free($1);
     }
     | relation join_list {
       $$ = new Joins;
-      $$->relation_list = new std::vector<std::string>;
-      $$->condition_list = new std::vector<ConditionSqlNode>;
 
-      $$->relation_list->emplace_back(move($1));
-      $$->relation_list->insert($$->relation_list->end(), 
-        $2->relation_list->begin(), $2->relation_list->end());
-      $$->condition_list->insert($$->condition_list->begin(), 
-        $2->condition_list->begin(), $2->condition_list->end());
+      $$->relation_list.emplace_back(move($1));
+      $$->relation_list.insert($$->relation_list.end(), 
+        $2->relation_list.begin(), $2->relation_list.end());
 
-      delete $2->relation_list;
-      delete $2->condition_list;
+      auto& conditions = $$->condition_list.conditions;
+      conditions.insert(conditions.begin(), 
+        $2->condition_list.conditions.begin(), $2->condition_list.conditions.end());
+
       delete $2;
       free($1);
     }
@@ -747,18 +742,16 @@ rel_list:
         $$ = $4;
       } else {
         $$ = new Joins;
-        $$->relation_list = new std::vector<std::string>;
-        $$->condition_list = new std::vector<ConditionSqlNode>;
       }
 
-      $$->relation_list->insert($$->relation_list->begin(), 
-        $2->relation_list->begin(), $2->relation_list->end());
-      $$->relation_list->insert($$->relation_list->begin(), $1);
-      $$->condition_list->insert($$->condition_list->begin(), 
-        $2->condition_list->begin(), $2->condition_list->end());
+      $$->relation_list.insert($$->relation_list.begin(), 
+        $2->relation_list.begin(), $2->relation_list.end());
+      $$->relation_list.insert($$->relation_list.begin(), $1);
 
-      delete $2->relation_list;
-      delete $2->condition_list;
+      auto& conditions = $$->condition_list.conditions;
+      conditions.insert(conditions.begin(), 
+        $2->condition_list.conditions.begin(), $2->condition_list.conditions.end());
+
       delete $2;
       free($1);
     }
@@ -768,13 +761,12 @@ join_list:
     INNER JOIN relation on
     {
       $$ = new Joins;
-      $$->relation_list = new std::vector<std::string>;
-      $$->condition_list = new std::vector<ConditionSqlNode>;
-      $$->relation_list->emplace_back(move($3));
+      $$->relation_list.emplace_back(move($3));
 
       free($3);
       if($4 != nullptr){
-        $$->condition_list->insert($$->condition_list->end(), $4->begin(), $4->end());
+        auto& conditions = $$->condition_list.conditions;
+        conditions.insert(conditions.end(), $4->conditions.begin(), $4->conditions.end());
         delete $4;
       }
       
@@ -785,15 +777,14 @@ join_list:
         $$ = $5;
       } else {
         $$ = new Joins;
-        $$->relation_list = new std::vector<std::string>;
-        $$->condition_list = new std::vector<ConditionSqlNode>;
       }
 
-      $$->relation_list->emplace($$->relation_list->begin(), move($3));
+      $$->relation_list.emplace($$->relation_list.begin(), move($3));
       free($3);
 
       if($4 != nullptr){
-        $$->condition_list->insert($$->condition_list->end(), $4->begin(), $4->end());
+        auto& conditions = $$->condition_list.conditions;
+        conditions.insert(conditions.end(), $4->conditions.begin(), $4->conditions.end());
         delete $4;
       }
     }
@@ -826,18 +817,19 @@ condition_list:
       $$ = nullptr;
     }
     | condition {
-      $$ = new std::vector<ConditionSqlNode>;
-      $$->emplace_back(move(*$1));
+      $$ = new Conditions;
+      $$->conditions.emplace_back(move(*$1));
       delete $1;
     }
     | condition AND condition_list {
       $$ = $3;
-      $$->emplace_back(move(*$1));
+      $$->conditions.emplace_back(move(*$1));
       delete $1;
     }
     | condition OR condition_list {
       $$ = $3;
-      $$->emplace_back(move(*$1));
+      $$->and_or = true;
+      $$->conditions.emplace_back(move(*$1));
       delete $1;
     }
     ;

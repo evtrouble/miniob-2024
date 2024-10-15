@@ -91,6 +91,12 @@ struct ConditionSqlNode
   ~ConditionSqlNode();
 };
 
+struct Conditions
+{
+  std::vector<ConditionSqlNode>            conditions;
+  bool                                     and_or = false;///< false为and，true为false
+};
+
 struct OrderByNode
 {
   Expression* expression = nullptr; 
@@ -112,7 +118,7 @@ struct SelectSqlNode
 {
   std::vector<std::unique_ptr<Expression>> expressions;  ///< 查询的表达式
   std::vector<std::string>                 relations;    ///< 查询的表
-  std::vector<ConditionSqlNode>            conditions;   ///< 查询条件，使用AND串联起来多个条件
+  Conditions                               conditions;   ///< 查询条件，使用AND或OR串联起来多个条件
   std::vector<std::unique_ptr<Expression>> group_by;     ///< group by clause
   std::vector<OrderByNode>                 order_by;    ///< order by clause
 };
@@ -144,7 +150,7 @@ struct InsertSqlNode
 struct DeleteSqlNode
 {
   std::string                   relation_name;  ///< Relation to delete from
-  std::vector<ConditionSqlNode> conditions;
+  Conditions                    conditions;
 };
 
 /**
@@ -156,7 +162,7 @@ struct UpdateSqlNode
   std::string                   relation_name;   ///< Relation to update
   std::vector<std::string>      attribute_names;  ///< 更新的字段
   std::vector<Value>            values;           ///< 更新的值
-  std::vector<ConditionSqlNode> conditions;
+  Conditions                    conditions;
 };
 
 /**
@@ -346,8 +352,8 @@ private:
 
 struct Joins
 {
-    std::vector<std::string> *                 relation_list;
-    std::vector<ConditionSqlNode> *            condition_list;
+    std::vector<std::string>                   relation_list;
+    Conditions                                 condition_list;
 };
 
 struct Key_values

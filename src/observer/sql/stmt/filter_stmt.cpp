@@ -28,20 +28,21 @@ FilterStmt::~FilterStmt()
   filter_units_.clear();
 }
 
-RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const ConditionSqlNode *conditions, 
-    int condition_num, FilterStmt *&stmt, vector<vector<uint32_t>>* depends, int fa)
+RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const Conditions& conditions, 
+    FilterStmt *&stmt, vector<vector<uint32_t>>* depends, int fa)
 {
   RC rc = RC::SUCCESS;
   stmt  = nullptr;
-  FilterStmt *tmp_stmt = new FilterStmt();
+  FilterStmt *tmp_stmt = new FilterStmt(conditions.and_or);
 
   vector<uint32_t> select_id;
   vector<Table*> tables;
   size_t min_depend = UINT32_MAX;
-  for (int i = 0; i < condition_num; i++) {
+  auto& cond = conditions.conditions;
+  for (size_t i = 0; i < cond.size(); i++) {
     FilterUnit *filter_unit = nullptr;
 
-    rc = create_filter_unit(db, default_table, table_map, conditions[i], filter_unit, &min_depend);
+    rc = create_filter_unit(db, default_table, table_map, cond[i], filter_unit, &min_depend);
     if (rc != RC::SUCCESS) {
       delete filter_unit;
       delete tmp_stmt;
@@ -63,7 +64,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const C
       auto& left = tmp_stmt->filter_units_[id]->left();
       auto& right = tmp_stmt->filter_units_[id]->right();
       if(left.type == 2){
-        rc = left.init_stmt(db, conditions[id].left_select.get(), depends, table_map, size);
+        rc = left.init_stmt(db, cond[id].left_select.get(), depends, table_map, size);
       }
       if(rc != RC::SUCCESS){
         delete tmp_stmt;
@@ -71,7 +72,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t* table_map, const C
       }
       
       if(right.type == 2)
-        rc = right.init_stmt(db, conditions[id].right_select.get(), depends, table_map, size);
+        rc = right.init_stmt(db, cond[id].right_select.get(), depends, table_map, size);
       if(rc != RC::SUCCESS){
         delete tmp_stmt;
         return rc;

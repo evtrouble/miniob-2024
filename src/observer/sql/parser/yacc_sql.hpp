@@ -143,7 +143,7 @@ union YYSTYPE
   OrderByNode *                              order_by_unit;
   std::vector<Value> *                       value_list;
   std::vector<std::vector<Value>> *          values_list;
-  std::vector<ConditionSqlNode> *            condition_list;
+  Conditions *                               condition_list;
   std::vector<RelAttrSqlNode> *              rel_attr_list;
   std::vector<std::string> *                 relation_list;
   char *                                     string;

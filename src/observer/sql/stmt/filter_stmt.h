@@ -93,14 +93,16 @@ class FilterStmt
 {
 public:
   FilterStmt() = default;
+  FilterStmt(bool and_or) : and_or_(and_or){}
   virtual ~FilterStmt();
 
 public:
   const std::vector<FilterUnit *> &filter_units() const { return filter_units_; }
+  const bool and_or() const { return and_or_; }
 
 public:
-  static RC create(Db *db, Table *default_table, tables_t* table_map, const ConditionSqlNode *conditions, 
-    int condition_num, FilterStmt *&stmt, vector<vector<uint32_t>>* depends, int fa = -1);
+  static RC create(Db *db, Table *default_table, tables_t* table_map, const Conditions& conditions, 
+    FilterStmt *&stmt, vector<vector<uint32_t>>* depends, int fa = -1);
 
 
   static RC create_filter_unit(Db *db, Table *default_table, tables_t* table_map,
@@ -108,4 +110,5 @@ public:
 
 private:
   std::vector<FilterUnit *> filter_units_;  // 默认当前都是AND关系
+  bool    and_or_ = false;            //false为and，true为or
 };
