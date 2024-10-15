@@ -49,7 +49,16 @@ RC UpdatePhysicalOperator::open(Trx *trx)
       SelectExpr* temp = (SelectExpr*)select_map_[id];
       if(temp->check()){
         rc = temp->get_value(*tuple, values_[id]); 
-        if(rc != RC::SUCCESS)return rc;
+        if(rc == RC::NULL_TUPLE)
+        {
+          child->close();
+          return RC::SUCCESS;
+        }
+        if(rc != RC::SUCCESS)
+        {
+          child->close();
+          return rc;
+        }
       }
       else select_ids.emplace_back(id);
     }
@@ -83,7 +92,6 @@ RC UpdatePhysicalOperator::open(Trx *trx)
   }
 
   child->close();
-  
   return RC::SUCCESS;
 }
 
