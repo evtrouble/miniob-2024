@@ -30,6 +30,7 @@ public:
 
   RC open(Trx *trx) override;
   RC next() override;
+  RC next(Tuple *upper_tuple) override;
   RC close() override;
 
   Tuple *current_tuple() override;
@@ -37,4 +38,5 @@ public:
 private:
   std::unique_ptr<GroupValueType> group_value_;
   bool                            emitted_ = false;  /// 标识是否已经输出过
+  bool                             have_value = false;
 };

@@ -35,67 +35,147 @@ RC ScalarGroupByPhysicalOperator::open(Trx *trx)
     return rc;
   }
 
-  ExpressionTuple<Expression *> group_value_expression_tuple(value_expressions_);
-
-  ValueListTuple group_by_evaluated_tuple;
-
-  while (OB_SUCC(rc = child.next())) {
-    Tuple *child_tuple = child.current_tuple();
-    if (nullptr == child_tuple) {
-      LOG_WARN("failed to get tuple from child operator. rc=%s", strrc(rc));
-      return RC::INTERNAL;
-    }
-
-    // 计算需要做聚合的值
-    group_value_expression_tuple.set_tuple(child_tuple);
-
-    // 计算聚合值
-    if (group_value_ == nullptr) {
-      AggregatorList aggregator_list;
-      create_aggregator_list(aggregator_list);
-
-      ValueListTuple child_tuple_to_value;
-      rc = ValueListTuple::make(*child_tuple, child_tuple_to_value);
-      if (OB_FAIL(rc)) {
-        LOG_WARN("failed to make tuple to value list. rc=%s", strrc(rc));
-        return rc;
-      }
-
-      CompositeTuple composite_tuple;
-      composite_tuple.add_tuple(make_unique<ValueListTuple>(std::move(child_tuple_to_value)));
-      group_value_ = make_unique<GroupValueType>(std::move(aggregator_list), std::move(composite_tuple));
-    }
-    
-    rc = aggregate(get<0>(*group_value_), group_value_expression_tuple);
-    if (OB_FAIL(rc)) {
-      LOG_WARN("failed to aggregate values. rc=%s", strrc(rc));
-      return rc;
-    }
-  }
-
-  if (RC::RECORD_EOF == rc) {
-    rc = RC::SUCCESS;
-  }
-
-  if (OB_FAIL(rc)) {
-    LOG_WARN("failed to get next tuple. rc=%s", strrc(rc));
-    return rc;
-  }
-
-  // 得到最终聚合后的值
-  if (group_value_ == nullptr) {
-    AggregatorList aggregator_list;
-    create_aggregator_list(aggregator_list);
-    group_value_ = make_unique<GroupValueType>(std::move(aggregator_list), CompositeTuple());
-  }
-  rc = evaluate(*group_value_);
-
-  emitted_ = false;
+  have_value = false;
   return rc;
 }
 
 RC ScalarGroupByPhysicalOperator::next()
 {
+  if(!have_value){
+    ExpressionTuple<Expression *> group_value_expression_tuple(value_expressions_);
+
+    ValueListTuple group_by_evaluated_tuple;
+    PhysicalOperator &child = *children_[0];
+    RC rc = RC::SUCCESS;
+
+    while (OB_SUCC(rc = child.next())) {
+      Tuple *child_tuple = child.current_tuple();
+      if (nullptr == child_tuple) {
+        LOG_WARN("failed to get tuple from child operator. rc=%s", strrc(rc));
+        return RC::INTERNAL;
+      }
+
+    // 计算需要做聚合的值
+      group_value_expression_tuple.set_tuple(child_tuple);
+
+    // 计算聚合值
+      if (group_value_ == nullptr) {
+        AggregatorList aggregator_list;
+        create_aggregator_list(aggregator_list);
+
+        ValueListTuple child_tuple_to_value;
+        rc = ValueListTuple::make(*child_tuple, child_tuple_to_value);
+        if (OB_FAIL(rc)) {
+          LOG_WARN("failed to make tuple to value list. rc=%s", strrc(rc));
+          return rc;
+        }
+
+        CompositeTuple composite_tuple;
+        composite_tuple.add_tuple(make_unique<ValueListTuple>(std::move(child_tuple_to_value)));
+        group_value_ = make_unique<GroupValueType>(std::move(aggregator_list), std::move(composite_tuple));
+      }
+    
+      rc = aggregate(get<0>(*group_value_), group_value_expression_tuple);
+      if (OB_FAIL(rc)) {
+        LOG_WARN("failed to aggregate values. rc=%s", strrc(rc));
+        return rc;
+      }
+    }
+
+    if (RC::RECORD_EOF == rc) {
+      rc = RC::SUCCESS;
+    }
+
+    if (OB_FAIL(rc)) {
+      LOG_WARN("failed to get next tuple. rc=%s", strrc(rc));
+      return rc;
+    }
+
+    // 得到最终聚合后的值
+    if (group_value_ == nullptr) {
+      AggregatorList aggregator_list;
+      create_aggregator_list(aggregator_list);
+      group_value_ = make_unique<GroupValueType>(std::move(aggregator_list), CompositeTuple());
+    }
+    rc = evaluate(*group_value_);
+
+    emitted_ = false;
+    have_value = true;
+  }
+
+  if (group_value_ == nullptr || emitted_) {
+    return RC::RECORD_EOF;
+  }
+
+  emitted_ = true;
+
+  return RC::SUCCESS;
+}
+
+RC ScalarGroupByPhysicalOperator::next(Tuple *upper_tuple)
+{
+  if(!have_value){
+    ExpressionTuple<Expression *> group_value_expression_tuple(value_expressions_);
+
+    ValueListTuple group_by_evaluated_tuple;
+    PhysicalOperator &child = *children_[0];
+    RC rc = RC::SUCCESS;
+
+    while (OB_SUCC(rc = child.next(upper_tuple))) {
+      Tuple *child_tuple = child.current_tuple();
+      if (nullptr == child_tuple) {
+        LOG_WARN("failed to get tuple from child operator. rc=%s", strrc(rc));
+        return RC::INTERNAL;
+      }
+
+    // 计算需要做聚合的值
+      group_value_expression_tuple.set_tuple(child_tuple);
+
+    // 计算聚合值
+      if (group_value_ == nullptr) {
+        AggregatorList aggregator_list;
+        create_aggregator_list(aggregator_list);
+
+        ValueListTuple child_tuple_to_value;
+        rc = ValueListTuple::make(*child_tuple, child_tuple_to_value);
+        if (OB_FAIL(rc)) {
+          LOG_WARN("failed to make tuple to value list. rc=%s", strrc(rc));
+          return rc;
+        }
+
+        CompositeTuple composite_tuple;
+        composite_tuple.add_tuple(make_unique<ValueListTuple>(std::move(child_tuple_to_value)));
+        group_value_ = make_unique<GroupValueType>(std::move(aggregator_list), std::move(composite_tuple));
+      }
+    
+      rc = aggregate(get<0>(*group_value_), group_value_expression_tuple);
+      if (OB_FAIL(rc)) {
+        LOG_WARN("failed to aggregate values. rc=%s", strrc(rc));
+        return rc;
+      }
+    }
+
+    if (RC::RECORD_EOF == rc) {
+      rc = RC::SUCCESS;
+    }
+
+    if (OB_FAIL(rc)) {
+      LOG_WARN("failed to get next tuple. rc=%s", strrc(rc));
+      return rc;
+    }
+
+    // 得到最终聚合后的值
+    if (group_value_ == nullptr) {
+      AggregatorList aggregator_list;
+      create_aggregator_list(aggregator_list);
+      group_value_ = make_unique<GroupValueType>(std::move(aggregator_list), CompositeTuple());
+    }
+    rc = evaluate(*group_value_);
+
+    emitted_ = false;
+    have_value = true;
+  }
+
   if (group_value_ == nullptr || emitted_) {
     return RC::RECORD_EOF;
   }

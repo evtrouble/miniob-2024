@@ -56,17 +56,18 @@ RC TableScanPhysicalOperator::next()
 RC TableScanPhysicalOperator::next(Tuple *upper_tuple)
 {
   RC rc = RC::SUCCESS;
+  JoinedTuple join_tuple;
+  join_tuple.set_left(upper_tuple);
 
   bool filter_result = false;
   while (OB_SUCC(rc = record_scanner_.next(current_record_))) {
     LOG_TRACE("got a record. rid=%s", current_record_.rid().to_string().c_str());
     
     tuple_.set_record(&current_record_);
-    JoinedTuple join_tuple;
-    join_tuple.set_left(upper_tuple);
+    
     join_tuple.set_right(&tuple_);
 
-    rc = filter(tuple_, filter_result);
+    rc = filter(join_tuple, filter_result);
     if (rc != RC::SUCCESS) {
       LOG_TRACE("record filtered failed=%s", strrc(rc));
       return rc;
