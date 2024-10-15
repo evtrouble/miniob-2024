@@ -209,7 +209,7 @@ RC PlainCommunicator::write_result_internal(SessionEvent *event, bool &need_disc
   }
 
   if (OB_FAIL(rc)) {
-    if(rc == RC::NULL_TUPLE){
+    if(rc != RC::SUCCESS){
       sql_result->close();
       sql_result->set_return_code(rc);
       return write_state(event, need_disconnect);
@@ -338,7 +338,7 @@ RC PlainCommunicator::write_tuple_result(SqlResult *sql_result)
     }
   }
 
-  if(rc == RC::MUTI_TUPLE || rc == RC::NULL_TUPLE)return RC::NULL_TUPLE;
+  if(rc != RC::RECORD_EOF && rc != RC::SUCCESS)return RC::INVALID_ARGUMENT;
   if(ctl)rc = write_tuple_schema(sql_result);
 
   if (rc == RC::RECORD_EOF) {

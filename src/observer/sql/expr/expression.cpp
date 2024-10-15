@@ -103,6 +103,21 @@ RC CastExpr::get_value(const Tuple &tuple, Value &result) const
   return cast(value, result);
 }
 
+RC CastExpr::get_value_set(const Tuple &tuple, vector<Value> &value_list)const 
+{
+  RC rc = child_->get_value_set(tuple, value_list);
+  if (rc != RC::SUCCESS) {
+    return rc;
+  }
+  Value temp;
+  for(auto& value : value_list){
+    rc = cast(value, temp);
+    if(rc != RC::SUCCESS)return rc;
+    value = move(temp);
+  }
+  return rc;
+}
+
 RC CastExpr::try_get_value(Value &result) const
 {
   Value value;
@@ -222,6 +237,7 @@ RC ComparisonExpr::value_in(const Tuple &tuple, bool &result) const
   if(right_->type() != ExprType::SELECT && right_->type() != ExprType::VALUE_LIST)
     return RC::INVALID_ARGUMENT;
 
+  result = false;
   Value left_value;
 
   RC rc = left_->get_value(tuple, left_value);
@@ -229,15 +245,20 @@ RC ComparisonExpr::value_in(const Tuple &tuple, bool &result) const
     LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
     return rc;
   }
-  if(left_value.attr_type() == AttrType::NULLS){
-    result = false;
-    return RC::SUCCESS;
-  }
+  if(left_value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
 
-  rc = right_->get_value_set(tuple, left_value, result);
+  vector<Value> value_list;
+  rc = right_->get_value_set(tuple, value_list);
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
     return rc;
+  }
+
+  for(auto& value : value_list){
+    if(value.attr_type() != AttrType::NULLS && left_value.compare(value) == 0){
+      result = true;
+      break;
+    }
   }
 
   return RC::SUCCESS;
@@ -248,6 +269,7 @@ RC ComparisonExpr::value_not_in(const Tuple &tuple, bool &result) const
   if(right_->type() != ExprType::SELECT && right_->type() != ExprType::VALUE_LIST)
     return RC::INVALID_ARGUMENT;
 
+  result = false;
   Value left_value;
 
   RC rc = left_->get_value(tuple, left_value);
@@ -255,20 +277,26 @@ RC ComparisonExpr::value_not_in(const Tuple &tuple, bool &result) const
     LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
     return rc;
   }
-  if(left_value.attr_type() == AttrType::NULLS){
-    result = false;
-    return RC::SUCCESS;
-  }
+  if(left_value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
 
-  bool have_null;
-  rc = right_->get_value_set(tuple, left_value, result, &have_null);
+  vector<Value> value_list;
+  rc = right_->get_value_set(tuple, value_list);
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
     return rc;
   }
 
+  for(auto& value : value_list){
+    if(value.attr_type() == AttrType::NULLS)
+    {
+      result = false;
+      return RC::SUCCESS;
+    }
+    else if(left_value.compare(value) == 0){
+      result = true;
+    }
+  }
   result = !result;
-  if(have_null)result = false;
 
   return RC::SUCCESS;
 }
@@ -810,10 +838,10 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
   if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   if(values_ != nullptr){
-    if(values_->size() == 0)
+    if(values_->size() == 0 || values_->at(0).size() == 0)
       return RC::NULL_TUPLE;
-
-    if(values_->size() > 1)return RC::MUTI_TUPLE;
+    if(values_->size() > 1 || values_->at(0).size() > 1)
+      return RC::MUTI_TUPLE;
     value = values_->at(0)[0];
     return rc;
   }
@@ -847,22 +875,16 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
   return rc;
 }
 
-RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null) const
+RC SelectExpr::get_value_set(const Tuple &tuple, vector<Value> &value_list) const
 {
   if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
-  result = false;
-  if(have_null != nullptr){
-    *have_null = this->have_null;
-    if(this->have_null)return RC::SUCCESS;
-  }
+  
   if(values_ != nullptr){
     for(auto& values : *values_){
-      if(values.size() == 0)return RC::NULL_TUPLE;
-      else if(values[0].attr_type() != AttrType::NULLS && value.compare(values[0]) == 0){
-        result = true;
-        return RC::SUCCESS;
-      }
+      if(values.size() == 0)return RC::INVALID_ARGUMENT;
+      if(values.size() > 1)return RC::INVALID_ARGUMENT;
+      value_list.emplace_back(values[0]);
     }
     return rc;
   }
@@ -881,21 +903,7 @@ RC SelectExpr::get_value_set(const Tuple &tuple, Value &value, bool &result, boo
       return rc;
     }
 
-    if(value_get.attr_type() == AttrType::NULLS)
-    {
-      if(have_null != nullptr)
-      {
-        *have_null = true;
-        return RC::SUCCESS;
-      }
-    }
-    else if(value.compare(value_get) == 0){
-      result = true;
-      if(have_null == nullptr){
-        physical_operator_->close();
-        return RC::SUCCESS;
-      }
-    }
+    value_list.emplace_back(value_get);
   }
 
   physical_operator_->close();
@@ -944,7 +952,6 @@ RC SelectExpr::pretreatment()
         LOG_WARN("failed to get tuple cell value. rc=%s", strrc(rc));
         return rc;
       }
-      if(value.attr_type() == AttrType::NULLS)have_null = true;
       values_->at(size).emplace_back(move(value));
     }
   }
@@ -966,18 +973,8 @@ RC ValueListExpr::get_value(const Tuple &tuple, Value &value) const
   return RC::SUCCESS;
 }
 
-RC ValueListExpr::get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null) const
+RC ValueListExpr::get_value_set(const Tuple &tuple, vector<Value> &value_list) const
 {
-  result = false;
-  if(have_null != nullptr){
-    *have_null = this->have_null;
-    if(this->have_null)return RC::SUCCESS;
-  }
-  for(auto& value_temp : value_list_){
-    if(value_temp.attr_type() != AttrType::NULLS && value.compare(value_temp) == 0){
-      result = true;
-      return RC::SUCCESS;
-    }
-  }
+  value_list = value_list_;
   return RC::SUCCESS;
 }

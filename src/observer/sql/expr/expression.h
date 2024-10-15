@@ -86,7 +86,7 @@ public:
    */
   virtual RC get_value(const Tuple &tuple, Value &value) const = 0;
 
-  virtual RC get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null = nullptr) const {return RC::UNIMPLEMENTED;}
+  virtual RC get_value_set(const Tuple &tuple, vector<Value> &value_list) const {return RC::UNIMPLEMENTED;}
 
   /**
    * @brief 在没有实际运行的情况下，也就是无法获取tuple的情况下，尝试获取表达式的值
@@ -266,6 +266,7 @@ public:
   ExprType type() const override { return ExprType::CAST; }
 
   RC get_value(const Tuple &tuple, Value &value) const override;
+  RC get_value_set(const Tuple &tuple, vector<Value> &value_list)const override;
 
   RC try_get_value(Value &value) const override;
 
@@ -506,7 +507,7 @@ public:
   AttrType value_type() const override { return value_type_;}
 
   RC get_value(const Tuple &tuple, Value &value) const override;
-  RC get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null = nullptr) const override;
+  RC get_value_set(const Tuple &tuple, vector<Value> &value_list)const override;
 
   RC pretreatment();
 
@@ -526,31 +527,23 @@ private:
   unique_ptr<PhysicalOperator> physical_operator_;
   unique_ptr<vector<vector<Value>>> values_;
   Trx*      trx_ = nullptr;
-  bool have_null = false;
 };
 
 class ValueListExpr : public Expression
 {
 public:
   ValueListExpr() = default;
-  explicit ValueListExpr(const vector<Value>&& value_list) : value_list_(move(value_list)) {
-    for(auto& value : value_list_){
-      if(value.attr_type() == AttrType::NULLS){
-        have_null = true;
-        break;
-      }
-    }
-  }
+  explicit ValueListExpr(const vector<Value>&& value_list) : value_list_(move(value_list)) 
+  {}
 
   virtual ~ValueListExpr() = default;
 
   RC get_value(const Tuple &tuple, Value &value) const override;
-  RC get_value_set(const Tuple &tuple, Value &value, bool &result, bool* have_null = nullptr) const override;
+  RC get_value_set(const Tuple &tuple, vector<Value> &value_list)const override;
 
   ExprType type() const override { return ExprType::VALUE_LIST; }
   AttrType value_type() const override { return value_list_[0].attr_type(); }
 
 private:
   vector<Value> value_list_;
-  bool have_null = false;
 };
