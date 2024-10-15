@@ -42,6 +42,7 @@ RC UpdatePhysicalOperator::open(Trx *trx)
   trx_ = trx;
 
   vector<size_t> select_ids;
+  bool ctl = false;
 
   Tuple *tuple = nullptr;
   for(size_t id = 0; id < values_.size(); id++){
@@ -49,12 +50,7 @@ RC UpdatePhysicalOperator::open(Trx *trx)
       SelectExpr* temp = (SelectExpr*)select_map_[id];
       if(temp->check()){
         rc = temp->get_value(*tuple, values_[id]); 
-        if(rc == RC::NULL_TUPLE)
-        {
-          child->close();
-          return RC::SUCCESS;
-        }
-        if(rc != RC::SUCCESS)
+        if(rc != RC::SUCCESS && rc != RC::NULL_TUPLE && rc != RC::MUTI_TUPLE)
         {
           child->close();
           return rc;
@@ -64,6 +60,8 @@ RC UpdatePhysicalOperator::open(Trx *trx)
     }
   }
 
+  ctl = OB_FAIL(rc);
+
   // 记录的有效性由事务来保证，如果事务不保证更新的有效性，那说明此事务类型不支持并发控制，比如VacuousTrx
   while (OB_SUCC(rc = child->next())) {
     tuple = child->current_tuple();
@@ -71,6 +69,11 @@ RC UpdatePhysicalOperator::open(Trx *trx)
       LOG_WARN("failed to get current record: %s", strrc(rc));
       child->close();
       return rc;
+    }
+
+    if(ctl){
+      child->close();
+      return RC::INVALID_ARGUMENT;
     }
 
     RowTuple *row_tuple = static_cast<RowTuple *>(tuple);
@@ -91,8 +94,11 @@ RC UpdatePhysicalOperator::open(Trx *trx)
     }
   }
 
+  if(rc == RC::RECORD_EOF)
+    rc = RC::SUCCESS;
+
   child->close();
-  return RC::SUCCESS;
+  return rc;
 }
 
 
