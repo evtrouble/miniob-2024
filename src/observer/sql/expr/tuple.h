@@ -143,8 +143,13 @@ public:
         return rc;
       }
 
-      if((this_value.attr_type() != AttrType::NULLS && other_value.attr_type() == AttrType::NULLS)
-        || (this_value.attr_type() == AttrType::NULLS && other_value.attr_type() != AttrType::NULLS)){
+      if(this_value.attr_type() == AttrType::NULLS){
+        if(other_value.attr_type() == AttrType::NULLS)continue;
+        else{
+          result = 1;
+          return rc;
+        }
+      }else if(other_value.attr_type() == AttrType::NULLS){
         result = 1;
         return rc;
       }
