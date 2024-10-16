@@ -147,6 +147,22 @@ RC LogicalPlanGenerator::create_plan(SelectStmt *select_stmt, unique_ptr<Logical
     last_oper = &group_by_oper;
   }
 
+  unique_ptr<LogicalOperator> having_oper;
+  if (!select_stmt->having_list().empty()) {
+    if(select_stmt->and_or()){
+      unique_ptr<ConjunctionExpr> conjunction_expr(new ConjunctionExpr(ConjunctionExpr::Type::OR, select_stmt->having_list()));
+      having_oper = unique_ptr<PredicateLogicalOperator>(new PredicateLogicalOperator(std::move(conjunction_expr)));
+    }else{
+      unique_ptr<ConjunctionExpr> conjunction_expr(new ConjunctionExpr(ConjunctionExpr::Type::AND, select_stmt->having_list()));
+      having_oper = unique_ptr<PredicateLogicalOperator>(new PredicateLogicalOperator(std::move(conjunction_expr)));
+    }
+
+    if (*last_oper) {
+      having_oper->add_child(std::move(*last_oper));
+    }
+    last_oper = &having_oper;
+  }
+
   unique_ptr<LogicalOperator> order_by_oper;
   if(select_stmt->order_by().size()){
     order_by_oper = make_unique<OrderByLogicalOperator>(std::move(select_stmt->order_by()), std::move(select_stmt->is_asc()));

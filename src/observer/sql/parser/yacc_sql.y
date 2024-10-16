@@ -130,6 +130,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %union {
   ParsedSqlNode *                            sql_node;
   ConditionSqlNode *                         condition;
+  HavingNode *                               having_list;
   Value *                                    value;
   enum CompOp                                comp;
   RelAttrSqlNode *                           rel_attr;
@@ -187,7 +188,9 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <expression>          expression
 %type <expression_list>     expression_list
 %type <expression_list>     group_by
-%type <condition_list>      having_list
+%type <having_list>         having_list
+%type <having_list>         having_node
+%type <expression>          having_unit
 %type <order_by_list>       order_by
 %type <order_by_list>       order_by_list
 %type <order_by_unit>       order_by_unit
@@ -572,7 +575,7 @@ assign_value:
     ;
 
 select_stmt:        /*  select 语句的语法解析树*/
-    SELECT expression_list FROM rel_list where group_by having_list order_by
+    SELECT expression_list FROM rel_list where group_by having_node order_by
     {
       $$ = new ParsedSqlNode(SCF_SELECT);
       if ($2 != nullptr) {
@@ -604,7 +607,7 @@ select_stmt:        /*  select 语句的语法解析树*/
 
       if ($7 != nullptr) {
         swap($$->selection.having_list, *$7);
-        delete $6;
+        delete $7;
       }
 
       if($8 != nullptr){
@@ -1015,14 +1018,42 @@ group_by:
     }
     ;
 
-having_list:
+having_node:
     /* empty */
     {
       $$ = nullptr;
     }
-    | HAVING condition_list
+    | HAVING having_list
     {
-      $$ =$2;
+      $$ = $2;
+    }
+    ;
+
+having_list:
+    having_unit
+    {
+      $$ = new HavingNode;
+      $$->having_list.emplace_back(move($1));
+    }
+    | having_unit OR having_list
+    {
+      $$ = $3;
+      $$->having_list.emplace_back(move($1));
+      $$->and_or = true;
+    }
+    | having_unit AND having_list
+    {
+      $$ = $3;
+      $$->having_list.emplace_back(move($1));
+    }
+    ;
+
+having_unit:
+    expression comp_op expression
+    {
+      unique_ptr<Expression> left($1);
+      unique_ptr<Expression> right($3);
+      $$ = new ComparisonExpr($2, std::move(left), std::move(right));
     }
     ;
 

@@ -132,6 +132,7 @@ union YYSTYPE
 
   ParsedSqlNode *                            sql_node;
   ConditionSqlNode *                         condition;
+  HavingNode *                               having_list;
   Value *                                    value;
   enum CompOp                                comp;
   RelAttrSqlNode *                           rel_attr;
@@ -153,7 +154,7 @@ union YYSTYPE
   Joins *                                    join_list;
   Key_values *                               key_values;
 
-#line 157 "yacc_sql.hpp"
+#line 158 "yacc_sql.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

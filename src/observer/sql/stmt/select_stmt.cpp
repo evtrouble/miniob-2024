@@ -109,6 +109,15 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     return rc;
   }
 
+  vector<unique_ptr<Expression>> having_list_expressions;
+  for (unique_ptr<Expression> &expression : select_sql.having_list.having_list) {
+    RC rc = expression_binder.bind_expression(expression, having_list_expressions);
+    if (OB_FAIL(rc)) {
+      LOG_INFO("bind expression failed. rc=%s", strrc(rc));
+      return rc;
+    }
+  }
+
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
     const char *table_name = select_sql.relations[i].c_str();
     if(table_map->at(table_name).second == size){
@@ -138,6 +147,8 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   select_stmt->group_by_.swap(group_by_expressions);
   select_stmt->order_by_.swap(order_by_expressions);
   select_stmt->is_asc_.swap(is_asc);
+  select_stmt->having_list_.swap(having_list_expressions);
+  select_stmt->and_or_ = select_sql.having_list.and_or;
   stmt                      = select_stmt;
   return RC::SUCCESS;
 }

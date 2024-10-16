@@ -48,7 +48,9 @@ public:
   std::vector<std::unique_ptr<Expression>> &query_expressions() { return query_expressions_; }
   std::vector<std::unique_ptr<Expression>> &group_by() { return group_by_; }
   std::vector<std::unique_ptr<Expression>> &order_by() { return order_by_; }
+  std::vector<std::unique_ptr<Expression>> &having_list() { return having_list_; }
   std::vector<bool>                        &is_asc() { return is_asc_; }
+  bool                                      and_or() { return and_or_; }
 
 private:
   std::vector<std::unique_ptr<Expression>> query_expressions_;
@@ -56,5 +58,7 @@ private:
   FilterStmt                              *filter_stmt_ = nullptr;
   std::vector<std::unique_ptr<Expression>> group_by_;
   std::vector<std::unique_ptr<Expression>> order_by_;
+  std::vector<std::unique_ptr<Expression>> having_list_;
+  bool                                     and_or_ = false;
   std::vector<bool>                        is_asc_;
 };

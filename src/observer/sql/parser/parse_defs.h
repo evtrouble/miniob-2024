@@ -103,6 +103,12 @@ struct OrderByNode
   bool        is_asc;     ///< 升序or降序
 };
 
+struct HavingNode
+{
+  std::vector<std::unique_ptr<Expression>> having_list;
+  bool                                     and_or = false;
+};
+
 /**
  * @brief 描述一个select语句
  * @ingroup SQLParser
@@ -120,7 +126,7 @@ struct SelectSqlNode
   std::vector<std::string>                 relations;    ///< 查询的表
   Conditions                               conditions;   ///< 查询条件，使用AND或OR串联起来多个条件
   std::vector<std::unique_ptr<Expression>> group_by;     ///< group by clause
-  Conditions                               having_list;
+  HavingNode                               having_list;
   std::vector<OrderByNode>                 order_by;    ///< order by clause
 };
 
