@@ -421,6 +421,7 @@ RC LogicalPlanGenerator::create_plan(ExplainStmt *explain_stmt, unique_ptr<Logic
 RC LogicalPlanGenerator::create_group_by_plan(SelectStmt *select_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
   vector<unique_ptr<Expression>> &group_by_expressions = select_stmt->group_by();
+  vector<unique_ptr<Expression>> &having_expressions = select_stmt->having_list();
   vector<Expression *> aggregate_expressions;
   vector<unique_ptr<Expression>> &query_expressions = select_stmt->query_expressions();
   function<RC(std::unique_ptr<Expression>&)> collector = [&](unique_ptr<Expression> &expr) -> RC {
@@ -468,13 +469,22 @@ RC LogicalPlanGenerator::create_group_by_plan(SelectStmt *select_stmt, unique_pt
   for (unique_ptr<Expression> &expression : query_expressions) {
     bind_group_by_expr(expression);
   }
+  for (unique_ptr<Expression> &expression : having_expressions) {
+    bind_group_by_expr(expression);
+  }
 
   for (unique_ptr<Expression> &expression : query_expressions) {
+    find_unbound_column(expression);
+  }
+  for (unique_ptr<Expression> &expression : having_expressions) {
     find_unbound_column(expression);
   }
 
   // collect all aggregate expressions
   for (unique_ptr<Expression> &expression : query_expressions) {
+    collector(expression);
+  }
+  for (unique_ptr<Expression> &expression : having_expressions) {
     collector(expression);
   }
 
