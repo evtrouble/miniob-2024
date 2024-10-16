@@ -602,6 +602,11 @@ select_stmt:        /*  select 语句的语法解析树*/
         delete $6;
       }
 
+      if ($7 != nullptr) {
+        swap($$->selection.having_list, *$7);
+        delete $6;
+      }
+
       if($8 != nullptr){
         $$->selection.order_by.swap(*$8);
         delete $8;

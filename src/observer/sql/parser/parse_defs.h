@@ -120,6 +120,7 @@ struct SelectSqlNode
   std::vector<std::string>                 relations;    ///< 查询的表
   Conditions                               conditions;   ///< 查询条件，使用AND或OR串联起来多个条件
   std::vector<std::unique_ptr<Expression>> group_by;     ///< group by clause
+  Conditions                               having_list;
   std::vector<OrderByNode>                 order_by;    ///< order by clause
 };
 
