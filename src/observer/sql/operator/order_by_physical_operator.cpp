@@ -32,7 +32,8 @@ RC OrderByPhysicalOperator::open(Trx *trx)
     }
 
     have_value = false;
-    orders_.clear();
+    value_list_.clear();
+    ids_.clear();
     return RC::SUCCESS;
 }
 
@@ -49,7 +50,9 @@ RC OrderByPhysicalOperator::next()
                 child->close();
                 return rc;
             }
-            orders_.emplace_back(tuple);
+            ValueListTuple value_list;
+            ValueListTuple::make(*tuple, value_list);
+            value_list_.emplace_back(std::move(value_list));
         }
 
         if (RC::RECORD_EOF == rc) {
@@ -61,14 +64,22 @@ RC OrderByPhysicalOperator::next()
             return rc;
         }
 
-        sort(orders_.begin(), orders_.end(), [&](const auto& a, const auto& b){
-            for(size_t id = 0; id < order_by_.size(); id++){
-                Value a_val, b_val;
-                auto& expr = order_by_[id];
-                bool is_asc = is_asc_[id];
+        ids_.resize(value_list_.size());
+        Value value;
+        for(size_t id = 0; id < value_list_.size(); id++){
+            for(auto& expr : order_by_){
+                expr->get_value(value_list_[id], value);
+                ids_[id].first.emplace_back(std::move(value));
+            }
+            ids_[id].second = id;
+        }
 
-                rc = expr->get_value(*a, a_val);
-                rc = expr->get_value(*b, b_val);
+        sort(ids_.begin(), ids_.end(), [&](const auto& a, const auto& b){
+            for(size_t id = 0; id < a.first.size(); id++){
+                bool is_asc = is_asc_[id];
+                auto& a_val = a.first[id];
+                auto& b_val = b.first[id];
+
                 if(a_val.attr_type() == AttrType::NULLS || b_val.attr_type() == AttrType::NULLS){
                     return !is_asc;
                 }
@@ -82,7 +93,7 @@ RC OrderByPhysicalOperator::next()
         
         if(rc != RC::SUCCESS)return rc;
 
-        current_order_ = orders_.begin();
+        current_id_ = 0;
         first_emited_  = false;
         have_value = true;
     }
@@ -110,7 +121,9 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
                 child->close();
                 return rc;
             }
-            orders_.emplace_back(tuple);
+                        ValueListTuple value_list;
+            ValueListTuple::make(*tuple, value_list);
+            value_list_.emplace_back(std::move(value_list));
         }
 
         if (RC::RECORD_EOF == rc) {
@@ -122,14 +135,22 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
             return rc;
         }
 
-        sort(orders_.begin(), orders_.end(), [&](const auto& a, const auto& b){
-            for(size_t id = 0; id < order_by_.size(); id++){
-                Value a_val, b_val;
-                auto& expr = order_by_[id];
-                bool is_asc = is_asc_[id];
+        ids_.resize(value_list_.size());
+        Value value;
+        for(size_t id = 0; id < value_list_.size(); id++){
+            for(auto& expr : order_by_){
+                expr->get_value(value_list_[id], value);
+                ids_[id].first.emplace_back(std::move(value));
+            }
+            ids_[id].second = id;
+        }
 
-                rc = expr->get_value(*a, a_val);
-                rc = expr->get_value(*b, b_val);
+        sort(ids_.begin(), ids_.end(), [&](const auto& a, const auto& b){
+            for(size_t id = 0; id < a.first.size(); id++){
+                bool is_asc = is_asc_[id];
+                auto& a_val = a.first[id];
+                auto& b_val = b.first[id];
+
                 if(a_val.attr_type() == AttrType::NULLS || b_val.attr_type() == AttrType::NULLS){
                     return !is_asc;
                 }
@@ -140,10 +161,10 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
             }
             return true;
         });
-
+        
         if(rc != RC::SUCCESS)return rc;
 
-        current_order_ = orders_.begin();
+        current_id_ = 0;
         first_emited_  = false;
         have_value = true;
     }
@@ -153,24 +174,24 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
 
 Tuple *OrderByPhysicalOperator::current_tuple()
 {
-  if (current_order_ != orders_.end()) {
-    return *current_order_;
+  if (current_id_ != value_list_.size()) {
+    return &value_list_[ids_[current_id_].second];
   }
   return nullptr;
 }
 
 RC OrderByPhysicalOperator::fetch_next()
 {
-  if (current_order_ == orders_.end()) {
+  if (current_id_ == value_list_.size()) {
     return RC::RECORD_EOF;
   }
 
   if (first_emited_) {
-    ++current_order_;
+    ++current_id_;
   } else {
     first_emited_ = true;
   }
-  if (current_order_ == orders_.end()) {
+  if (current_id_ == value_list_.size()) {
     return RC::RECORD_EOF;
   }
 

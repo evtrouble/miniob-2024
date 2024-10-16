@@ -83,7 +83,7 @@ RC TableScanPhysicalOperator::next(Tuple *upper_tuple)
   return rc;
 }
 
-RC TableScanPhysicalOperator::close() { return record_scanner_.close_scan(); }
+RC TableScanPhysicalOperator::close() { LOG_INFO("close table scan operator"); return record_scanner_.close_scan(); }
 
 Tuple *TableScanPhysicalOperator::current_tuple()
 {

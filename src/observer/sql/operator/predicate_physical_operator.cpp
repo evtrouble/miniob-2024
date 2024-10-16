@@ -92,6 +92,7 @@ RC PredicatePhysicalOperator::next()
 RC PredicatePhysicalOperator::close()
 {
   children_[0]->close();
+  LOG_INFO("close predicate operator");
   return RC::SUCCESS;
 }
 

@@ -46,6 +46,7 @@ private:
   std::vector<bool>                        is_asc_;
   bool                                     first_emited_ = false;  /// 第一条数据是否已经输出
   bool                                     have_value = false;
-  vector<Tuple*>                           orders_;
-  std::vector<Tuple*>::iterator            current_order_;
+  vector<ValueListTuple>                   value_list_;
+  vector<pair<vector<Value>, size_t>>      ids_;              
+  size_t                                   current_id_;
 };
