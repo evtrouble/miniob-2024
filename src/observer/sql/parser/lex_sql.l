@@ -115,6 +115,7 @@ DATE                                    RETURN_TOKEN(DATE_T);
 VECTOR                                  RETURN_TOKEN(VECTOR_T);
 LOAD                                    RETURN_TOKEN(LOAD);
 DATA                                    RETURN_TOKEN(DATA);
+TEXT                                    RETURN_TOKEN(TEXT_T);
 LIKE                                    RETURN_TOKEN(LIKE);
 EXISTS                                  RETURN_TOKEN(EXISTS);
 IS                                      RETURN_TOKEN(IS);

@@ -45,6 +45,10 @@ Table::~Table()
     data_buffer_pool_ = nullptr;
   }
 
+  if(text_buffer_pool_ != nullptr) {
+    text_buffer_pool_->close_file();
+    text_buffer_pool_ = nullptr;
+  }
   for (vector<Index *>::iterator it = indexes_.begin(); it != indexes_.end(); ++it) {
     Index *index = *it;
     delete index;
@@ -124,7 +128,28 @@ RC Table::create(Db *db, int32_t table_id, const char *path, const char *name, c
     // don't need to remove the data_file
     return rc;
   }
-
+  // 创建文件存放text
+  bool exist_text_feild = false;
+  for (const FieldMeta &field : *table_meta_.field_metas()) {
+    if (AttrType::TEXTS == field.type()) {
+      exist_text_feild = true;
+      break;
+    }
+  }
+  if (exist_text_feild) {
+    std::string text_file = table_text_file(base_dir, name);
+    rc = bpm.create_file(text_file.c_str());
+    if (rc != RC::SUCCESS) {
+      LOG_ERROR("Failed to create disk buffer pool of text file. file name=%s", text_file.c_str());
+      return rc;
+    }
+    rc = init_text_handler(base_dir);
+    if (rc != RC::SUCCESS) {
+      LOG_ERROR("Failed to create table %s due to init text handler failed.", text_file.c_str());
+      // don't need to remove the data_file
+      return rc;
+    }
+  }
   LOG_INFO("Successfully create table %s:%s", base_dir, name);
   return rc;
 }
@@ -147,8 +172,14 @@ RC Table::drop(const char *path)
   record_handler_ = nullptr;
 
   // 删除data数据文件
-  BufferPoolManager &bpm = db_->buffer_pool_manager();
-  rc                     = bpm.remove_file(data_buffer_pool_->filename());
+  BufferPoolManager &bpm       = db_->buffer_pool_manager();
+  rc                           = bpm.remove_file(data_buffer_pool_->filename());
+
+  if (nullptr != text_buffer_pool_) {
+    std::string        text_file = table_text_file(path, name());
+    rc                           = bpm.remove_file(text_file.c_str());
+  }
+
   if (rc != RC::SUCCESS) {
     // LOG_ERROR("Failed to remove %s.", data_buffer_pool_->filename());
     return rc;
@@ -187,6 +218,13 @@ RC Table::open(Db *db, const char *meta_file, const char *base_dir)
   if (rc != RC::SUCCESS) {
     LOG_ERROR("Failed to open table %s due to init record handler failed.", base_dir);
     // don't need to remove the data_file
+    return rc;
+  }
+
+  // 加载text数据
+  rc = init_text_handler(base_dir);
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to open table %s due to init text handler failed.", base_dir);
     return rc;
   }
 
@@ -355,6 +393,25 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
   }
 
   const int normal_field_start_index = table_meta_.sys_field_num();
+  //TEXT字段检测
+  for (int i = 0; i < value_num; i++) {
+  const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
+  const Value     &value = values[i];
+  if (AttrType::NULLS==value.attr_type() && field->nullable()) {
+    continue;
+  }
+  if (field->type() != value.attr_type()) {
+    if (AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()) {}
+    else {
+      LOG_ERROR("Invalid value type. table name =%s, field name=%s, type=%d, but given=%d",
+        table_meta_.name(),
+        field->name(),
+        field->type(),
+        value.attr_type());
+      return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+    }
+  }
+}
   // 复制所有字段的值
   int   record_size = table_meta_.record_size();
   char *record_data = (char *)malloc(record_size);
@@ -371,18 +428,23 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
     }
 
     if (value.attr_type() != AttrType::NULLS && field->type() != value.attr_type()) {
-      Value real_value;
-      rc = Value::cast_to(value, field->type(), real_value);
-      if (OB_FAIL(rc)) {
-        LOG_WARN("failed to cast value. table name:%s,field name:%s,value:%s ",
-            table_meta_.name(), field->name(), value.to_string().c_str());
-        break;
+      if (AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()){
+        rc = set_value_to_record(record_data, value, field);
+      }else{
+        Value real_value;
+        rc = Value::cast_to(value, field->type(), real_value);
+        if (OB_FAIL(rc)) {
+          LOG_WARN("failed to cast value. table name:%s,field name:%s,value:%s ",
+              table_meta_.name(), field->name(), value.to_string().c_str());
+          break;
+        }
+        rc = set_value_to_record(record_data, real_value, field);
       }
-      rc = set_value_to_record(record_data, real_value, field);
     } else {
       rc = set_value_to_record(record_data, value, field);
     }
   }
+
   if (OB_FAIL(rc)) {
     LOG_WARN("failed to make record. table name:%s", table_meta_.name());
     free(record_data);
@@ -403,11 +465,58 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
     }
   }
 
+//TEXT数据类型处理，需要将value中的字符串插入到文件中，然后将offset、length写入record
+  if (AttrType::TEXTS == field->type()) {
+    int64_t position[2];
+    position[1] = value.length();
+    text_buffer_pool_->append_data(position[0], position[1], value.data());
+    memcpy(record_data + field->offset(), position, 2 * sizeof(int64_t));
+  }
+
   field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
 
   if (value.attr_type() != AttrType::NULLS)
     memcpy(record_data + field->offset(), value.data(), copy_len);
   return RC::SUCCESS;
+}
+
+
+RC Table::write_text(int64_t &offset, int64_t length, const char *data)
+{
+  RC rc = RC::SUCCESS;
+  rc = text_buffer_pool_->append_data(offset, length, data);
+  if (RC::SUCCESS != rc) {
+    LOG_WARN("Failed to append text into disk_buffer_pool, rc=%s", strrc(rc));
+    offset = -1;
+    length = -1;
+  }
+  return rc;
+}
+
+RC Table::read_text(int64_t offset, int64_t length, char *data) const
+{
+  RC rc = RC::SUCCESS;
+  if (0 > offset || 0 > length) {
+    LOG_ERROR("Invalid param: text offset %ld, length %ld", offset, length);
+    return RC::INVALID_ARGUMENT;
+  }
+  rc = text_buffer_pool_->get_data(offset, length, data);
+  if (RC::SUCCESS != rc) {
+    LOG_WARN("Failed to get text from disk_buffer_pool, rc=%s", strrc(rc));
+  }
+  return rc;
+}
+
+RC Table::init_text_handler(const char *base_dir)
+{
+  std::string text_file = table_text_file(base_dir, table_meta_.name());
+  BufferPoolManager &bpm = db_->buffer_pool_manager();
+  RC rc = bpm.open_file(db_->log_handler(),text_file.c_str(), text_buffer_pool_);
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to open disk buffer pool for file:%s. rc=%d:%s", text_file.c_str(), rc, strrc(rc));
+    return rc;
+  }
+  return rc;
 }
 
 RC Table::init_record_handler(const char *base_dir)

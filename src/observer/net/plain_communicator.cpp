@@ -27,7 +27,11 @@ PlainCommunicator::PlainCommunicator()
   debug_message_prefix_[0] = '#';
   debug_message_prefix_[1] = ' ';
 }
-
+/**
+ * @brief 客户端读取输入
+ * 
+ * @author xpq
+ */
 RC PlainCommunicator::read_event(SessionEvent *&event)
 {
   RC rc = RC::SUCCESS;
@@ -37,7 +41,7 @@ RC PlainCommunicator::read_event(SessionEvent *&event)
   int data_len = 0;
   int read_len = 0;
 
-  const int    max_packet_size = 8192;
+  const int    max_packet_size = 8192*16;// 因为添加TEXT，需要增大允许读取的最大字节数，TEXT最大为65535字节
   vector<char> buf(max_packet_size);
 
   // 持续接收消息，直到遇到'\0'。将'\0'遇到的后续数据直接丢弃没有处理，因为目前仅支持一收一发的模式

@@ -45,7 +45,7 @@ class Table;
  */
 
 /**
- * @brief 元组的结构，包含哪些字段(这里成为Cell)，每个字段的说明
+ * @brief 元组的结构，包含哪些字段(这里称为Cell)，每个字段的说明
  * @ingroup Tuple
  */
 class TupleSchema
@@ -201,8 +201,17 @@ public:
 
   int cell_num() const override { return speces_.size(); }
 
+/**
+ * @brief 获取记录中指定索引位置的字段值
+ *
+ * @param index  字段的索引位置，指定要获取第几个字段的值
+ * @param cell   用于存储获取到的字段值，是个Value类对象
+ * 
+ * @author xpq
+ */
   RC cell_at(int index, Value &cell) const override
   {
+    RC rc = RC::SUCCESS;
     if (index < 0 || index >= static_cast<int>(speces_.size())) {
       LOG_WARN("invalid argument. index=%d", index);
       return RC::INVALID_ARGUMENT;
@@ -213,8 +222,25 @@ public:
 
     if(field_meta->is_field_null(this->record_->data()))cell.set_null();
     else {
-      cell.set_type(field_meta->type());
-      cell.set_data(this->record_->data() + field_meta->offset(), field_meta->len());
+      if (AttrType::TEXTS == field_meta->type()) {
+        cell.set_type(AttrType::CHARS);
+        // 获取TEXT数据储存位置（偏移量和长度），并分配空间
+        int64_t offset = *(int64_t*)(record_->data() + field_meta->offset());
+        int64_t length = *(int64_t*)(record_->data() + field_meta->offset() + sizeof(int64_t));
+        char *text = (char*)malloc(length);
+        // 设置读取到的TEXT数据内容
+        rc = table_->read_text(offset, length, text);
+        if (RC::SUCCESS != rc) {
+          LOG_WARN("Failed to read text from table, rc=%s", strrc(rc));
+          return rc;
+        }
+        cell.set_data(text, length);
+        free(text);
+      } 
+      else {
+        cell.set_type(field_meta->type());
+        cell.set_data(this->record_->data() + field_meta->offset(), field_meta->len());
+      }
     }
     return RC::SUCCESS;
   }

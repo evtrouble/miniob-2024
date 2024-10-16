@@ -42,13 +42,29 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
   const int        field_num  = table_meta.field_num() - table_meta.sys_field_num();
 
   for(auto& values : inserts.values){
+    const Value *value = values.data();
     const int        value_num  = static_cast<int>(values.size());
     if (field_num != value_num) {
       LOG_WARN("schema mismatch. value num=%d, field num in schema=%d", value_num, field_num);
       return RC::SCHEMA_FIELD_MISSING;
     }
+
+    // 检查TEXT的长度
+    for (int i = 0; i < field_num; i++) {
+      const FieldMeta *field_meta = table_meta.field(i + table_meta.sys_field_num());
+      const AttrType field_type = field_meta->type();
+      const AttrType value_type = value[i].attr_type();
+      if (AttrType::TEXTS == field_type && AttrType::CHARS == value_type) {
+        if (MAX_TEXT_LENGTH < values[i].length()) {
+          LOG_WARN("Text length:%d, over max_length 65535", values[i].length());
+          return RC::INVALID_ARGUMENT;
+        }
+      }
+    }
   }
- 
+
+
+
   // everything alright
   stmt = new InsertStmt(table, std::move(inserts.values));
   return RC::SUCCESS;

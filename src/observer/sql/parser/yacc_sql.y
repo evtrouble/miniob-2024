@@ -95,6 +95,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         FLOAT_T
         DATE_T
         VECTOR_T
+        TEXT_T
         HELP
         EXIT
         DOT //QUOTE
@@ -473,6 +474,7 @@ type:
     | STRING_T { $$ = static_cast<int>(AttrType::CHARS); }
     | FLOAT_T  { $$ = static_cast<int>(AttrType::FLOATS); }
     | VECTOR_T { $$ = static_cast<int>(AttrType::VECTORS); }
+    | TEXT_T   { $$ = static_cast<int>(AttrType::TEXTS);}
     ;
 date_type:
     DATE_T   {$$ = static_cast<int>(AttrType::DATES);}

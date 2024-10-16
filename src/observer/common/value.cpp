@@ -28,6 +28,8 @@ Value::Value(bool val) { set_boolean(val); }
 
 Value::Value(const char *s, int len /*= 0*/) { set_string(s, len); }
 
+Value::Value(int64_t val){ set_long(val); }
+
 Value::Value(const Date *s, int len /*= 10*/)
 {
   if(check_date((const char*)s))
@@ -151,6 +153,10 @@ void Value::set_data(char *data, int length)
     case AttrType::DATES: {
       set_date(data);
     } break;
+    case AttrType::LONGS: {
+      value_.long_value_ = *(int64_t *)data;
+      length_ = length;
+    }break;
     default: {
       LOG_WARN("unknown data type: %d", attr_type_);
     } break;
@@ -252,6 +258,12 @@ void Value::set_vector(vector<float>* values)
     own_data_ = true;
     value_.vector_value_ = values;
   }
+void Value::set_long(int64_t val)
+{
+  reset();
+  attr_type_          = AttrType::LONGS;
+  value_.long_value_ = val;
+  length_ = sizeof(int64_t);
 }
 
 void Value::set_value(const Value &value)
@@ -272,6 +284,9 @@ void Value::set_value(const Value &value)
     case AttrType::DATES: {
       set_date(value.get_string().c_str());
     } break;
+    case AttrType::LONGS: {
+      set_long(value.get_long());
+    }break;
     case AttrType::NULLS: {
       set_null();
     } break;
@@ -471,4 +486,9 @@ bool Value::get_boolean() const
     }
   }
   return false;
+}
+
+int64_t Value::get_long() const
+{
+  return value_.long_value_;
 }
