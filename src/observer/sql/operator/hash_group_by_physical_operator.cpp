@@ -14,8 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #include "common/log/log.h"
 #include "sql/operator/hash_group_by_physical_operator.h"
-#include "sql/expr/expression_tuple.h"
-#include "sql/expr/composite_tuple.h"
 
 using namespace std;
 using namespace common;
@@ -52,30 +50,8 @@ RC HashGroupByPhysicalOperator::next()
     ValueListTuple group_by_evaluated_tuple;
 
     while (OB_SUCC(rc = child.next())) {
-      Tuple *child_tuple = child.current_tuple();
-      if (nullptr == child_tuple) {
-        LOG_WARN("failed to get tuple from child operator. rc=%s", strrc(rc));
-        return RC::INTERNAL;
-      }
-
-      // 找到对应的group
-      GroupType *found_group = nullptr;
-      rc                     = find_group(*child_tuple, found_group);
-      if (OB_FAIL(rc)) {
-        LOG_WARN("failed to find group. rc=%s", strrc(rc));
-        return rc;
-      }
-
-      // 计算需要做聚合的值
-      group_value_expression_tuple.set_tuple(child_tuple);
-
-      // 计算聚合值
-      GroupValueType &group_value = get<1>(*found_group);
-      rc = aggregate(get<0>(group_value), group_value_expression_tuple);
-      if (OB_FAIL(rc)) {
-        LOG_WARN("failed to aggregate values. rc=%s", strrc(rc));
-        return rc;
-      }
+      rc = collect(group_value_expression_tuple, group_by_evaluated_tuple);
+      if(rc != RC::SUCCESS)return rc;
     }
 
     if (RC::RECORD_EOF == rc) {
@@ -102,20 +78,7 @@ RC HashGroupByPhysicalOperator::next()
     have_value = true;
   }
 
-  if (current_group_ == groups_.end()) {
-    return RC::RECORD_EOF;
-  }
-
-  if (first_emited_) {
-    ++current_group_;
-  } else {
-    first_emited_ = true;
-  }
-  if (current_group_ == groups_.end()) {
-    return RC::RECORD_EOF;
-  }
-
-  return RC::SUCCESS;
+  return fetch_next();
 }
 
 RC HashGroupByPhysicalOperator::next(Tuple *upper_tuple)
@@ -128,30 +91,8 @@ RC HashGroupByPhysicalOperator::next(Tuple *upper_tuple)
     ValueListTuple group_by_evaluated_tuple;
 
     while (OB_SUCC(rc = child.next(upper_tuple))) {
-      Tuple *child_tuple = child.current_tuple();
-      if (nullptr == child_tuple) {
-        LOG_WARN("failed to get tuple from child operator. rc=%s", strrc(rc));
-        return RC::INTERNAL;
-      }
-
-      // 找到对应的group
-      GroupType *found_group = nullptr;
-      rc                     = find_group(*child_tuple, found_group);
-      if (OB_FAIL(rc)) {
-        LOG_WARN("failed to find group. rc=%s", strrc(rc));
-        return rc;
-      }
-
-      // 计算需要做聚合的值
-      group_value_expression_tuple.set_tuple(child_tuple);
-
-      // 计算聚合值
-      GroupValueType &group_value = get<1>(*found_group);
-      rc = aggregate(get<0>(group_value), group_value_expression_tuple);
-      if (OB_FAIL(rc)) {
-        LOG_WARN("failed to aggregate values. rc=%s", strrc(rc));
-        return rc;
-      }
+      rc = collect(group_value_expression_tuple, group_by_evaluated_tuple);
+      if(rc != RC::SUCCESS)return rc;
     }
 
     if (RC::RECORD_EOF == rc) {
@@ -178,21 +119,7 @@ RC HashGroupByPhysicalOperator::next(Tuple *upper_tuple)
     have_value = true;
   }
 
-
-  if (current_group_ == groups_.end()) {
-    return RC::RECORD_EOF;
-  }
-
-  if (first_emited_) {
-    ++current_group_;
-  } else {
-    first_emited_ = true;
-  }
-  if (current_group_ == groups_.end()) {
-    return RC::RECORD_EOF;
-  }
-
-  return RC::SUCCESS;
+  return fetch_next();
 }
 
 RC HashGroupByPhysicalOperator::close()
@@ -261,4 +188,53 @@ RC HashGroupByPhysicalOperator::find_group(const Tuple &child_tuple, GroupType *
   }
 
   return rc;
+}
+
+RC HashGroupByPhysicalOperator::collect(ExpressionTuple<Expression *> &group_value_expression_tuple, ValueListTuple &group_by_evaluated_tuple)
+{
+  RC rc = RC::SUCCESS;
+  Tuple *child_tuple = (*children_[0]).current_tuple();
+  if (nullptr == child_tuple) {
+    LOG_WARN("failed to get tuple from child operator. rc=%s", strrc(rc));
+    return RC::INTERNAL;
+  }
+
+  // 找到对应的group
+  GroupType *found_group = nullptr;
+  rc                     = find_group(*child_tuple, found_group);
+  if (OB_FAIL(rc)) {
+    LOG_WARN("failed to find group. rc=%s", strrc(rc));
+    return rc;
+  }
+
+  // 计算需要做聚合的值
+  group_value_expression_tuple.set_tuple(child_tuple);
+
+  // 计算聚合值
+  GroupValueType &group_value = get<1>(*found_group);
+  rc = aggregate(get<0>(group_value), group_value_expression_tuple);
+  if (OB_FAIL(rc)) {
+    LOG_WARN("failed to aggregate values. rc=%s", strrc(rc));
+    return rc;
+  }
+
+  return rc;
+}
+
+RC HashGroupByPhysicalOperator::fetch_next()
+{
+  if (current_group_ == groups_.end()) {
+    return RC::RECORD_EOF;
+  }
+
+  if (first_emited_) {
+    ++current_group_;
+  } else {
+    first_emited_ = true;
+  }
+  if (current_group_ == groups_.end()) {
+    return RC::RECORD_EOF;
+  }
+
+  return RC::SUCCESS;
 }

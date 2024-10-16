@@ -16,6 +16,7 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/operator/group_by_physical_operator.h"
 #include "sql/expr/composite_tuple.h"
+#include "sql/expr/expression_tuple.h"
 
 /**
  * @brief Group By Hash 方式物理算子
@@ -49,6 +50,8 @@ private:
 
 private:
   RC find_group(const Tuple &child_tuple, GroupType *&found_group);
+  RC collect(ExpressionTuple<Expression *> &group_value_expression_tuple, ValueListTuple &group_by_evaluated_tuple);
+  RC fetch_next();
 
 private:
   std::vector<std::unique_ptr<Expression>> group_by_exprs_;

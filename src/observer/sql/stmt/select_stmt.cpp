@@ -116,6 +116,19 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     }
   }
 
+  vector<unique_ptr<Expression>> order_by_expressions;
+  vector<bool> is_asc;
+
+  for (auto& [expr, asc] : select_sql.order_by) {
+    unique_ptr<Expression> expression(expr);
+    RC rc = expression_binder.bind_expression(expression, order_by_expressions);
+    if (OB_FAIL(rc)) {
+      LOG_INFO("bind expression failed. rc=%s", strrc(rc));
+      return rc;
+    }
+    is_asc.emplace_back(asc);
+  }
+
   // everything alright
   SelectStmt *select_stmt = new SelectStmt();
 
@@ -123,6 +136,8 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   select_stmt->query_expressions_.swap(bound_expressions);
   select_stmt->filter_stmt_ = filter_stmt;
   select_stmt->group_by_.swap(group_by_expressions);
+  select_stmt->order_by_.swap(order_by_expressions);
+  select_stmt->is_asc_.swap(is_asc);
   stmt                      = select_stmt;
   return RC::SUCCESS;
 }

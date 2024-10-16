@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "sql/operator/group_by_physical_operator.h"
+#include "sql/expr/expression_tuple.h"
 
 /**
  * @brief 没有 group by 表达式的 group by 物理算子
@@ -34,6 +35,9 @@ public:
   RC close() override;
 
   Tuple *current_tuple() override;
+
+private:
+  RC collect(ExpressionTuple<Expression *> &group_value_expression_tuple, ValueListTuple &group_by_evaluated_tuple);
 
 private:
   std::unique_ptr<GroupValueType> group_value_;

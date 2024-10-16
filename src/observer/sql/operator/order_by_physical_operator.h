@@ -9,7 +9,7 @@ MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
 //
-// Created on 2024/9/13.
+// Created on 2024/10/15.
 //
 
 #pragma once
@@ -18,35 +18,34 @@ See the Mulan PSL v2 for more details. */
 #include "sql/parser/parse.h"
 #include <vector>
 
-class UpdateStmt;
-class FieldMeta;
-
 /**
  * @brief 更新物理算子
  * @ingroup PhysicalOperator
  */
-class UpdatePhysicalOperator : public PhysicalOperator
+class OrderByPhysicalOperator : public PhysicalOperator
 {
 public:
-  UpdatePhysicalOperator(Table *table, std::vector<const FieldMeta *> &&fields, 
-    std::vector<Value> &&values, std::unordered_map<size_t, void*>&& select_map);
+  OrderByPhysicalOperator(std::vector<std::unique_ptr<Expression>>&& order_by, std::vector<bool>&& is_asc);
 
-  virtual ~UpdatePhysicalOperator();
+  virtual ~OrderByPhysicalOperator() = default;
 
-  PhysicalOperatorType type() const override { return PhysicalOperatorType::UPDATE; }
+  PhysicalOperatorType type() const override { return PhysicalOperatorType::ORDER_BY; }
 
   RC open(Trx *trx) override;
   RC next() override;
   RC close() override;
+  RC next(Tuple *upper_tuple) override;
 
-  Tuple *current_tuple() override { return nullptr; }
-  RC init(Tuple* tuple, vector<size_t> &select_ids);
+  Tuple *current_tuple() override;
 
 private:
-  Table             *table_ = nullptr;
-  std::vector<const FieldMeta *> fields_;
-  std::vector<Value> values_;
-  Trx                *trx_   = nullptr;
-  std::unordered_map<size_t, void*> select_map_;
-  bool               ctl = false;
+  RC fetch_next();
+
+private:
+  std::vector<std::unique_ptr<Expression>> order_by_;
+  std::vector<bool>                        is_asc_;
+  bool                                     first_emited_ = false;  /// 第一条数据是否已经输出
+  bool                                     have_value = false;
+  vector<Tuple*>                           orders_;
+  std::vector<Tuple*>::iterator            current_order_;
 };
