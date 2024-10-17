@@ -126,7 +126,7 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
                 child->close();
                 return rc;
             }
-                        ValueListTuple value_list;
+            ValueListTuple value_list;
             ValueListTuple::make(*tuple, value_list);
             value_list_.emplace_back(std::move(value_list));
         }
@@ -156,9 +156,13 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
                 auto& a_val = a.first[id];
                 auto& b_val = b.first[id];
 
-                if(a_val.attr_type() == AttrType::NULLS || b_val.attr_type() == AttrType::NULLS){
-                    return !is_asc;
+                if(a_val.attr_type() == AttrType::NULLS)
+                {
+                    if(b_val.attr_type() == AttrType::NULLS)continue;
+                    else return is_asc;
                 }
+                else if(b_val.attr_type() == AttrType::NULLS)return !is_asc;
+                
                 int cmp = a_val.compare(b_val);
                 if(cmp == 0)continue;
                 else if(is_asc)return cmp < 0;
