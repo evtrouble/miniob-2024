@@ -84,7 +84,7 @@ RC OrderByPhysicalOperator::next()
                 if(a_val.attr_type() == AttrType::NULLS)
                 {
                     if(b_val.attr_type() == AttrType::NULLS)continue;
-                    else return is_asc;
+                    return is_asc;
                 }
                 else if(b_val.attr_type() == AttrType::NULLS)return !is_asc;
 
@@ -93,7 +93,7 @@ RC OrderByPhysicalOperator::next()
                 else if(is_asc)return cmp < 0;
                 else return cmp > 0;
             }
-            return true;
+            return false;
         });
         
         if(rc != RC::SUCCESS)return rc;
@@ -127,7 +127,12 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
                 return rc;
             }
             ValueListTuple value_list;
-            ValueListTuple::make(*tuple, value_list);
+            rc =  ValueListTuple::make(*tuple, value_list);
+            if (rc != RC::SUCCESS) {
+                LOG_WARN("failed to make ValueListTuple: %s", strrc(rc));
+                child->close();
+                return rc;
+            }
             value_list_.emplace_back(std::move(value_list));
         }
 
@@ -144,7 +149,12 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
         Value value;
         for(size_t id = 0; id < value_list_.size(); id++){
             for(auto& expr : order_by_){
-                expr->get_value(value_list_[id], value);
+                rc = expr->get_value(value_list_[id], value);
+                if (rc != RC::SUCCESS) {
+                    LOG_WARN("failed to get value: %s", strrc(rc));
+                    child->close();
+                    return rc;
+                }
                 ids_[id].first.emplace_back(std::move(value));
             }
             ids_[id].second = id;
@@ -159,16 +169,16 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
                 if(a_val.attr_type() == AttrType::NULLS)
                 {
                     if(b_val.attr_type() == AttrType::NULLS)continue;
-                    else return is_asc;
+                    return is_asc;
                 }
                 else if(b_val.attr_type() == AttrType::NULLS)return !is_asc;
-                
+
                 int cmp = a_val.compare(b_val);
                 if(cmp == 0)continue;
                 else if(is_asc)return cmp < 0;
                 else return cmp > 0;
             }
-            return true;
+            return false;
         });
         
         if(rc != RC::SUCCESS)return rc;

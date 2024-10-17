@@ -117,7 +117,12 @@ RC UpdatePhysicalOperator::init(Tuple* tuple, vector<size_t> &select_ids)
       SelectExpr* temp = (SelectExpr*)select_map_[id];
       if(temp->check()){
         rc = temp->get_value(*tuple, values_[id]); 
-        if(rc != RC::SUCCESS)
+        if(rc == RC::NULL_TUPLE)
+        {
+          values_[id].set_null();
+          rc = RC::SUCCESS;
+        }
+        else if(rc != RC::SUCCESS)
         {
           child->close();
           return rc;
