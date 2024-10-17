@@ -25,10 +25,10 @@ enum class AttrType
   VECTORS,   ///< 向量类型
   BOOLEANS,  ///< boolean类型，当前不是由parser解析出来的，是程序内部使用的
   DATES,     ///< 日期类型(10字节)
-  NULLS,     ///< null
-  SELECT,    ///< 子查询
   TEXTS,     ///< TEXT类型，最大长度为65535字节，当作字符串类型处理（CHARS）
   LONGS,     ///< int64 类型
+  NULLS,     ///< null
+  SELECT,    ///< 子查询
   MAXTYPE,   ///< 请在 UNDEFINED 与 MAXTYPE 之间增加新类型
 };
 
