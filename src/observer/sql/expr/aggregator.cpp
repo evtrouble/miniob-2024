@@ -86,11 +86,11 @@ RC MinAggregator::evaluate(Value& result)
 
 RC AvgAggregator::accumulate(const Value &value)
 {
-  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
-  else if (value_.attr_type() == AttrType::UNDEFINED) {
+  if (value_.attr_type() == AttrType::UNDEFINED) {
     value_ = Value((float)0.0);
     countnum = Value((int)0);
   }
+  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
   
   ASSERT(value.attr_type() == value_.attr_type(), "type mismatch. value type: %s, value_.type: %s", 
         attr_type_to_string(value.attr_type()), attr_type_to_string(value_.attr_type()));
@@ -112,10 +112,10 @@ RC AvgAggregator::evaluate(Value& result)
 
 RC CountAggregator::accumulate(const Value &value)
 {
-  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
-  else if (value_.attr_type() == AttrType::UNDEFINED) {
+  if (value_.attr_type() == AttrType::UNDEFINED) {
     value_ = Value((int)0);
   }
+  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
 
   ASSERT(value.attr_type() == value_.attr_type(), "type mismatch. value type: %s, value_.type: %s", 
         attr_type_to_string(value.attr_type()), attr_type_to_string(value_.attr_type()));
