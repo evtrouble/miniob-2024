@@ -19,6 +19,7 @@ See the Mulan PSL v2 for more details. */
 
 RC DeletePhysicalOperator::open(Trx *trx)
 {
+  LOG_INFO("open delete operator");
   if (children_.empty()) {
     return RC::SUCCESS;
   }
@@ -67,5 +68,6 @@ RC DeletePhysicalOperator::next()
 
 RC DeletePhysicalOperator::close()
 {
+  LOG_INFO("close delete operator");
   return RC::SUCCESS;
 }

@@ -123,6 +123,12 @@ public:
   virtual void        set_name(std::string name) { name_ = name; }
 
   /**
+   * @brief 表达式的别名
+   */
+  virtual const char *alias() const { return alias_.c_str(); }
+  virtual void        set_alias(std::string alias) { alias_ = alias; }
+
+  /**
    * @brief 表达式在下层算子返回的 chunk 中的位置
    */
   virtual int  pos() const { return pos_; }
@@ -144,6 +150,7 @@ protected:
 
 private:
   std::string name_;
+  std::string alias_;
 };
 
 class StarExpr : public Expression

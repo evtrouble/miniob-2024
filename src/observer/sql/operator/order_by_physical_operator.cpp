@@ -19,6 +19,7 @@ OrderByPhysicalOperator::OrderByPhysicalOperator(std::vector<std::unique_ptr<Exp
 
 RC OrderByPhysicalOperator::open(Trx *trx)
 {
+    LOG_INFO("open order by operator");
     if (children_.empty()) {
         return RC::SUCCESS;
     }

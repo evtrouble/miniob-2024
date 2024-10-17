@@ -303,6 +303,9 @@ RC ComparisonExpr::value_not_in(const Tuple &tuple, bool &result) const
 
 RC ComparisonExpr::value_is_null(const Tuple &tuple, bool &result) const
 {
+  if(right_->type() != ExprType::VALUE || right_->value_type() != AttrType::NULLS)
+    return RC::INVALID_ARGUMENT;
+
   Value left_value;
   RC rc = left_->get_value(tuple, left_value);
   if (rc != RC::SUCCESS) {
@@ -323,6 +326,14 @@ RC ComparisonExpr::try_get_value(Value &cell) const
     const Value &right_cell       = right_value_expr->get_value();
 
     bool value = false;
+    if(comp_ == CompOp::IS_NULL || comp_ == CompOp::IS_NOT_NULL){
+      if(right_cell.attr_type() != AttrType::NULLS)return RC::INVALID_ARGUMENT;
+      if((comp_ == CompOp::IS_NULL && left_cell.attr_type() == AttrType::NULLS) || 
+        (comp_ == CompOp::IS_NOT_NULL && left_cell.attr_type() != AttrType::NULLS))
+          cell.set_boolean(true);
+      else cell.set_boolean(false);
+      return RC::SUCCESS;
+    }
     RC   rc    = compare_value(left_cell, right_cell, value);
     if (rc != RC::SUCCESS) {
       LOG_WARN("failed to compare tuple cells. rc=%s", strrc(rc));

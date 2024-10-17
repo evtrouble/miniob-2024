@@ -37,6 +37,7 @@ RC IndexScanPhysicalOperator::open(Trx *trx)
   if (nullptr == table_ || nullptr == index_) {
     return RC::INTERNAL;
   }
+  LOG_INFO("open index scanner operator");
 
   IndexScanner *index_scanner = index_->create_scanner(left_value_.data(),
       left_value_.length(),
@@ -106,6 +107,7 @@ RC IndexScanPhysicalOperator::close()
 {
   index_scanner_->destroy();
   index_scanner_ = nullptr;
+  LOG_INFO("close index scanner operator");
   return RC::SUCCESS;
 }
 

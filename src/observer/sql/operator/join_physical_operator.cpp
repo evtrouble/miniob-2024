@@ -18,6 +18,7 @@ NestedLoopJoinPhysicalOperator::NestedLoopJoinPhysicalOperator() {}
 
 RC NestedLoopJoinPhysicalOperator::open(Trx *trx)
 {
+  LOG_INFO("open join operator");
   if (children_.size() != 2) {
     LOG_WARN("nlj operator should have 2 children");
     return RC::INTERNAL;
@@ -79,6 +80,8 @@ RC NestedLoopJoinPhysicalOperator::close()
       right_closed_ = true;
     }
   }
+
+  LOG_INFO("close join operator");
   return rc;
 }
 

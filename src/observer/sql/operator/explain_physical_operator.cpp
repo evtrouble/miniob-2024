@@ -20,11 +20,12 @@ using namespace std;
 
 RC ExplainPhysicalOperator::open(Trx *)
 {
+  LOG_INFO("open explain operator");
   ASSERT(children_.size() == 1, "explain must has 1 child");
   return RC::SUCCESS;
 }
 
-RC ExplainPhysicalOperator::close() { return RC::SUCCESS; }
+RC ExplainPhysicalOperator::close() { LOG_INFO("close explain operator"); return RC::SUCCESS; }
 
 void ExplainPhysicalOperator::generate_physical_plan()
 {

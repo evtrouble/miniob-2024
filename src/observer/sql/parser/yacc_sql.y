@@ -107,6 +107,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         OR
         SET
         ON
+        AS
         LOAD
         DATA
         LIKE
@@ -921,28 +922,6 @@ condition:
       $$->left_value = Value((void*)nullptr);
       $$->comp = $1;
     }
-    | rel_attr IS NULL_T
-    {
-      $$ = new ConditionSqlNode;
-      $$->right_type = 0;
-      $$->right_value = Value((void*)nullptr);
-      $$->left_type = 1;
-      $$->comp = IS_NULL;
-      $$->left_attr = *$1;
-
-      delete $1;
-    }
-    | rel_attr IS NOT NULL_T
-    {
-      $$ = new ConditionSqlNode;
-      $$->right_type = 0;
-      $$->right_value = Value((void*)nullptr);
-      $$->left_type = 1;
-      $$->comp = IS_NOT_NULL;
-      $$->left_attr = *$1;
-
-      delete $1;
-    }
     | LBRACE select_stmt RBRACE comp_op LBRACE select_stmt RBRACE
     {
       $$ = new ConditionSqlNode;
@@ -999,6 +978,8 @@ comp_op:
     | NE { $$ = NOT_EQUAL; }
     | IN { $$ = IN_OP; }
     | NOT IN { $$ = NOT_IN; }
+    | IS { $$ = IS_NULL; }
+    | IS NOT { $$ = IS_NOT_NULL; }
     ;
 
 unary_op:

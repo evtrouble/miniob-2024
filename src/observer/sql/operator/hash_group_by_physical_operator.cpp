@@ -26,6 +26,7 @@ HashGroupByPhysicalOperator::HashGroupByPhysicalOperator(
 
 RC HashGroupByPhysicalOperator::open(Trx *trx)
 {
+  LOG_INFO("open hash group by operator");
   ASSERT(children_.size() == 1, "group by operator only support one child, but got %d", children_.size());
 
   PhysicalOperator &child = *children_[0];
@@ -125,7 +126,7 @@ RC HashGroupByPhysicalOperator::next(Tuple *upper_tuple)
 RC HashGroupByPhysicalOperator::close()
 {
   children_[0]->close();
-  LOG_INFO("close group by operator");
+  LOG_INFO("close hash group by operator");
   return RC::SUCCESS;
 }
 

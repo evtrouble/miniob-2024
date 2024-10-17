@@ -26,6 +26,7 @@ ScalarGroupByPhysicalOperator::ScalarGroupByPhysicalOperator(vector<Expression *
 
 RC ScalarGroupByPhysicalOperator::open(Trx *trx)
 {
+  LOG_INFO("open scalar group by operator");
   ASSERT(children_.size() == 1, "group by operator only support one child, but got %d", children_.size());
 
   PhysicalOperator &child = *children_[0];
@@ -131,6 +132,8 @@ RC ScalarGroupByPhysicalOperator::close()
 {
   group_value_.reset();
   emitted_ = false;
+  children_[0]->close();
+  LOG_INFO("close scalar group by operator");
   return RC::SUCCESS;
 }
 

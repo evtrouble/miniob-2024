@@ -27,6 +27,7 @@ UpdatePhysicalOperator::UpdatePhysicalOperator(Table *table, vector<const FieldM
 
 RC UpdatePhysicalOperator::open(Trx *trx)
 {
+  LOG_INFO("open update operator");
   if (children_.empty()) {
     return RC::SUCCESS;
   }
@@ -94,6 +95,7 @@ RC UpdatePhysicalOperator::next()
 
 RC UpdatePhysicalOperator::close()
 {
+  LOG_INFO("close update operator");
   return RC::SUCCESS;
 }
 

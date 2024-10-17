@@ -25,6 +25,7 @@ InsertPhysicalOperator::InsertPhysicalOperator(Table *table, std::vector<std::ve
 
 RC InsertPhysicalOperator::open(Trx *trx)
 {
+  LOG_INFO("open insert operator");
   Record record;
   RC     rc = RC::SUCCESS;
   vector<Record>records(values_set_.size());
@@ -46,4 +47,4 @@ RC InsertPhysicalOperator::open(Trx *trx)
 
 RC InsertPhysicalOperator::next() { return RC::RECORD_EOF; }
 
-RC InsertPhysicalOperator::close() { return RC::SUCCESS; }
+RC InsertPhysicalOperator::close() { LOG_INFO("close insert operator"); return RC::SUCCESS; }
