@@ -90,6 +90,11 @@ class KeyComparator
 {
 public:
   void init(AttrType type, int length) { attr_comparator_.init(type, length); }
+  void init(bool unique, AttrType type, int length)
+  {
+    attr_comparator_.init(type, length);
+    unique_ = unique;
+  }
 
   const AttrComparator &attr_comparator() const { return attr_comparator_; }
 
@@ -107,6 +112,7 @@ public:
 
 private:
   AttrComparator attr_comparator_;
+  bool           unique_;
 };
 
 /**
@@ -179,6 +185,7 @@ struct IndexFileHeader
   int32_t  attr_length;        ///< 键值的长度
   int32_t  key_length;         ///< attr length + sizeof(RID)
   AttrType attr_type;          ///< 键值的类型
+  bool     unique;
 
   const string to_string() const
   {
@@ -459,9 +466,9 @@ public:
    * @param internal_max_size 内部节点最大大小
    * @param leaf_max_size 叶子节点最大大小
    */
-  RC create(LogHandler &log_handler, BufferPoolManager &bpm, const char *file_name, AttrType attr_type, int attr_length,
-      int internal_max_size = -1, int leaf_max_size = -1);
-  RC create(LogHandler &log_handler, DiskBufferPool &buffer_pool, AttrType attr_type, int attr_length,
+  RC create(LogHandler &log_handler, BufferPoolManager &bpm, bool unique, const char *file_name, AttrType attr_type,
+      int attr_length, int internal_max_size = -1, int leaf_max_size = -1);
+  RC create(LogHandler &log_handler, DiskBufferPool &buffer_pool, bool unique, AttrType attr_type, int attr_length,
       int internal_max_size = -1, int leaf_max_size = -1);
 
   /**

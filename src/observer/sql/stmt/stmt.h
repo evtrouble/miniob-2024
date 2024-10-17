@@ -23,7 +23,7 @@ class Db;
 class FieldMeta;
 class Table;
 
-using tables_t = std::unordered_map<std::string, std::pair<Table*, size_t>>;
+using tables_t = std::unordered_map<std::string, std::pair<Table *, size_t>>;
 
 /**
  * @brief Statement SQL语句解析后通过Resolver转换成Stmt
@@ -47,6 +47,7 @@ using tables_t = std::unordered_map<std::string, std::pair<Table*, size_t>>;
   DEFINE_ENUM_ITEM(DROP_INDEX)   \
   DEFINE_ENUM_ITEM(SYNC)         \
   DEFINE_ENUM_ITEM(SHOW_TABLES)  \
+  DEFINE_ENUM_ITEM(SHOW_INDEX)   \
   DEFINE_ENUM_ITEM(DESC_TABLE)   \
   DEFINE_ENUM_ITEM(BEGIN)        \
   DEFINE_ENUM_ITEM(COMMIT)       \
@@ -93,8 +94,8 @@ public:
   virtual StmtType type() const = 0;
 
 public:
-  static RC create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt, 
-    vector<vector<uint32_t>>* depends, tables_t* table_map, int fa = -1);
+  static RC create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt, vector<vector<uint32_t>> *depends,
+      tables_t *table_map, int fa = -1);
 
 private:
 };

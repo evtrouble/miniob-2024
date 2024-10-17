@@ -58,7 +58,7 @@ public:
    * 删除一个表
    * @param path 元数据保存的文件(完整路径)
    */
-  RC drop(const char *path);    
+  RC drop(const char *path);
 
   /**
    * 打开一个表
@@ -91,7 +91,7 @@ public:
   RC recover_insert_record(Record &record);
 
   // TODO refactor
-  RC create_index(Trx *trx, const FieldMeta *field_meta, const char *index_name);
+  RC create_index(Trx *trx, bool unique, const FieldMeta *field_meta, const char *index_name);
 
   RC get_record_scanner(RecordFileScanner &scanner, Trx *trx, ReadWriteMode mode);
 
@@ -116,7 +116,8 @@ public:
 
   const TableMeta &table_meta() const;
 
-  RC sync();
+  RC                          sync();
+  const std::vector<Index *> &indexes() const { return indexes_; }
 
 private:
   RC insert_entry_of_indexes(const char *record, const RID &rid);

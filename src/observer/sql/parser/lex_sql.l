@@ -122,6 +122,7 @@ NOT                                     RETURN_TOKEN(NOT);
 NULL                                    RETURN_TOKEN(NULL_T);
 ASC                                     RETURN_TOKEN(ASC);
 DESC                                    RETURN_TOKEN(DESC);
+UNIQUE                                  RETURN_TOKEN(UNIQUE);
 INFILE                                  RETURN_TOKEN(INFILE);
 EXPLAIN                                 RETURN_TOKEN(EXPLAIN);
 ORDER                                   RETURN_TOKEN(ORDER);
