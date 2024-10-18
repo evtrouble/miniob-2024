@@ -268,7 +268,7 @@ RC ExpressionBinder::bind_comparison_expression(
 
   switch (comparison_expr->comp()) {
     case CompOp::LIKE_OP: case CompOp::NOT_LIKE: {
-      if (left_expr->value_type() != AttrType::CHARS || right->value_type() != AttrType::CHARS) {
+      if (left_expr->value_type() != AttrType::CHARS || right_expr->value_type() != AttrType::CHARS) {
         LOG_WARN("invalid value type for comparison expression");
         return RC::INVALID_ARGUMENT;
       }
