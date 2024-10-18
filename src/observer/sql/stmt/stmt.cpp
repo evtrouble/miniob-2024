@@ -49,7 +49,7 @@ bool stmt_type_ddl(StmtType type)
   }
 }
 RC Stmt::create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt, 
-  vector<vector<uint32_t>>* depends, tables_t* table_map, int fa)
+  vector<vector<uint32_t>>* depends, BinderContext& table_map, int fa)
 {
   stmt = nullptr;
 

@@ -15,23 +15,50 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include <vector>
+#include <unordered_map>
 
 #include "sql/expr/expression.h"
 
 class BinderContext
 {
 public:
+using tables_t = std::unordered_map<std::string, std::pair<Table*, size_t>>;
   BinderContext()          = default;
   virtual ~BinderContext() = default;
 
-  void add_table(Table *table) { query_tables_.push_back(table); }
+  void add_table(std::string table_name, Table *table, size_t id = 0) 
+  { 
+    if(!query_tables_.count(table_name)) {
+      auto temp = std::make_pair(table, id);
+      query_tables_.insert({table_name, temp});
+    }
+  }
+
+  void del_table(string table_name, size_t id = 0) {
+    if(query_tables_.at(table_name).second == id){
+      query_tables_.erase(table_name);
+    }
+  }
 
   Table *find_table(const char *table_name) const;
+  size_t get_id(const char *table_name) const
+  {
+    if(query_tables_.count(table_name)) {
+      return query_tables_.at(table_name).second;
+    }
+    return INT32_MAX;
+  }
 
-  const std::vector<Table *> &query_tables() const { return query_tables_; }
+  const vector<Table *> query_tables() const { 
+    vector<Table *> query_tables;
+    for(auto& node : query_tables_){
+      query_tables.emplace_back(node.second.first);
+    }
+    return query_tables;
+  }
 
 private:
-  std::vector<Table *> query_tables_;
+  tables_t query_tables_;
 };
 
 /**
@@ -65,6 +92,8 @@ private:
       std::unique_ptr<Expression> &arithmetic_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
   RC bind_aggregate_expression(
       std::unique_ptr<Expression> &aggregate_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
+  RC bind_select_expression(
+      std::unique_ptr<Expression> &select_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
 
 private:
   BinderContext &context_;

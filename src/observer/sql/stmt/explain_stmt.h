@@ -31,7 +31,7 @@ public:
   Stmt *child() const { return child_stmt_.get(); }
 
   static RC create(Db *db, const ExplainSqlNode &query, Stmt *&stmt,
-    vector<vector<uint32_t>>* depends, tables_t* table_map, int fa = -1);
+    vector<vector<uint32_t>>* depends, BinderContext& table_map, int fa = -1);
 
 private:
   std::unique_ptr<Stmt> child_stmt_;

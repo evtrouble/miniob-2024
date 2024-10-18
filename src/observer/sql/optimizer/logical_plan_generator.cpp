@@ -186,45 +186,25 @@ RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<Logical
 {
   RC                                  rc = RC::SUCCESS;
   std::vector<unique_ptr<Expression>> cmp_exprs;
-  const std::vector<FilterUnit *>    &filter_units = filter_stmt->filter_units();
-  for (const FilterUnit *filter_unit : filter_units) {
-    const FilterObj &filter_obj_left  = filter_unit->left();
-    const FilterObj &filter_obj_right = filter_unit->right(); 
+  auto &filter_units = filter_stmt->filter_units();
+  for (auto& expr : filter_units) {
+    ComparisonExpr* cmp_expr = static_cast<ComparisonExpr*>(expr.get());
+    auto& left  = cmp_expr->left();
+    auto& right = cmp_expr->right(); 
 
-    Expression* temp;
-    switch (filter_obj_left.type)
+    if(left->type() == ExprType::SELECT)
     {
-    case 0:temp = static_cast<Expression *>(new ValueExpr(filter_obj_left.value));
-      break;
-    case 1:temp = static_cast<Expression *>(new FieldExpr(filter_obj_left.field));
-      break;
-    case 2:temp = static_cast<Expression *>(new SelectExpr(filter_obj_left.stmt, select_exprs));
-      break;
-    case 3:temp = static_cast<Expression *>(new ValueListExpr(move(filter_obj_left.value_list)));
-      break;
-    default:
-      break;
+      rc = static_cast<SelectExpr*>(left.get())->logical_generate(select_exprs);
+      if(rc != RC::SUCCESS)return rc;
     }
-    unique_ptr<Expression> left(temp);
-
-    switch (filter_obj_right.type)
+    if(right->type() == ExprType::SELECT)
     {
-    case 0:temp = static_cast<Expression *>(new ValueExpr(filter_obj_right.value));
-      break;
-    case 1:temp = static_cast<Expression *>(new FieldExpr(filter_obj_right.field));
-      break;
-    case 2:temp = static_cast<Expression *>(new SelectExpr(filter_obj_right.stmt, select_exprs));
-      break;
-    case 3:temp = static_cast<Expression *>(new ValueListExpr(move(filter_obj_right.value_list)));
-      break;
-    default:
-      break;
+      rc = static_cast<SelectExpr*>(right.get())->logical_generate(select_exprs);
+      if(rc != RC::SUCCESS)return rc;
     }
-    unique_ptr<Expression> right(temp);
 
     if(left->value_type() == AttrType::NULLS || right->value_type() == AttrType::NULLS){
-      ComparisonExpr *cmp_expr = new ComparisonExpr(filter_unit->comp(), std::move(left), std::move(right));
-      cmp_exprs.emplace_back(cmp_expr);
+      cmp_exprs.emplace_back(move(cmp_expr));
       continue;
     }
 
@@ -303,8 +283,8 @@ RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<Logical
       }
     }
 
-    ComparisonExpr *cmp_expr = new ComparisonExpr(filter_unit->comp(), std::move(left), std::move(right));
-    cmp_exprs.emplace_back(cmp_expr);
+    ComparisonExpr *new_cmp_expr = new ComparisonExpr(cmp_expr->comp(), std::move(left), std::move(right));
+    cmp_exprs.emplace_back(new_cmp_expr);
   }
 
   unique_ptr<PredicateLogicalOperator> predicate_oper;
@@ -355,12 +335,9 @@ RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<Logical
 
   const std::vector<const FieldMeta *>& fields = update_stmt->fields();
   const vector<Value>& values = update_stmt->values();
-  std::unordered_map<size_t, void*>& stmt_map = update_stmt->stmt_map();
-  SelectExpr *select = nullptr;
-  for(auto& [id, stmt] : stmt_map){
-    select = new SelectExpr((Stmt*)stmt, select_exprs);
-    delete (Stmt*)stmt;
-    stmt = select;
+  std::unordered_map<size_t, SelectExpr*>& stmt_map = update_stmt->stmt_map();
+  for(auto& [id, select] : stmt_map){
+    select->logical_generate(select_exprs);
   }
   unique_ptr<LogicalOperator> update_oper(new UpdateLogicalOperator(table, move(fields), move(values), move(stmt_map)));
 

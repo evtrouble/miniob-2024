@@ -25,6 +25,7 @@ See the Mulan PSL v2 for more details. */
 #include "event/sql_event.h"
 #include "session/session.h"
 #include "sql/stmt/stmt.h"
+#include "sql/parser/expression_binder.h"
 
 using namespace common;
 
@@ -46,8 +47,8 @@ RC ResolveStage::handle_request(SQLStageEvent *sql_event)
   ParsedSqlNode *sql_node = sql_event->sql_node().get();
   Stmt          *stmt     = nullptr;
   auto depends = make_unique<vector<vector<uint32_t>>>();
-  auto table_map = make_unique<tables_t>();
-  rc = Stmt::create_stmt(db, *sql_node, stmt, depends.get(), table_map.get());
+  BinderContext table_map;
+  rc = Stmt::create_stmt(db, *sql_node, stmt, depends.get(), table_map);
   if (rc != RC::SUCCESS && rc != RC::UNIMPLEMENTED) {
     LOG_WARN("failed to create stmt. rc=%d:%s", rc, strrc(rc));
     sql_result->set_return_code(rc);

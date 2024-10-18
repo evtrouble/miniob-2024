@@ -32,7 +32,7 @@ SelectStmt::~SelectStmt()
 }
 
 RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt, 
-  vector<vector<uint32_t>>* depends, tables_t* table_map, int fa)
+  vector<vector<uint32_t>>* depends, BinderContext& table_map, int fa)
 {
   if (nullptr == db) {
     LOG_WARN("invalid argument. db is null");
@@ -57,13 +57,10 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
       return RC::SCHEMA_TABLE_NOT_EXIST;
     }
 
-    binder_context.add_table(table);
+    binder_context.add_table(table_name, table);
     tables.push_back(table);
     
-    if(!table_map->count(table_name)){
-      auto temp = make_pair(table, size);
-      table_map->insert({table_name, temp});
-    }
+    table_map.add_table(table_name, table, size);
   }
 
   // collect query fields in `select` statement
@@ -120,9 +117,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
 
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
     const char *table_name = select_sql.relations[i].c_str();
-    if(table_map->at(table_name).second == size){
-      table_map->erase(table_name);
-    }
+    table_map.del_table(table_name, size);
   }
 
   vector<unique_ptr<Expression>> order_by_expressions;

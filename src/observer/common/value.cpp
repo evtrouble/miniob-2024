@@ -44,7 +44,7 @@ Value::Value(ParsedSqlNode *select)
     value_.select_value_ = nullptr;
     length_               = 0;
   } else {
-    own_data_ = true;
+    own_data_ = false;
     value_.select_value_ = select;
   }
 }

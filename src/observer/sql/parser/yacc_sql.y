@@ -665,11 +665,6 @@ expression:
     | '-' expression %prec UMINUS {
       $$ = create_arithmetic_expression(ArithmeticExpr::Type::NEGATIVE, $2, nullptr, sql_string, &@$);
     }
-    | value {
-      $$ = new ValueExpr(*$1);
-      $$->set_name(token_name(sql_string, &@$));
-      delete $1;
-    }
     | rel_attr {
       RelAttrSqlNode *node = $1;
       $$ = new UnboundFieldExpr(node->relation_name, node->attribute_name);
@@ -688,6 +683,18 @@ expression:
     | ID LBRACE RBRACE {
       $$ = create_aggregate_expression("", nullptr, sql_string, &@$);
       free($1);
+    }
+    | LBRACE select_stmt RBRACE {
+      $$ = new SelectExpr($2);
+    }
+    | LBRACE value_list RBRACE {
+      if($2->size() > 1)
+        $$ = new ValueListExpr(move(*$2));
+      else{
+        $$ = new ValueExpr($2->at(0));
+        $$->set_name(token_name(sql_string, &@$));
+        delete $2;
+      }
     }
     // your code here
     ;
@@ -845,127 +852,19 @@ condition_list:
     }
     ;
 condition:
-    rel_attr comp_op value
+    expression comp_op expression
     {
       $$ = new ConditionSqlNode;
-      $$->left_type = 1;
-      $$->left_attr = *$1;
-      $$->right_type = 0;
-      $$->right_value = *$3;
+      $$->left_expr = $1;
+      $$->right_expr = $3;
       $$->comp = $2;
-
-      delete $1;
-      delete $3;
     }
-    | value comp_op value
+    | unary_op expression
     {
       $$ = new ConditionSqlNode;
-      $$->left_type = 0;
-      $$->left_value = *$1;
-      $$->right_type = 0;
-      $$->right_value = *$3;
-      $$->comp = $2;
-
-      delete $1;
-      delete $3;
-    }
-    | rel_attr comp_op rel_attr
-    {
-      $$ = new ConditionSqlNode;
-      $$->left_type = 1;
-      $$->left_attr = *$1;
-      $$->right_type = 1;
-      $$->right_attr = *$3;
-      $$->comp = $2;
-
-      delete $1;
-      delete $3;
-    }
-    | value comp_op rel_attr
-    {
-      $$ = new ConditionSqlNode;
-      $$->left_type = 0;
-      $$->left_value = *$1;
-      $$->right_type = 1;
-      $$->right_attr = *$3;
-      $$->comp = $2;
-
-      delete $1;
-      delete $3;
-    }
-    | rel_attr comp_op LBRACE select_stmt RBRACE
-    {
-      $$ = new ConditionSqlNode;
-      $$->left_type = 1;
-      $$->left_attr = *$1;
-      $$->right_type = 2;
-      $$->right_select = unique_ptr<ParsedSqlNode>($4);
-      $$->comp = $2;
-
-      delete $1;
-    }
-    | value comp_op LBRACE select_stmt RBRACE
-    {
-      $$ = new ConditionSqlNode;
-      $$->left_type = 0;
-      $$->left_value = *$1;
-      $$->right_type = 2;
-      $$->right_select = unique_ptr<ParsedSqlNode>($4);
-      $$->comp = $2;
-
-      delete $1;
-    }
-    | unary_op LBRACE select_stmt RBRACE
-    {
-      $$ = new ConditionSqlNode;
-      $$->right_type = 2;
-      $$->right_select = unique_ptr<ParsedSqlNode>($3);
-      $$->left_type = 0;
-      $$->left_value = Value((void*)nullptr);
+      $$->left_expr = new ValueExpr(Value((void*)nullptr));
+      $$->right_expr = $2;
       $$->comp = $1;
-    }
-    | LBRACE select_stmt RBRACE comp_op LBRACE select_stmt RBRACE
-    {
-      $$ = new ConditionSqlNode;
-      $$->left_type = 2;
-      $$->left_select = unique_ptr<ParsedSqlNode>($2);
-      $$->right_type = 2;
-      $$->right_select = unique_ptr<ParsedSqlNode>($6);
-      $$->comp = $4;
-    }
-    | LBRACE select_stmt RBRACE comp_op value
-    {
-      $$ = new ConditionSqlNode;
-      $$->left_type = 2;
-      $$->left_select = unique_ptr<ParsedSqlNode>($2);
-      $$->right_type = 0;
-      $$->right_value = *$5;
-      $$->comp = $4;
-
-      delete $5;
-    }
-    | LBRACE select_stmt RBRACE comp_op rel_attr
-    {
-      $$ = new ConditionSqlNode;
-      $$->left_type = 2;
-      $$->left_select = unique_ptr<ParsedSqlNode>($2);
-      $$->right_type = 1;
-      $$->right_attr = *$5;
-      $$->comp = $4;
-
-      delete $5;
-    }
-    | rel_attr comp_op LBRACE value_list RBRACE
-    {
-      $$ = new ConditionSqlNode;
-      $$->left_type = 1;
-      $$->left_attr = *$1;
-      $$->right_type = 3;
-      $$->right_value_list.swap(*$4);
-      $$->comp = $2;
-
-      delete $1;
-      delete $4;
     }
     ;
 

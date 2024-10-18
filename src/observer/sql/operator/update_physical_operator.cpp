@@ -21,7 +21,7 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 
 UpdatePhysicalOperator::UpdatePhysicalOperator(Table *table, vector<const FieldMeta *> &&fields,
-    vector<Value> &&values, std::unordered_map<size_t, void*>&& select_map)
+    vector<Value> &&values, std::unordered_map<size_t, SelectExpr*>&& select_map)
     : table_(table), fields_(std::move(fields)), values_(std::move(values)), select_map_(move(select_map))
 {}
 
@@ -114,7 +114,7 @@ RC UpdatePhysicalOperator::init(Tuple* tuple, vector<size_t> &select_ids)
 
   for(size_t id = 0; id < values_.size(); id++){
     if(select_map_.count(id)){
-      SelectExpr* temp = (SelectExpr*)select_map_[id];
+      SelectExpr* temp = select_map_[id];
       if(temp->check()){
         rc = temp->get_value(*tuple, values_[id]); 
         if(rc == RC::NULL_TUPLE)

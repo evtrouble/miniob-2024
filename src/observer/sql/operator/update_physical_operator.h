@@ -29,7 +29,7 @@ class UpdatePhysicalOperator : public PhysicalOperator
 {
 public:
   UpdatePhysicalOperator(Table *table, std::vector<const FieldMeta *> &&fields, 
-    std::vector<Value> &&values, std::unordered_map<size_t, void*>&& select_map);
+    std::vector<Value> &&values, std::unordered_map<size_t, SelectExpr*>&& select_map);
 
   virtual ~UpdatePhysicalOperator();
 
@@ -47,6 +47,6 @@ private:
   std::vector<const FieldMeta *> fields_;
   std::vector<Value> values_;
   Trx                *trx_   = nullptr;
-  std::unordered_map<size_t, void*> select_map_;
+  std::unordered_map<size_t, SelectExpr*> select_map_;
   bool               ctl = false;
 };

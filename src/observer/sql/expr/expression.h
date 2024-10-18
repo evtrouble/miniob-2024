@@ -23,13 +23,16 @@ See the Mulan PSL v2 for more details. */
 #include "storage/field/field.h"
 #include "sql/expr/aggregator.h"
 #include "storage/common/chunk.h"
+#include "sql/parser/expression_binder.h"
 
 class Tuple;
 class Stmt;
 class LogicalOperator;
 class PhysicalOperator;
 class Session;
+class ParsedSqlNode;
 class SqlResult;
+class BinderContext;
 
 /**
  * @defgroup Expression
@@ -246,6 +249,13 @@ public:
   RC try_get_value(Value &value) const override
   {
     value = value_;
+    return RC::SUCCESS;
+  }
+  RC get_value_set(const Tuple &tuple, vector<Value> &value_list)const override
+  {
+    Value value;
+    get_value(value);
+    value_list.emplace_back(std::move(value));
     return RC::SUCCESS;
   }
 
@@ -506,7 +516,8 @@ class SelectExpr : public Expression
 {
 public:
   SelectExpr() = default;
-  SelectExpr(Stmt* stmt, vector<SelectExpr*>* select_exprs);
+  SelectExpr(ParsedSqlNode* sql_node);
+  SelectExpr(Stmt* stmt);
 
   virtual ~SelectExpr();
 
@@ -518,7 +529,9 @@ public:
 
   RC pretreatment();
 
+  RC logical_generate(vector<SelectExpr*>* select_exprs);
   RC physical_generate();
+  RC create_stmt(Db *db, vector<vector<uint32_t>> *depends, BinderContext& table_map, int fa);
 
   bool check() {return values_ != nullptr;}
 
@@ -527,12 +540,13 @@ public:
   void set_trx(Trx *trx) { trx_ = trx; };
 
 private:
-  AttrType value_type_;
-  RC        rc_ = RC::SUCCESS;
+  AttrType value_type_ = AttrType::UNDEFINED;
+  Stmt*     stmt_ = nullptr;
 
   unique_ptr<LogicalOperator> logical_operator_;
   unique_ptr<PhysicalOperator> physical_operator_;
   unique_ptr<vector<vector<Value>>> values_;
+  ParsedSqlNode*  sql_node_ = nullptr;
   Trx*      trx_ = nullptr;
 };
 

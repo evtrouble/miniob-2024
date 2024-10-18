@@ -29,7 +29,7 @@ DeleteStmt::~DeleteStmt()
 }
 
 RC DeleteStmt::create(Db *db, const DeleteSqlNode &delete_sql, Stmt *&stmt, 
-  vector<vector<uint32_t>>* depends, tables_t* table_map, int fa)
+  vector<vector<uint32_t>>* depends, BinderContext& table_map, int fa)
 {
   const char *table_name = delete_sql.relation_name.c_str();
   if (nullptr == db || nullptr == table_name) {
@@ -46,10 +46,7 @@ RC DeleteStmt::create(Db *db, const DeleteSqlNode &delete_sql, Stmt *&stmt,
 
   auto size = depends->size();
 
-  if(!table_map->count(table_name)){
-    auto temp = std::make_pair(table, size);
-    table_map->insert({table_name, temp});
-  }
+  table_map.add_table(table_name, table, size);
 
   depends->push_back(vector<uint32_t>());
 
@@ -61,9 +58,7 @@ RC DeleteStmt::create(Db *db, const DeleteSqlNode &delete_sql, Stmt *&stmt,
     return rc;
   }
 
-  if(table_map->at(table_name).second == size){
-    table_map->erase(table_name);
-  }
+  table_map.del_table(table_name, size);
 
   stmt = new DeleteStmt(table, filter_stmt);
   return rc;

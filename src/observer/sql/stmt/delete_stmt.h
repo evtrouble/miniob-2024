@@ -37,7 +37,7 @@ public:
 
 public:
   static RC create(Db *db, const DeleteSqlNode &delete_sql, Stmt *&stmt, 
-    vector<vector<uint32_t>>* depends = nullptr, tables_t* table_map = nullptr, int fa = -1);
+    vector<vector<uint32_t>>* depends, BinderContext& table_map, int fa = -1);
 
 private:
   Table      *table_       = nullptr;

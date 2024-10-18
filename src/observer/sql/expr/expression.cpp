@@ -829,24 +829,34 @@ RC AggregateExpr::type_from_string(const char *type_str, AggregateExpr::Type &ty
   return rc;
 }
 
-SelectExpr::SelectExpr(Stmt* stmt, vector<SelectExpr*>* select_exprs)
+RC SelectExpr::logical_generate(vector<SelectExpr*>* select_exprs)
 {
-  if(stmt != nullptr){
-    if(select_exprs != nullptr)select_exprs->push_back(static_cast<SelectExpr*>(this));
-    rc_ = LogicalPlanGenerator().create(stmt, logical_operator_, select_exprs);
-    value_type_ = logical_operator_->expressions().at(0)->value_type();
-  }
+  RC rc = RC::SUCCESS;
+  select_exprs->push_back(static_cast<SelectExpr*>(this));
+  rc = LogicalPlanGenerator().create(stmt_, logical_operator_, select_exprs);
+  value_type_ = logical_operator_->expressions().at(0)->value_type();
+  return rc;
 }
+
+SelectExpr::SelectExpr(ParsedSqlNode* sql_node) : sql_node_(sql_node){}
 
 RC SelectExpr::physical_generate()
 {
-  if(rc_ != RC::SUCCESS)return rc_;
   return PhysicalPlanGenerator().create(*logical_operator_, physical_operator_);
+}
+
+SelectExpr::~SelectExpr(){
+  if(stmt_ != nullptr)delete stmt_;
+  if(sql_node_ != nullptr)delete sql_node_;
+}
+
+RC SelectExpr::create_stmt(Db *db, vector<vector<uint32_t>> *depends, BinderContext& table_map, int fa)
+{
+  return Stmt::create_stmt(db, *sql_node_, stmt_, depends, table_map, fa);
 }
 
 RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
 {
-  if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   if(values_ != nullptr){
     if(values_->size() == 0 || values_->at(0).size() == 0)
@@ -888,7 +898,6 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
 
 RC SelectExpr::get_value_set(const Tuple &tuple, vector<Value> &value_list) const
 {
-  if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   
   if(values_ != nullptr){
@@ -927,7 +936,6 @@ RC SelectExpr::get_value_set(const Tuple &tuple, vector<Value> &value_list) cons
 
 RC SelectExpr::next_tuple(Tuple *&tuple, Tuple *upper_tuple) const
 {
-  if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   if(upper_tuple == nullptr)
     rc = physical_operator_->next();
@@ -942,7 +950,6 @@ RC SelectExpr::next_tuple(Tuple *&tuple, Tuple *upper_tuple) const
 
 RC SelectExpr::pretreatment()
 {
-  if(rc_ != RC::SUCCESS)return rc_;
   RC rc = RC::SUCCESS;
   Tuple *tuple = nullptr;
   physical_operator_->open(trx_);
@@ -975,8 +982,6 @@ RC SelectExpr::pretreatment()
 
   return rc;
 }
-
-SelectExpr::~SelectExpr() = default;
 
 RC ValueListExpr::get_value(const Tuple &tuple, Value &value) const 
 {

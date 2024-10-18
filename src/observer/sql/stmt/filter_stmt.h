@@ -24,67 +24,6 @@ class Db;
 class Table;
 class FieldMeta;
 
-struct FilterObj
-{
-  int  type;
-  Field field;
-  Value value;
-  vector<Value> value_list;
-  Stmt* stmt = nullptr;
-
-  void init_attr(const Field &field)
-  {
-    type     = 1;
-    this->field = field;
-  }
-
-  void init_value(const Value&& value)
-  {
-    type     = 0;
-    this->value = std::move(value);
-  }
-
-  RC init_stmt(Db *db, ParsedSqlNode* sql_node, vector<vector<uint32_t>>* depends, 
-    tables_t* tables_map, int fa)
-  {
-    type     = 2;
-    return Stmt::create_stmt(db, *sql_node, this->stmt, depends, tables_map, fa);
-  }
-
-  void init_value_list(const vector<Value>&& value_list)
-  {
-    type     = 3;
-    this->value_list = move(value_list);
-  }
-};
-
-class FilterUnit
-{
-public:
-  FilterUnit() = default;
-  ~FilterUnit() {
-    if(left_.stmt != nullptr)delete left_.stmt;
-    if(right_.stmt != nullptr)delete right_.stmt;
-  }
-
-  void set_comp(CompOp comp) { comp_ = comp; }
-
-  CompOp comp() const { return comp_; }
-
-  void set_left(const FilterObj &obj) { left_ = obj; }
-  void set_right(const FilterObj &obj) { right_ = obj; }
-
-  const FilterObj &left() const { return left_; }
-  const FilterObj &right() const { return right_; }
-  FilterObj &left() { return left_; }
-  FilterObj &right() { return right_; }
-
-private:
-  CompOp    comp_ = NO_OP;
-  FilterObj left_;
-  FilterObj right_;
-};
-
 /**
  * @brief Filter/谓词/过滤语句
  * @ingroup Statement
@@ -94,21 +33,20 @@ class FilterStmt
 public:
   FilterStmt() = default;
   FilterStmt(bool and_or) : and_or_(and_or){}
-  virtual ~FilterStmt();
+  virtual ~FilterStmt() = default;
 
 public:
-  const std::vector<FilterUnit *> &filter_units() const { return filter_units_; }
+  const std::vector<unique_ptr<Expression>> &filter_units() const { return filter_units_; }
   const bool and_or() const { return and_or_; }
 
 public:
-  static RC create(Db *db, Table *default_table, tables_t* table_map, const Conditions& conditions, 
+  static RC create(Db *db, Table *default_table, BinderContext& table_map, const Conditions& conditions, 
     FilterStmt *&stmt, vector<vector<uint32_t>>* depends, int fa = -1);
 
-
-  static RC create_filter_unit(Db *db, Table *default_table, tables_t* table_map,
-    const ConditionSqlNode &condition, FilterUnit *&filter_unit, size_t *min_depend);
+  static RC get_table_and_field(Db *db, Table *default_table, BinderContext& table_map,
+    const char* relation_name, const char* attribute_name, size_t *min_depend);
 
 private:
-  std::vector<FilterUnit *> filter_units_;  // 默认当前都是AND关系
+  std::vector<unique_ptr<Expression>> filter_units_;  // 默认当前都是AND关系
   bool    and_or_ = false;            //false为and，true为or
 };

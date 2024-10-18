@@ -73,22 +73,9 @@ class ParsedSqlNode;
  */
 struct ConditionSqlNode
 {
-  int left_type;                 ///< 1时，操作符左边是属性名，0时，是属性值
-                                 ///< 2时，子查询
-  Value          left_value;     ///< left-hand side value if left_type = 0
-  RelAttrSqlNode left_attr;      ///< left-hand side attribute
-  std::shared_ptr<ParsedSqlNode> left_select;
-  vector<Value>  left_value_list;
-  
-  CompOp         comp;           ///< comparison operator
-  int            right_type;     ///< right-hand side's type
-                                 ///< 1时，操作符右边是属性名，0时，是属性值，2时是子查询
-  RelAttrSqlNode right_attr;     ///< right-hand side attribute if right_type = 1 右边的属性
-  Value          right_value;    ///< right-hand side value if right_type = 0
-  std::shared_ptr<ParsedSqlNode> right_select;  ///< right-hand side select if right_type = 2
-  vector<Value>  right_value_list;
-  ConditionSqlNode();
-  ~ConditionSqlNode();
+  Expression *left_expr;
+  Expression *right_expr;
+  CompOp      comp;
 };
 
 struct Conditions
