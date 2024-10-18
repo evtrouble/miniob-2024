@@ -36,7 +36,7 @@ public:
   virtual ~FilterStmt() = default;
 
 public:
-  const std::vector<unique_ptr<Expression>> &filter_units() const { return filter_units_; }
+  std::vector<unique_ptr<Expression>> &filter_units() { return filter_units_; }
   const bool and_or() const { return and_or_; }
 
 public:

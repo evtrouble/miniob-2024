@@ -204,7 +204,7 @@ RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<Logical
     }
 
     if(left->value_type() == AttrType::NULLS || right->value_type() == AttrType::NULLS){
-      cmp_exprs.emplace_back(move(cmp_expr));
+      cmp_exprs.emplace_back(std::move(expr));
       continue;
     }
 
