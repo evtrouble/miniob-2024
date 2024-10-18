@@ -83,44 +83,45 @@ extern int yydebug;
     STRING_T = 284,                /* STRING_T  */
     FLOAT_T = 285,                 /* FLOAT_T  */
     DATE_T = 286,                  /* DATE_T  */
-    HELP = 287,                    /* HELP  */
-    EXIT = 288,                    /* EXIT  */
-    DOT = 289,                     /* DOT  */
-    INTO = 290,                    /* INTO  */
-    VALUES = 291,                  /* VALUES  */
-    FROM = 292,                    /* FROM  */
-    WHERE = 293,                   /* WHERE  */
-    INNER = 294,                   /* INNER  */
-    JOIN = 295,                    /* JOIN  */
-    AND = 296,                     /* AND  */
-    OR = 297,                      /* OR  */
-    SET = 298,                     /* SET  */
-    ON = 299,                      /* ON  */
-    AS = 300,                      /* AS  */
-    LOAD = 301,                    /* LOAD  */
-    DATA = 302,                    /* DATA  */
-    LIKE = 303,                    /* LIKE  */
-    NULL_T = 304,                  /* NULL_T  */
-    EXISTS = 305,                  /* EXISTS  */
-    IN = 306,                      /* IN  */
-    IS = 307,                      /* IS  */
-    NOT = 308,                     /* NOT  */
-    INFILE = 309,                  /* INFILE  */
-    EXPLAIN = 310,                 /* EXPLAIN  */
-    STORAGE = 311,                 /* STORAGE  */
-    FORMAT = 312,                  /* FORMAT  */
-    EQ = 313,                      /* EQ  */
-    LT = 314,                      /* LT  */
-    GT = 315,                      /* GT  */
-    LE = 316,                      /* LE  */
-    GE = 317,                      /* GE  */
-    NE = 318,                      /* NE  */
-    NUMBER = 319,                  /* NUMBER  */
-    FLOAT = 320,                   /* FLOAT  */
-    ID = 321,                      /* ID  */
-    SSS = 322,                     /* SSS  */
-    DATE_VALUE = 323,              /* DATE_VALUE  */
-    UMINUS = 324                   /* UMINUS  */
+    VECTOR_T = 287,                /* VECTOR_T  */
+    HELP = 288,                    /* HELP  */
+    EXIT = 289,                    /* EXIT  */
+    DOT = 290,                     /* DOT  */
+    INTO = 291,                    /* INTO  */
+    VALUES = 292,                  /* VALUES  */
+    FROM = 293,                    /* FROM  */
+    WHERE = 294,                   /* WHERE  */
+    INNER = 295,                   /* INNER  */
+    JOIN = 296,                    /* JOIN  */
+    AND = 297,                     /* AND  */
+    OR = 298,                      /* OR  */
+    SET = 299,                     /* SET  */
+    ON = 300,                      /* ON  */
+    AS = 301,                      /* AS  */
+    LOAD = 302,                    /* LOAD  */
+    DATA = 303,                    /* DATA  */
+    LIKE = 304,                    /* LIKE  */
+    NULL_T = 305,                  /* NULL_T  */
+    EXISTS = 306,                  /* EXISTS  */
+    IN = 307,                      /* IN  */
+    IS = 308,                      /* IS  */
+    NOT = 309,                     /* NOT  */
+    INFILE = 310,                  /* INFILE  */
+    EXPLAIN = 311,                 /* EXPLAIN  */
+    STORAGE = 312,                 /* STORAGE  */
+    FORMAT = 313,                  /* FORMAT  */
+    EQ = 314,                      /* EQ  */
+    LT = 315,                      /* LT  */
+    GT = 316,                      /* GT  */
+    LE = 317,                      /* LE  */
+    GE = 318,                      /* GE  */
+    NE = 319,                      /* NE  */
+    NUMBER = 320,                  /* NUMBER  */
+    FLOAT = 321,                   /* FLOAT  */
+    ID = 322,                      /* ID  */
+    SSS = 323,                     /* SSS  */
+    DATE_VALUE = 324,              /* DATE_VALUE  */
+    UMINUS = 325                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -129,7 +130,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 131 "yacc_sql.y"
+#line 132 "yacc_sql.y"
 
   ParsedSqlNode *                            sql_node;
   ConditionSqlNode *                         condition;
@@ -155,7 +156,7 @@ union YYSTYPE
   Joins *                                    join_list;
   Key_values *                               key_values;
 
-#line 159 "yacc_sql.hpp"
+#line 160 "yacc_sql.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
