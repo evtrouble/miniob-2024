@@ -24,8 +24,8 @@ using namespace common;
 
 Table *BinderContext::find_table(const char *table_name) const
 {
-  if (query_tables_.count(table_name)) {
-    return query_tables_.at(table_name).first;
+  if (tables_.count(table_name)) {
+    return tables_.at(table_name).first;
   }
   return nullptr;
 }

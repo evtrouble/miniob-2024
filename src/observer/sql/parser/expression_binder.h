@@ -28,37 +28,35 @@ using tables_t = std::unordered_map<std::string, std::pair<Table*, size_t>>;
 
   void add_table(std::string table_name, Table *table, size_t id = 0) 
   { 
-    if(!query_tables_.count(table_name)) {
+    if(!tables_.count(table_name)) {
       auto temp = std::make_pair(table, id);
-      query_tables_.insert({table_name, temp});
+      tables_.insert({table_name, temp});
     }
+    query_tables_.emplace_back(table);
   }
 
   void del_table(string table_name, size_t id = 0) {
-    if(query_tables_.at(table_name).second == id){
-      query_tables_.erase(table_name);
+    if(tables_.at(table_name).second == id){
+      tables_.erase(table_name);
     }
   }
 
   Table *find_table(const char *table_name) const;
   size_t get_id(const char *table_name) const
   {
-    if(query_tables_.count(table_name)) {
-      return query_tables_.at(table_name).second;
+    if(tables_.count(table_name)) {
+      return tables_.at(table_name).second;
     }
     return INT32_MAX;
   }
 
-  const vector<Table *> query_tables() const { 
-    vector<Table *> query_tables;
-    for(auto& node : query_tables_){
-      query_tables.emplace_back(node.second.first);
-    }
-    return query_tables;
+  const vector<Table *>& query_tables() const { 
+    return query_tables_;
   }
 
 private:
-  tables_t query_tables_;
+  tables_t tables_;
+  std::vector<Table *> query_tables_;
 };
 
 /**
@@ -92,9 +90,7 @@ private:
       std::unique_ptr<Expression> &arithmetic_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
   RC bind_aggregate_expression(
       std::unique_ptr<Expression> &aggregate_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
-  RC bind_select_expression(
-      std::unique_ptr<Expression> &select_expr, std::vector<std::unique_ptr<Expression>> &bound_expressions);
-
+  
 private:
   BinderContext &context_;
 };

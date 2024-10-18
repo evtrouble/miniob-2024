@@ -743,17 +743,14 @@ rel_list:
       free($1);
     }
     | relation join_list {
-      $$ = new Joins;
+      if ($2 != nullptr) {
+        $$ = $2;
+      } else {
+        $$ = new Joins;
+      }
 
-      $$->relation_list.emplace_back(move($1));
-      $$->relation_list.insert($$->relation_list.end(), 
-        $2->relation_list.begin(), $2->relation_list.end());
+      $$->relation_list.emplace($$->relation_list.begin(), move($1));
 
-      auto& conditions = $$->condition_list.conditions;
-      conditions.insert(conditions.begin(), 
-        $2->condition_list.conditions.begin(), $2->condition_list.conditions.end());
-
-      delete $2;
       free($1);
     }
     | relation join_list COMMA rel_list{
@@ -784,8 +781,7 @@ join_list:
 
       free($3);
       if($4 != nullptr){
-        auto& conditions = $$->condition_list.conditions;
-        conditions.insert(conditions.end(), $4->conditions.begin(), $4->conditions.end());
+        $$->condition_list.conditions.swap($4->conditions);
         delete $4;
       }
       
