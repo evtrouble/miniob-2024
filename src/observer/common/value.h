@@ -53,6 +53,7 @@ public:
   explicit Value(const char *s, int len = 0);
   explicit Value(const Date *s, int len = 0);
   explicit Value(ParsedSqlNode *select);
+  explicit Value(vector<float>* values);
 
   Value(const Value &other) noexcept;
   Value(Value &&other) noexcept;
@@ -167,6 +168,7 @@ private:
   void set_date(const char *s, int len = 10);
   void set_string_from_other(const Value &other);
   void set_date_from_other(const Value &other);
+  void set_vector(vector<float>* values);
   bool check_date(const char *data);
 
 private:
@@ -180,6 +182,7 @@ private:
     bool    bool_value_;
     char   *pointer_value_;
     ParsedSqlNode   *select_value_;
+    vector<float>   *vector_value_;
   } value_ = {.int_value_ = 0};
 
   /// 是否申请并占有内存, 目前对于 CHARS 类型 own_data_ 为true, 其余类型 own_data_ 为false

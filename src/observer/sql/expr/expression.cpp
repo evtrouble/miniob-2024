@@ -415,7 +415,6 @@ RC ComparisonExpr::get_value(const Tuple &tuple, Value &value) const
         return rc;
       }
       rc = right_->get_value(tuple, right_value);
-      rc = left_->get_value(tuple, left_value);
       if(rc == RC::NULL_TUPLE){
         value.set_boolean(false);
         return RC::SUCCESS;
