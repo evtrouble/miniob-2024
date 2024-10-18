@@ -93,8 +93,8 @@ RC FilterStmt::get_table_and_field(Db *db, Table *default_table, BinderContext& 
   if (common::is_blank(relation_name)) {
     table = default_table;
   } else {
-    auto iter = table_map.find_table(relation_name);
-    if (iter != nullptr) {
+    table = table_map.find_table(relation_name);
+    if (table != nullptr) {
       *min_depend = std::min(*min_depend, table_map.get_id(relation_name));
     }
   }

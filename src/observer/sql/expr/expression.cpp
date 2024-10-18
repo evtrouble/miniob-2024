@@ -406,11 +406,20 @@ RC ComparisonExpr::get_value(const Tuple &tuple, Value &value) const
       Value right_value;
 
       rc = left_->get_value(tuple, left_value);
+      if(rc == RC::NULL_TUPLE){
+        value.set_boolean(false);
+        return RC::SUCCESS;
+      }
       if (rc != RC::SUCCESS) {
         LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
         return rc;
       }
       rc = right_->get_value(tuple, right_value);
+      rc = left_->get_value(tuple, left_value);
+      if(rc == RC::NULL_TUPLE){
+        value.set_boolean(false);
+        return RC::SUCCESS;
+      }
       if (rc != RC::SUCCESS) {
         LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
         return rc;
@@ -985,12 +994,17 @@ RC SelectExpr::pretreatment()
 
 RC ValueListExpr::get_value(const Tuple &tuple, Value &value) const 
 {
-  value = value_list_[0];
-  return RC::SUCCESS;
+  return exprs_[0]->get_value(tuple, value);
 }
 
 RC ValueListExpr::get_value_set(const Tuple &tuple, vector<Value> &value_list) const
 {
-  value_list = value_list_;
+  RC rc = RC::SUCCESS;
+  Value value;
+  for(auto& expr : exprs_){
+    rc = expr->get_value(tuple, value);
+    if(rc != RC::SUCCESS)return rc;
+    value_list.emplace_back(move(value));
+  }
   return RC::SUCCESS;
 }

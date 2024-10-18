@@ -251,6 +251,7 @@ public:
     value = value_;
     return RC::SUCCESS;
   }
+  
   RC get_value_set(const Tuple &tuple, vector<Value> &value_list)const override
   {
     Value value;
@@ -554,8 +555,9 @@ class ValueListExpr : public Expression
 {
 public:
   ValueListExpr() = default;
-  explicit ValueListExpr(const vector<Value>&& value_list) : value_list_(move(value_list)) 
-  {}
+  explicit ValueListExpr(std::vector<unique_ptr<Expression>>& exprs) {
+    exprs_.swap(exprs);
+  }
 
   virtual ~ValueListExpr() = default;
 
@@ -563,8 +565,8 @@ public:
   RC get_value_set(const Tuple &tuple, vector<Value> &value_list)const override;
 
   ExprType type() const override { return ExprType::VALUE_LIST; }
-  AttrType value_type() const override { return value_list_[0].attr_type(); }
+  AttrType value_type() const override { return exprs_[0]->value_type(); }
 
 private:
-  vector<Value> value_list_;
+   std::vector<std::unique_ptr<Expression>> exprs_;
 };

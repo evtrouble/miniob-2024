@@ -658,9 +658,14 @@ expression:
     | expression '/' expression {
       $$ = create_arithmetic_expression(ArithmeticExpr::Type::DIV, $1, $3, sql_string, &@$);
     }
-    | LBRACE expression RBRACE {
-      $$ = $2;
+    | LBRACE expression_list RBRACE {
+      if ($2->size() == 1) {
+        $$ = ($2->front()).release();
+      } else {
+        $$ = new ValueListExpr(*$2);
+      }
       $$->set_name(token_name(sql_string, &@$));
+      delete $2;
     }
     | '-' expression %prec UMINUS {
       $$ = create_arithmetic_expression(ArithmeticExpr::Type::NEGATIVE, $2, nullptr, sql_string, &@$);
@@ -687,14 +692,10 @@ expression:
     | LBRACE select_stmt RBRACE {
       $$ = new SelectExpr($2);
     }
-    | LBRACE value_list RBRACE {
-      if($2->size() > 1)
-        $$ = new ValueListExpr(move(*$2));
-      else{
-        $$ = new ValueExpr($2->at(0));
+    | value {
+        $$ = new ValueExpr(*$1);
         $$->set_name(token_name(sql_string, &@$));
-        delete $2;
-      }
+        delete $1;
     }
     // your code here
     ;
@@ -830,11 +831,7 @@ where:
     }
     ;
 condition_list:
-    /* empty */
-    {
-      $$ = nullptr;
-    }
-    | condition {
+    condition {
       $$ = new Conditions;
       $$->conditions.emplace_back(move(*$1));
       delete $1;
