@@ -186,6 +186,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <join_list>           join_list
 %type <condition_list>      condition_list
 %type <string>              storage_format
+%type <string>              alias
 %type <join_list>           rel_list
 %type <expression>          expression
 %type <expression_list>     expression_list
@@ -596,6 +597,7 @@ select_stmt:        /*  select 语句的语法解析树*/
 
       if ($4 != nullptr) {
         $$->selection.relations.swap($4->relation_list);
+        $$->selection.alias.swap($4->alias_list);
         swap($$->selection.conditions, $4->condition_list);
         delete $4;
       }
@@ -638,17 +640,25 @@ calc_stmt:
     ;
 
 expression_list:
-    expression
+    expression alias
     {
       $$ = new std::vector<std::unique_ptr<Expression>>;
+      if($2 != nullptr){
+        $1->set_alias($2);
+        free($2);
+      }
       $$->emplace_back(move($1));
     }
-    | expression COMMA expression_list
+    | expression alias COMMA expression_list
     {
-      if ($3 != nullptr) {
-        $$ = $3;
+      if ($4 != nullptr) {
+        $$ = $4;
       } else {
         $$ = new std::vector<std::unique_ptr<Expression>>;
+      }
+      if($2 != nullptr){
+        $1->set_alias($2);
+        free($2);
       }
       $$->emplace($$->begin(), move($1));
     }
@@ -735,83 +745,90 @@ relation:
     }
     ;
 rel_list:
-    relation {
-      $$ = new Joins;
-      $$->relation_list.emplace_back($1);
-      free($1);
-    }
-    | relation COMMA rel_list {
+    relation alias join_list {
       if ($3 != nullptr) {
         $$ = $3;
       } else {
         $$ = new Joins;
       }
 
-      $$->relation_list.insert($$->relation_list.begin(), $1);
+      $$->relation_list.emplace_back($1);
       free($1);
-    }
-    | relation join_list {
-      if ($2 != nullptr) {
-        $$ = $2;
+      if($2 != nullptr){
+        $$->alias_list.emplace($$->alias_list.begin(), $2);
+        free($2);
       } else {
-        $$ = new Joins;
+        $$->alias_list.emplace($$->alias_list.begin(), string());
       }
-
-      $$->relation_list.emplace($$->relation_list.begin(), move($1));
-
-      free($1);
     }
-    | relation join_list COMMA rel_list{
-      if ($4 != nullptr) {
-        $$ = $4;
-      } else {
-        $$ = new Joins;
-      }
-
-      $$->relation_list.insert($$->relation_list.begin(), 
-        $2->relation_list.begin(), $2->relation_list.end());
-      $$->relation_list.insert($$->relation_list.begin(), $1);
-
-      auto& conditions = $$->condition_list.conditions;
-      conditions.insert(conditions.begin(), 
-        $2->condition_list.conditions.begin(), $2->condition_list.conditions.end());
-
-      delete $2;
-      free($1);
-    }
-    ;
-
-join_list:
-    INNER JOIN relation on
-    {
-      $$ = new Joins;
-      $$->relation_list.emplace_back(move($3));
-
-      free($3);
-      if($4 != nullptr){
-        $$->condition_list.conditions.swap($4->conditions);
-        delete $4;
-      }
-      
-    }
-    | INNER JOIN relation on join_list
-    {
+    | relation alias join_list COMMA rel_list{
       if ($5 != nullptr) {
         $$ = $5;
       } else {
         $$ = new Joins;
       }
 
-      $$->relation_list.emplace($$->relation_list.begin(), move($3));
-      free($3);
-
-      if($4 != nullptr){
+      if($3 != nullptr){
+        $$->relation_list.insert($$->relation_list.begin(), 
+          $3->relation_list.begin(), $3->relation_list.end());
         auto& conditions = $$->condition_list.conditions;
-        conditions.insert(conditions.end(), $4->conditions.begin(), $4->conditions.end());
-        delete $4;
+        conditions.insert(conditions.begin(), 
+          $3->condition_list.conditions.begin(), $3->condition_list.conditions.end());
+      }
+
+      $$->relation_list.emplace($$->relation_list.begin(), $1);
+      if($2 != nullptr){
+        $$->alias_list.emplace($$->alias_list.begin(), $2);
+        free($2);
+      } else {
+        $$->alias_list.emplace($$->alias_list.begin(), string());
+      }
+
+      delete $3;
+      free($1);
+    }
+    ;
+
+join_list:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | INNER JOIN relation alias on join_list
+    {
+      if ($6 != nullptr) {
+        $$ = $6;
+      } else {
+        $$ = new Joins;
+      }
+
+      $$->relation_list.emplace($$->relation_list.begin(), $3);
+      free($3);
+      if($4 != nullptr){
+        $$->alias_list.emplace($$->alias_list.begin(), $4);
+        free($4);
+      } else {
+        $$->alias_list.emplace($$->alias_list.begin(), string());
+      }
+
+      if($5 != nullptr){
+        auto& conditions = $$->condition_list.conditions;
+        conditions.insert(conditions.end(), $5->conditions.begin(), $5->conditions.end());
+        delete $5;
       }
     }
     ;
+
+alias:
+    /* empty */ {
+      $$ = nullptr;
+    }
+    | ID {
+      $$ = $1;
+    }
+    | AS ID {
+      $$ = $2;
+    }
 
 on:
     /* empty */

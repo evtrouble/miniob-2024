@@ -127,7 +127,7 @@ public:
   /**
    * @brief 表达式的别名
    */
-  virtual const char *alias() const { return alias_.c_str(); }
+  virtual const string   &alias() const { return alias_; }
   virtual void        set_alias(std::string alias) { alias_ = alias; }
 
   /**
@@ -187,11 +187,14 @@ public:
 
   RC get_value(const Tuple &tuple, Value &value) const override { return RC::INTERNAL; }
 
+  void        set_table_name(const char * table_name) { swap(table_alias_, table_name_); table_name_ = table_name; }
   const char *table_name() const { return table_name_.c_str(); }
   const char *field_name() const { return field_name_.c_str(); }
+  const string     &table_alias() const { return table_alias_; }
 
 private:
   std::string table_name_;
+  std::string table_alias_;
   std::string field_name_;
 };
 
@@ -218,8 +221,10 @@ public:
 
   const Field &field() const { return field_; }
 
+  void        set_table_alias(const char * table_alias) { table_alias_ = table_alias; }
   const char *table_name() const { return field_.table_name(); }
   const char *field_name() const { return field_.field_name(); }
+  const string     &table_alias() const { return table_alias_; }
 
   RC get_column(Chunk &chunk, Column &column) override;
 
@@ -227,6 +232,7 @@ public:
 
 private:
   Field field_;
+  std::string table_alias_;
 };
 
 /**

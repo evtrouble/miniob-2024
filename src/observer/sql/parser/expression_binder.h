@@ -21,7 +21,8 @@ See the Mulan PSL v2 for more details. */
 class BinderContext
 {
 public:
-  BinderContext()          = default;
+  BinderContext(std::unordered_map<std::string, std::string>& table_alias_map) 
+    : table_alias_map_(table_alias_map){}
   virtual ~BinderContext() = default;
 
   void add_table(Table *table) { query_tables_.push_back(table); }
@@ -32,6 +33,7 @@ public:
 
 private:
   std::vector<Table *> query_tables_;
+  std::unordered_map<std::string, std::string>& table_alias_map_;
 };
 
 /**

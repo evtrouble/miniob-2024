@@ -40,13 +40,16 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     return RC::INVALID_ARGUMENT;
   }
 
-  BinderContext binder_context;
+  std::unordered_map<std::string, std::string> table_alias_map; // <table alias name, table src name>
+  BinderContext binder_context(table_alias_map);
 
   // collect tables in `from` statement
   vector<Table *>                tables;
   auto size = depends->size();
+ 
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
     const char *table_name = select_sql.relations[i].c_str();
+    string& table_alias = select_sql.alias[i];
     if (nullptr == table_name) {
       LOG_WARN("invalid argument. relation name is null. index=%d", i);
       return RC::INVALID_ARGUMENT;
@@ -64,6 +67,10 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     if(!table_map.count(table_name)){
       auto temp = make_pair(table, size);
       table_map.insert({table_name, temp});
+    }
+    if(!table_alias.empty()){
+      if(table_alias_map.count(table_alias))return RC::INVALID_ARGUMENT;
+      table_alias_map.insert({table_alias, select_sql.relations[i]});
     }
   }
 
@@ -96,6 +103,56 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   depends->emplace_back(vector<uint32_t>());
   if(fa >= 0){
     depends->at(fa).emplace_back(size);
+  }
+
+  function<RC(Expression*)> change_name = [&](Expression* expr){
+    if (nullptr == expr) {
+      return RC::SUCCESS;
+    }
+
+    switch (expr->type())
+    {
+      case ExprType::ARITHMETIC:{
+        auto arithmetic_expr = static_cast<ArithmeticExpr *>(expr);
+
+        unique_ptr<Expression>        &left_expr  = arithmetic_expr->left();
+        unique_ptr<Expression>        &right_expr = arithmetic_expr->right();
+
+        RC rc = change_name(left_expr.get());
+        if (OB_FAIL(rc)) {
+          return rc;
+        }
+
+        rc = change_name(right_expr.get());
+        if (OB_FAIL(rc)) {
+          return rc;
+        }
+        return RC::SUCCESS;
+      }break;
+      case ExprType::UNBOUND_FIELD:{
+        auto unbound_field_expr = static_cast<UnboundFieldExpr *>(expr);
+        const char* table_name = unbound_field_expr->table_name();
+        if(!table_map.count(table_name)){
+          if(table_alias_map.count(table_name)){
+            unbound_field_expr->set_table_name(table_alias_map.at(table_name).c_str());
+          } else return RC::INVALID_ARGUMENT;
+        }
+      }break;
+      default:return RC::SUCCESS;
+    }
+    return RC::SUCCESS;
+  };
+  
+  for (auto& cond : select_sql.conditions.conditions){
+    RC rc = change_name(cond.left_expr);
+    if (OB_FAIL(rc)) {
+          return rc;
+    }
+
+    rc = change_name(cond.right_expr);
+    if (OB_FAIL(rc)) {
+          return rc;
+    }
   }
 
   // create filter statement in `where` statement

@@ -88,6 +88,9 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, const C
         Field      field(table, field_meta);
         FieldExpr *field_expr = new FieldExpr(field);
         field_expr->set_name(unbound_field_expr->field_name());
+        const string& alias = unbound_field_expr->table_alias();
+        if(!alias.empty())
+          field_expr->set_table_alias(alias.c_str());
         expr.reset(field_expr);
       }break;
       case ExprType::SELECT:{

@@ -24,6 +24,7 @@ using namespace common;
 
 Table *BinderContext::find_table(const char *table_name) const
 {
+  if(table_alias_map_.count(table_name))table_name = table_alias_map_.at(table_name).c_str();
   auto pred = [table_name](Table *table) { return 0 == strcasecmp(table_name, table->name()); };
   auto iter = ranges::find_if(query_tables_, pred);
   if (iter == query_tables_.end()) {
@@ -171,6 +172,7 @@ RC ExpressionBinder::bind_unbound_field_expression(
 
     Field      field(table, field_meta);
     FieldExpr *field_expr = new FieldExpr(field);
+    field_expr->set_alias(expr->alias());
     field_expr->set_name(field_name);
     bound_expressions.emplace_back(field_expr);
   }
@@ -430,6 +432,7 @@ RC ExpressionBinder::bind_aggregate_expression(
 
   if (child_expr->type() == ExprType::STAR && aggregate_type == AggregateExpr::Type::COUNT) {
     ValueExpr *value_expr = new ValueExpr(Value(1));
+    value_expr->set_alias(expr->alias());
     child_expr.reset(value_expr);
   } else {
     rc = bind_expression(child_expr, child_bound_expressions);
