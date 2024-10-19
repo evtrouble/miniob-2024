@@ -898,11 +898,11 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
   physical_operator_->close();
 
   if (rc == RC::RECORD_EOF) {
+    if(num == 0){
+      value.set_null();
+      return RC::NULL_TUPLE;
+    }
     rc = RC::SUCCESS;
-  }
-  if(num == 0){
-    value.set_null();
-    return RC::NULL_TUPLE;
   }
   return rc;
 }

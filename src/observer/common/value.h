@@ -64,26 +64,46 @@ public:
 
   static RC add(const Value &left, const Value &right, Value &result)
   {
+    if(left.attr_type_ == AttrType::NULLS || left.attr_type_ == AttrType::NULLS){
+      result.set_null();
+      return RC::SUCCESS;
+    }
     return DataType::type_instance(result.attr_type())->add(left, right, result);
   }
 
   static RC subtract(const Value &left, const Value &right, Value &result)
   {
+    if(left.attr_type_ == AttrType::NULLS || left.attr_type_ == AttrType::NULLS){
+      result.set_null();
+      return RC::SUCCESS;
+    }
     return DataType::type_instance(result.attr_type())->subtract(left, right, result);
   }
 
   static RC multiply(const Value &left, const Value &right, Value &result)
   {
+    if(left.attr_type_ == AttrType::NULLS || left.attr_type_ == AttrType::NULLS){
+      result.set_null();
+      return RC::SUCCESS;
+    }
     return DataType::type_instance(result.attr_type())->multiply(left, right, result);
   }
 
   static RC divide(const Value &left, const Value &right, Value &result)
   {
+    if(left.attr_type_ == AttrType::NULLS || left.attr_type_ == AttrType::NULLS){
+      result.set_null();
+      return RC::SUCCESS;
+    }
     return DataType::type_instance(result.attr_type())->divide(left, right, result);
   }
 
   static RC negative(const Value &value, Value &result)
   {
+    if(value.attr_type_ == AttrType::NULLS){
+      result.set_null();
+      return RC::SUCCESS;
+    }
     return DataType::type_instance(result.attr_type())->negative(value, result);
   }
 
