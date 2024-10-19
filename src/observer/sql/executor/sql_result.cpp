@@ -142,6 +142,13 @@ RC SqlResult::pretreatment()
     instack.resize(size);
     low.resize(size);
 
+    for(auto& i:*depends_){
+      for(auto& j:i){
+        cout<<j<<' ';
+      }
+      cout<<endl;
+    }
+
     targan();
     std::sort(scc.begin(), scc.end());
   }

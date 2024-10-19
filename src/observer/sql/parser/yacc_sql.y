@@ -734,7 +734,7 @@ relation:
 rel_list:
     relation {
       $$ = new Joins;
-      $$->relation_list.push_back($1);
+      $$->relation_list.emplace_back($1);
       free($1);
     }
     | relation COMMA rel_list {
