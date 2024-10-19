@@ -46,9 +46,10 @@ Table::~Table()
   }
 
   if(text_buffer_pool_ != nullptr) {
-    text_buffer_pool_->close_file();
+    db_->buffer_pool_manager().close_file(text_buffer_pool_->filename());
     text_buffer_pool_ = nullptr;
   }
+
   for (vector<Index *>::iterator it = indexes_.begin(); it != indexes_.end(); ++it) {
     Index *index = *it;
     delete index;
@@ -128,6 +129,7 @@ RC Table::create(Db *db, int32_t table_id, const char *path, const char *name, c
     // don't need to remove the data_file
     return rc;
   }
+
   // 创建文件存放text
   bool exist_text_feild = false;
   for (const FieldMeta &field : *table_meta_.field_metas()) {
@@ -175,9 +177,10 @@ RC Table::drop(const char *path)
   BufferPoolManager &bpm       = db_->buffer_pool_manager();
   rc                           = bpm.remove_file(data_buffer_pool_->filename());
 
+
   if (nullptr != text_buffer_pool_) {
-    std::string        text_file = table_text_file(path, name());
-    rc                           = bpm.remove_file(text_file.c_str());
+    rc                         = bpm.remove_file(text_buffer_pool_->filename());
+    text_buffer_pool_ = nullptr;
   }
 
   if (rc != RC::SUCCESS) {
@@ -395,23 +398,23 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
   const int normal_field_start_index = table_meta_.sys_field_num();
   //TEXT字段检测
   for (int i = 0; i < value_num; i++) {
-  const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
-  const Value     &value = values[i];
-  if (AttrType::NULLS==value.attr_type() && field->nullable()) {
-    continue;
-  }
-  if (field->type() != value.attr_type()) {
-    if (AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()) {}
-    else {
-      LOG_ERROR("Invalid value type. table name =%s, field name=%s, type=%d, but given=%d",
-        table_meta_.name(),
-        field->name(),
-        field->type(),
-        value.attr_type());
-      return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+    const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
+    const Value     &value = values[i];
+    if (AttrType::NULLS==value.attr_type() && field->nullable()) {
+      continue;
+    }
+    if (field->type() != value.attr_type()) {
+      if (AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()) {}
+      else {
+        LOG_ERROR("Invalid value type. table name =%s, field name=%s, type=%d, but given=%d",
+          table_meta_.name(),
+          field->name(),
+          field->type(),
+          value.attr_type());
+        return RC::SCHEMA_FIELD_TYPE_MISMATCH;
+      }
     }
   }
-}
   // 复制所有字段的值
   int   record_size = table_meta_.record_size();
   char *record_data = (char *)malloc(record_size);
@@ -471,12 +474,12 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
     position[1] = value.length();
     text_buffer_pool_->append_data(position[0], position[1], value.data());
     memcpy(record_data + field->offset(), position, 2 * sizeof(int64_t));
+  }else{
+    field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
+    if(value.attr_type() != AttrType::NULLS)
+      memcpy(record_data + field->offset(), value.data(), copy_len);
   }
 
-  field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
-
-  if (value.attr_type() != AttrType::NULLS)
-    memcpy(record_data + field->offset(), value.data(), copy_len);
   return RC::SUCCESS;
 }
 
