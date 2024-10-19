@@ -132,7 +132,8 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
       case ExprType::UNBOUND_FIELD:{
         auto unbound_field_expr = static_cast<UnboundFieldExpr *>(expr);
         const char* table_name = unbound_field_expr->table_name();
-        if(!table_map.count(table_name)){
+
+        if(!common::is_blank(table_name) && !table_map.count(table_name)){
           if(table_alias_map.count(table_name)){
             unbound_field_expr->set_table_name(table_alias_map.at(table_name).c_str());
           } else return RC::INVALID_ARGUMENT;
