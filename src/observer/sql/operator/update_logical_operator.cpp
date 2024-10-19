@@ -15,6 +15,6 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/update_logical_operator.h"
 
 UpdateLogicalOperator::UpdateLogicalOperator(Table *table, const std::vector<const FieldMeta *>&& fields, 
-    const std::vector<Value>&& values, std::unordered_map<size_t, SelectExpr*>&& stmt_map)
-    : table_(table), fields_(move(fields)), values_(move(values)), stmt_map_(move(stmt_map))
+    std::vector<unique_ptr<Expression>>&& values)
+    : table_(table), fields_(move(fields)), values_(move(values))
 {}

@@ -18,9 +18,9 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 
-UpdateStmt::UpdateStmt(Table *table, const std::vector<const FieldMeta *>&& fields, 
-  const vector<Value>&& values, FilterStmt *filter_stmt, std::unordered_map<size_t, SelectExpr*>&& stmt_map)
-  : table_(table), fields_(move(fields)), values_(move(values)), filter_stmt_(filter_stmt), stmt_map_(move(stmt_map))
+UpdateStmt::UpdateStmt(Table *table, std::vector<const FieldMeta *>&& fields, 
+  vector<unique_ptr<Expression>>&& values, FilterStmt *filter_stmt)
+  : table_(table), fields_(move(fields)), values_(move(values)), filter_stmt_(filter_stmt)
 {}
 
 UpdateStmt::~UpdateStmt()
@@ -31,7 +31,7 @@ UpdateStmt::~UpdateStmt()
   }
 }
 
-RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt, 
+RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt, 
   unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
   tables_t& table_map, int fa)
 {
@@ -83,18 +83,12 @@ RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt,
     return rc;
   }
 
-  std::unordered_map<size_t, SelectExpr*> stmt_map;
-  vector<Value> values;
   for(auto& value : update.values){
-    if(value.attr_type() == AttrType::SELECT){
-      SelectExpr* expr = new SelectExpr((ParsedSqlNode*)value.data());
+    if(value->type() == ExprType::SELECT){
+      SelectExpr* expr = static_cast<SelectExpr*>(value.get());
       select_exprs->emplace_back(expr);
       rc = expr->create_stmt(db, depends, select_exprs, table_map, size);
       if(rc != RC::SUCCESS)return rc;
-      stmt_map.insert({values.size(), expr});
-      values.emplace_back(Value());
-    }else{
-      values.emplace_back(std::move(value));
     }
   }
 
@@ -103,6 +97,6 @@ RC UpdateStmt::create(Db *db, const UpdateSqlNode &update, Stmt *&stmt,
   }
 
   // everything alright
-  stmt = new UpdateStmt(table, move(fields), move(values), filter_stmt, move(stmt_map));
+  stmt = new UpdateStmt(table, std::move(fields), std::move(update.values), filter_stmt);
   return RC::SUCCESS;
 }

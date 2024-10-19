@@ -24,7 +24,6 @@ enum class AttrType
   BOOLEANS,  ///< boolean类型，当前不是由parser解析出来的，是程序内部使用的
   DATES,     ///< 日期类型(10字节)
   NULLS,     ///< null
-  SELECT,    ///< 子查询
   MAXTYPE,   ///< 请在 UNDEFINED 与 MAXTYPE 之间增加新类型
 };
 

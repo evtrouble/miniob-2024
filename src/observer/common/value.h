@@ -52,7 +52,6 @@ public:
   explicit Value(bool val);
   explicit Value(const char *s, int len = 0);
   explicit Value(const Date *s, int len = 0);
-  explicit Value(ParsedSqlNode *select);
   explicit Value(vector<float>* values);
 
   Value(const Value &other) noexcept;
@@ -181,7 +180,6 @@ private:
     float   float_value_;
     bool    bool_value_;
     char   *pointer_value_;
-    ParsedSqlNode   *select_value_;
     vector<float>   *vector_value_;
   } value_ = {.int_value_ = 0};
 

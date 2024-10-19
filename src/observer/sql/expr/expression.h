@@ -527,6 +527,19 @@ public:
 
   RC get_value(const Tuple &tuple, Value &value) const override;
   RC get_value_set(const Tuple &tuple, vector<Value> &value_list)const override;
+  RC try_get_value(Value &value) const { 
+    if(values_ != nullptr){
+      if(values_->size() == 0 || values_->at(0).size() == 0){
+        value.set_null();
+        return RC::SUCCESS;
+      }
+      if(values_->size() > 1 || values_->at(0).size() > 1)
+        return RC::MUTI_TUPLE;
+      value = values_->at(0)[0];
+      return RC::SUCCESS;
+    }
+    return RC::UNIMPLEMENTED;
+  }
 
   RC pretreatment();
 
@@ -534,8 +547,6 @@ public:
   RC physical_generate();
   RC create_stmt(Db *db, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
     tables_t& table_map, int fa);
-
-  bool check() {return values_ != nullptr;}
 
   RC next_tuple(Tuple *&tuple, Tuple *upper_tuple = nullptr) const;
 

@@ -155,7 +155,7 @@ struct UpdateSqlNode
 {
   std::string                   relation_name;   ///< Relation to update
   std::vector<std::string>      attribute_names;  ///< 更新的字段
-  std::vector<Value>            values;           ///< 更新的值
+  std::vector<std::unique_ptr<Expression>> values;           ///< 更新的值
   Conditions                    conditions;
 };
 
@@ -353,5 +353,5 @@ struct Joins
 struct Key_values
 {
   std::vector<std::string>                relation_list;
-  std::vector<Value>                      value_list;
+  std::vector<std::unique_ptr<Expression>> value_list;
 };

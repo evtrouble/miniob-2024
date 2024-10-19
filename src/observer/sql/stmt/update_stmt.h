@@ -14,8 +14,6 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-#include <unordered_map>
-
 #include "common/rc.h"
 #include "sql/stmt/stmt.h"
 
@@ -23,6 +21,7 @@ class Table;
 class Db;
 class FilterStmt;
 class FieldMeta;
+class Expression;
 
 /**
  * @brief 更新语句
@@ -32,28 +31,26 @@ class UpdateStmt : public Stmt
 {
 public:
   UpdateStmt() = default;
-  UpdateStmt(Table *table, const std::vector<const FieldMeta *>&& fields, 
-    const vector<Value>&& values, FilterStmt *filter_stmt, std::unordered_map<size_t, SelectExpr*>&& stmt_map);
+  UpdateStmt(Table *table, std::vector<const FieldMeta *>&& fields, 
+    vector<unique_ptr<Expression>>&& values, FilterStmt *filter_stmt);
   ~UpdateStmt() override;
 
   StmtType type() const override { return StmtType::UPDATE; }
 
 public:
-  static RC create(Db *db, const UpdateSqlNode &update_sql, Stmt *&stmt,
+  static RC create(Db *db, UpdateSqlNode &update_sql, Stmt *&stmt,
     unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
     tables_t& table_map, int fa = -1);
 
 public:
   Table *table() const { return table_; }
   const std::vector<const FieldMeta *>& fields() const { return fields_; }
-  const vector<Value>& values() const { return values_; }
-  std::unordered_map<size_t, SelectExpr*>& stmt_map() { return stmt_map_; }
+  vector<unique_ptr<Expression>>& values() { return values_; }
   FilterStmt *filter_stmt() const { return filter_stmt_; }
 
 private:
   Table *table_        = nullptr;
   const std::vector<const FieldMeta *> fields_;
-  const vector<Value> values_;
+  vector<unique_ptr<Expression>> values_;
   FilterStmt *filter_stmt_ = nullptr;
-  std::unordered_map<size_t, SelectExpr*> stmt_map_;
 };

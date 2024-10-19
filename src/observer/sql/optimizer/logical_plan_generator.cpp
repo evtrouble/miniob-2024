@@ -323,10 +323,9 @@ RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<Logical
   }
 
   const std::vector<const FieldMeta *>& fields = update_stmt->fields();
-  const vector<Value>& values = update_stmt->values();
-  std::unordered_map<size_t, SelectExpr*>& stmt_map = update_stmt->stmt_map();
+  vector<unique_ptr<Expression>>& values = update_stmt->values();
 
-  unique_ptr<LogicalOperator> update_oper(new UpdateLogicalOperator(table, move(fields), move(values), move(stmt_map)));
+  unique_ptr<LogicalOperator> update_oper(new UpdateLogicalOperator(table, move(fields), move(values)));
 
   if (predicate_oper) {
     predicate_oper->add_child(std::move(table_get_oper));

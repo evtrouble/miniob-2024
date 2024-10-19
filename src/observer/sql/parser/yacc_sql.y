@@ -180,7 +180,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <values_list>         values_list
 %type <value_list>          value_list
 %type <key_values>          key_values
-%type <value>               assign_value
+%type <expression>          assign_value
 %type <condition_list>      where
 %type <condition_list>      on
 %type <join_list>           join_list
@@ -463,18 +463,29 @@ values_list:
     ;
 
 value_list:
-    value {
+    expression {
       $$ = new std::vector<Value>;
-      $$->emplace_back(move(*$1));
+      Value temp;
+      if(OB_FAIL($1->try_get_value(temp))){
+        yyerror(&@$, sql_string, sql_result, scanner, "error");
+        YYERROR;
+      }
+      $$->emplace_back(temp);
       delete $1;
     }
-    | value COMMA value_list  {
+    | expression COMMA value_list  {
+      Value temp;
       if ($3 != nullptr) {
         $$ = $3;
       } else {
         $$ = new std::vector<Value>;
       }
-      $$->emplace($$->begin(), move(*$1));
+      if(OB_FAIL($1->try_get_value(temp))){
+        yyerror(&@$, sql_string, sql_result, scanner, "error");
+        YYERROR;
+      }
+
+      $$->emplace($$->begin(), move(temp));
       delete $1;
     }
     ;
@@ -551,8 +562,7 @@ key_values:
       $$ = new Key_values;
       $$->relation_list.emplace_back(move($1));
       free($1);
-      $$->value_list.emplace_back(move(*$3));
-      delete $3;
+      $$->value_list.emplace_back(unique_ptr<Expression>($3));
     }
     | ID EQ assign_value COMMA key_values
     {
@@ -564,17 +574,12 @@ key_values:
 
       $$->relation_list.emplace_back(move($1));
       free($1);
-      $$->value_list.emplace_back(move(*$3));
-      delete $3;
+      $$->value_list.emplace_back(unique_ptr<Expression>($3));
     }
     ;
 
 assign_value:
-    value { $$ = $1; }
-    | LBRACE select_stmt RBRACE
-    {
-      $$ = new Value($2);
-    }
+    expression { $$ = $1; }
     ;
 
 select_stmt:        /*  select 语句的语法解析树*/

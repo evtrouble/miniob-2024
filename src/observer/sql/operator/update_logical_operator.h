@@ -29,7 +29,7 @@ class UpdateLogicalOperator : public LogicalOperator
 {
 public:
   UpdateLogicalOperator(Table *table, const std::vector<const FieldMeta *>&& fields, 
-    const std::vector<Value>&& values, std::unordered_map<size_t, SelectExpr*>&& stmt_map);
+    std::vector<unique_ptr<Expression>>&& values);
   virtual ~UpdateLogicalOperator() = default;
 
   LogicalOperatorType type() const override { return LogicalOperatorType::UPDATE; }
@@ -37,14 +37,11 @@ public:
   Table                    *table() const { return table_; }
   const std::vector<const FieldMeta *> &fields() const { return fields_; }
   std::vector<const FieldMeta *>       &fields() { return fields_; }
-  const std::vector<Value> &values() const { return values_; }
-  std::vector<Value>       &values() { return values_; }
-  const std::unordered_map<size_t, SelectExpr*>& stmt_map() const { return stmt_map_; }
-  std::unordered_map<size_t, SelectExpr*>& stmt_map() { return stmt_map_; }
+  const std::vector<unique_ptr<Expression>> &values() const { return values_; }
+  std::vector<unique_ptr<Expression>>       &values() { return values_; }
 
 private:
   Table             *table_ = nullptr;
   std::vector<const FieldMeta *> fields_;
-  std::vector<Value> values_;
-  std::unordered_map<size_t, SelectExpr*> stmt_map_;
+  std::vector<unique_ptr<Expression>> values_;
 };

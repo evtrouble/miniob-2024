@@ -241,7 +241,7 @@ RC ComparisonExpr::value_in(const Tuple &tuple, bool &result) const
   Value left_value;
 
   RC rc = left_->get_value(tuple, left_value);
-  if (rc != RC::SUCCESS) {
+  if (rc != RC::SUCCESS && rc != RC::NULL_TUPLE) {
     LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
     return rc;
   }
@@ -273,7 +273,7 @@ RC ComparisonExpr::value_not_in(const Tuple &tuple, bool &result) const
   Value left_value;
 
   RC rc = left_->get_value(tuple, left_value);
-  if (rc != RC::SUCCESS) {
+  if (rc != RC::SUCCESS && rc != RC::NULL_TUPLE) {
     LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
     return rc;
   }
@@ -308,7 +308,7 @@ RC ComparisonExpr::value_is_null(const Tuple &tuple, bool &result) const
 
   Value left_value;
   RC rc = left_->get_value(tuple, left_value);
-  if (rc != RC::SUCCESS) {
+  if (rc != RC::SUCCESS && rc != RC::NULL_TUPLE) {
     LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
     return rc;
   }
@@ -406,20 +406,13 @@ RC ComparisonExpr::get_value(const Tuple &tuple, Value &value) const
       Value right_value;
 
       rc = left_->get_value(tuple, left_value);
-      if(rc == RC::NULL_TUPLE){
-        value.set_boolean(false);
-        return RC::SUCCESS;
-      }
-      if (rc != RC::SUCCESS) {
+      if (rc != RC::SUCCESS && rc != RC::NULL_TUPLE) {
         LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
         return rc;
       }
+
       rc = right_->get_value(tuple, right_value);
-      if(rc == RC::NULL_TUPLE){
-        value.set_boolean(false);
-        return RC::SUCCESS;
-      }
-      if (rc != RC::SUCCESS) {
+      if (rc != RC::SUCCESS && rc != RC::NULL_TUPLE) {
         LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
         return rc;
       }
@@ -657,6 +650,7 @@ RC ArithmeticExpr::execute_calc(
 
 RC ArithmeticExpr::get_value(const Tuple &tuple, Value &value) const
 {
+  
   RC rc = RC::SUCCESS;
 
   Value left_value;
@@ -667,11 +661,15 @@ RC ArithmeticExpr::get_value(const Tuple &tuple, Value &value) const
     LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
     return rc;
   }
-  rc = right_->get_value(tuple, right_value);
-  if (rc != RC::SUCCESS) {
-    LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
-    return rc;
+
+  if(right_){
+    rc = right_->get_value(tuple, right_value);
+    if (rc != RC::SUCCESS) {
+      LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
+      return rc;
+    }
   }
+  
   return calc_value(left_value, right_value, value);
 }
 
@@ -867,8 +865,10 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
 {
   RC rc = RC::SUCCESS;
   if(values_ != nullptr){
-    if(values_->size() == 0 || values_->at(0).size() == 0)
+    if(values_->size() == 0 || values_->at(0).size() == 0){
+      value.set_null();
       return RC::NULL_TUPLE;
+    }
     if(values_->size() > 1 || values_->at(0).size() > 1)
       return RC::MUTI_TUPLE;
     value = values_->at(0)[0];
@@ -900,7 +900,10 @@ RC SelectExpr::get_value(const Tuple &tuple, Value &value) const
   if (rc == RC::RECORD_EOF) {
     rc = RC::SUCCESS;
   }
-  if(num == 0)return RC::NULL_TUPLE;
+  if(num == 0){
+    value.set_null();
+    return RC::NULL_TUPLE;
+  }
   return rc;
 }
 

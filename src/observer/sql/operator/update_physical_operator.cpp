@@ -21,8 +21,8 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 
 UpdatePhysicalOperator::UpdatePhysicalOperator(Table *table, vector<const FieldMeta *> &&fields,
-    vector<Value> &&values, std::unordered_map<size_t, SelectExpr*>&& select_map)
-    : table_(table), fields_(std::move(fields)), values_(std::move(values)), select_map_(move(select_map))
+    vector<unique_ptr<Expression>>&& values)
+    : table_(table), fields_(std::move(fields)), values_(std::move(values))
 {}
 
 RC UpdatePhysicalOperator::open(Trx *trx)
@@ -45,6 +45,7 @@ RC UpdatePhysicalOperator::open(Trx *trx)
   vector<size_t> select_ids;
   Tuple *tuple = nullptr;
   ctl = true;
+  vector<Value> values(values_.size());
   
   // 记录的有效性由事务来保证，如果事务不保证更新的有效性，那说明此事务类型不支持并发控制，比如VacuousTrx
   while (OB_SUCC(rc = child->next())) {
@@ -56,7 +57,7 @@ RC UpdatePhysicalOperator::open(Trx *trx)
     }
 
     if(ctl){
-      rc = init(tuple, select_ids);
+      rc = init(values);
       ctl = false;
       if(rc != RC::SUCCESS)
         return rc;
@@ -64,15 +65,8 @@ RC UpdatePhysicalOperator::open(Trx *trx)
 
     RowTuple *row_tuple = static_cast<RowTuple *>(tuple);
     Record   &record    = row_tuple->record();
-    for(auto& id : select_ids){
-      rc = ((SelectExpr*)select_map_[id])->get_value(*tuple, values_[id]);
-      if(rc != RC::SUCCESS){
-        child->close();
-        return rc;
-      }
-    }
 
-    rc = trx_->update_record(table_, record, fields_, values_);
+    rc = trx_->update_record(table_, record, fields_, values);
     if (rc != RC::SUCCESS) {
       LOG_WARN("failed to update record: %s", strrc(rc));
       child->close();
@@ -99,37 +93,14 @@ RC UpdatePhysicalOperator::close()
   return RC::SUCCESS;
 }
 
-UpdatePhysicalOperator::~UpdatePhysicalOperator() 
-{
-  for(auto& [id, select] : select_map_){
-    delete (SelectExpr*)select;
-  }
-  select_map_.clear();
-}
-
-RC UpdatePhysicalOperator::init(Tuple* tuple, vector<size_t> &select_ids)
+RC UpdatePhysicalOperator::init(vector<Value> &values)
 {
   RC rc = RC::SUCCESS;
-  std::unique_ptr<PhysicalOperator> &child = children_[0];
 
   for(size_t id = 0; id < values_.size(); id++){
-    if(select_map_.count(id)){
-      SelectExpr* temp = select_map_[id];
-      if(temp->check()){
-        rc = temp->get_value(*tuple, values_[id]); 
-        if(rc == RC::NULL_TUPLE)
-        {
-          values_[id].set_null();
-          rc = RC::SUCCESS;
-        }
-        else if(rc != RC::SUCCESS)
-        {
-          child->close();
-          return rc;
-        }
-      }
-      else select_ids.emplace_back(id);
-    }
+    rc = values_[id]->try_get_value(values[id]);
+    if(rc == RC::NULL_TUPLE)rc = RC::SUCCESS;
+    if(rc != RC::SUCCESS)return rc;
   }
   return rc;
 }

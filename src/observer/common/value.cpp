@@ -38,19 +38,6 @@ Value::Value(const Date *s, int len /*= 10*/)
 
 Value::Value(vector<float>* values) { set_vector(values); }
 
-Value::Value(ParsedSqlNode *select)
-{
-  reset();
-  attr_type_ = AttrType::SELECT;
-  if (select == nullptr) {
-    value_.select_value_ = nullptr;
-    length_               = 0;
-  } else {
-    own_data_ = false;
-    value_.select_value_ = select;
-  }
-}
-
 Value::Value(const Value &other) noexcept
 {
   this->attr_type_ = other.attr_type_;
@@ -259,7 +246,7 @@ void Value::set_vector(vector<float>* values)
   reset();
   attr_type_ = AttrType::VECTORS;
   if (values == nullptr) {
-    value_.select_value_ = nullptr;
+    value_.vector_value_ = nullptr;
     length_               = 0;
   } else {
     own_data_ = true;
@@ -351,8 +338,8 @@ const char *Value::data() const
     case AttrType::CHARS: case AttrType::DATES: {
       return value_.pointer_value_;
     } break;
-    case AttrType::SELECT:{
-      return (const char *)value_.select_value_;
+    case AttrType::VECTORS:{
+      return (const char *)value_.vector_value_;
     } break;
     default: {
       return (const char *)&value_;
