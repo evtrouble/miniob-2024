@@ -64,7 +64,7 @@ public:
 
   static RC add(const Value &left, const Value &right, Value &result)
   {
-    if(left.attr_type_ == AttrType::NULLS || left.attr_type_ == AttrType::NULLS){
+    if(left.attr_type_ == AttrType::NULLS || right.attr_type_ == AttrType::NULLS){
       result.set_null();
       return RC::SUCCESS;
     }
@@ -73,7 +73,7 @@ public:
 
   static RC subtract(const Value &left, const Value &right, Value &result)
   {
-    if(left.attr_type_ == AttrType::NULLS || left.attr_type_ == AttrType::NULLS){
+    if(left.attr_type_ == AttrType::NULLS || right.attr_type_ == AttrType::NULLS){
       result.set_null();
       return RC::SUCCESS;
     }
@@ -82,7 +82,7 @@ public:
 
   static RC multiply(const Value &left, const Value &right, Value &result)
   {
-    if(left.attr_type_ == AttrType::NULLS || left.attr_type_ == AttrType::NULLS){
+    if(left.attr_type_ == AttrType::NULLS || right.attr_type_ == AttrType::NULLS){
       result.set_null();
       return RC::SUCCESS;
     }
@@ -91,7 +91,7 @@ public:
 
   static RC divide(const Value &left, const Value &right, Value &result)
   {
-    if(left.attr_type_ == AttrType::NULLS || left.attr_type_ == AttrType::NULLS){
+    if(left.attr_type_ == AttrType::NULLS || right.attr_type_ == AttrType::NULLS){
       result.set_null();
       return RC::SUCCESS;
     }
