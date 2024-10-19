@@ -32,7 +32,8 @@ SelectStmt::~SelectStmt()
 }
 
 RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt, 
-  vector<vector<uint32_t>>* depends, BinderContext& table_map, int fa)
+  unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  tables_t& table_map, int fa)
 {
   if (nullptr == db) {
     LOG_WARN("invalid argument. db is null");
@@ -57,10 +58,13 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
       return RC::SCHEMA_TABLE_NOT_EXIST;
     }
 
-    binder_context.add_table(table_name, table);
+    binder_context.add_table(table);
     tables.push_back(table);
     
-    table_map.add_table(table_name, table, size);
+    if(!table_map.count(table_name)){
+      auto temp = make_pair(table, size);
+      table_map.insert({table_name, temp});
+    }
   }
 
   // collect query fields in `select` statement
@@ -89,9 +93,9 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     default_table = tables[0];
   }
 
-  depends->push_back(vector<uint32_t>());
+  depends->emplace_back(vector<uint32_t>());
   if(fa >= 0){
-    depends->at(fa).push_back(size);
+    depends->at(fa).emplace_back(size);
   }
 
   // create filter statement in `where` statement
@@ -100,7 +104,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   RC          rc          = FilterStmt::create(db,
       default_table,
       table_map,
-      select_sql.conditions, filter_stmt, depends, fa);
+      select_sql.conditions, filter_stmt, depends, select_exprs, fa);
   if (rc != RC::SUCCESS) {
     LOG_WARN("cannot construct filter stmt");
     return rc;
@@ -117,7 +121,9 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
 
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
     const char *table_name = select_sql.relations[i].c_str();
-    table_map.del_table(table_name, size);
+    if(table_map.at(table_name).second == size){
+      table_map.erase(table_name);
+    }
   }
 
   vector<unique_ptr<Expression>> order_by_expressions;

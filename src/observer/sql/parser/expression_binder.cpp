@@ -24,10 +24,12 @@ using namespace common;
 
 Table *BinderContext::find_table(const char *table_name) const
 {
-  if (tables_.count(table_name)) {
-    return tables_.at(table_name).first;
+  auto pred = [table_name](Table *table) { return 0 == strcasecmp(table_name, table->name()); };
+  auto iter = ranges::find_if(query_tables_, pred);
+  if (iter == query_tables_.end()) {
+    return nullptr;
   }
-  return nullptr;
+  return *iter;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,7 +68,7 @@ RC ExpressionBinder::bind_expression(unique_ptr<Expression> &expr, vector<unique
       return bind_field_expression(expr, bound_expressions);
     } break;
 
-    case ExprType::VALUE: case ExprType::SELECT: case ExprType::VALUE_LIST: {
+    case ExprType::VALUE: {
       return bind_value_expression(expr, bound_expressions);
     } break;
 
@@ -264,16 +266,6 @@ RC ExpressionBinder::bind_comparison_expression(
   unique_ptr<Expression> &right = child_bound_expressions[0];
   if (right.get() != right_expr.get()) {
     right_expr.reset(right.release());
-  }
-
-  switch (comparison_expr->comp()) {
-    case CompOp::LIKE_OP: case CompOp::NOT_LIKE: {
-      if (left_expr->value_type() != AttrType::CHARS || right_expr->value_type() != AttrType::CHARS) {
-        LOG_WARN("invalid value type for comparison expression");
-        return RC::INVALID_ARGUMENT;
-      }
-    }break;
-    default:break;
   }
 
   bound_expressions.emplace_back(std::move(expr));

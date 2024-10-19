@@ -837,11 +837,10 @@ RC AggregateExpr::type_from_string(const char *type_str, AggregateExpr::Type &ty
   return rc;
 }
 
-RC SelectExpr::logical_generate(vector<SelectExpr*>* select_exprs)
+RC SelectExpr::logical_generate()
 {
   RC rc = RC::SUCCESS;
-  select_exprs->push_back(static_cast<SelectExpr*>(this));
-  rc = LogicalPlanGenerator().create(stmt_, logical_operator_, select_exprs);
+  rc = LogicalPlanGenerator().create(stmt_, logical_operator_);
   value_type_ = logical_operator_->expressions().at(0)->value_type();
   return rc;
 }
@@ -858,9 +857,10 @@ SelectExpr::~SelectExpr(){
   if(sql_node_ != nullptr)delete sql_node_;
 }
 
-RC SelectExpr::create_stmt(Db *db, vector<vector<uint32_t>> *depends, BinderContext& table_map, int fa)
+RC SelectExpr::create_stmt(Db *db, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs,
+  tables_t& table_map, int fa)
 {
-  return Stmt::create_stmt(db, *sql_node_, stmt_, depends, table_map, fa);
+  return Stmt::create_stmt(db, *sql_node_, stmt_, depends, select_exprs, table_map, fa);
 }
 
 RC SelectExpr::get_value(const Tuple &tuple, Value &value) const

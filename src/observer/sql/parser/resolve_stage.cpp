@@ -47,8 +47,9 @@ RC ResolveStage::handle_request(SQLStageEvent *sql_event)
   ParsedSqlNode *sql_node = sql_event->sql_node().get();
   Stmt          *stmt     = nullptr;
   auto depends = make_unique<vector<vector<uint32_t>>>();
-  BinderContext table_map;
-  rc = Stmt::create_stmt(db, *sql_node, stmt, depends.get(), table_map);
+  auto select_exprs = make_unique<vector<SelectExpr*>>();
+  tables_t table_map;
+  rc = Stmt::create_stmt(db, *sql_node, stmt, depends, select_exprs, table_map);
   if (rc != RC::SUCCESS && rc != RC::UNIMPLEMENTED) {
     LOG_WARN("failed to create stmt. rc=%d:%s", rc, strrc(rc));
     sql_result->set_return_code(rc);
@@ -57,6 +58,7 @@ RC ResolveStage::handle_request(SQLStageEvent *sql_event)
 
   sql_event->set_stmt(stmt);
   sql_event->set_depends(std::move(depends));
+  sql_event->set_exprs(std::move(select_exprs));
 
   return rc;
 }

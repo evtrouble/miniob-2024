@@ -43,7 +43,7 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 using namespace common;
 
-RC LogicalPlanGenerator::create(Stmt *stmt, unique_ptr<LogicalOperator> &logical_operator, vector<SelectExpr*>* select_exprs)
+RC LogicalPlanGenerator::create(Stmt *stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
   RC rc = RC::SUCCESS;
   switch (stmt->type()) {
@@ -56,7 +56,7 @@ RC LogicalPlanGenerator::create(Stmt *stmt, unique_ptr<LogicalOperator> &logical
     case StmtType::SELECT: {
       SelectStmt *select_stmt = static_cast<SelectStmt *>(stmt);
 
-      rc = create_plan(select_stmt, logical_operator, select_exprs);
+      rc = create_plan(select_stmt, logical_operator);
     } break;
 
     case StmtType::INSERT: {
@@ -68,19 +68,19 @@ RC LogicalPlanGenerator::create(Stmt *stmt, unique_ptr<LogicalOperator> &logical
     case StmtType::UPDATE: {
       UpdateStmt *update_stmt = static_cast<UpdateStmt *>(stmt);
 
-      rc = create_plan(update_stmt, logical_operator, select_exprs);
+      rc = create_plan(update_stmt, logical_operator);
     } break;
 
     case StmtType::DELETE: {
       DeleteStmt *delete_stmt = static_cast<DeleteStmt *>(stmt);
 
-      rc = create_plan(delete_stmt, logical_operator, select_exprs);
+      rc = create_plan(delete_stmt, logical_operator);
     } break;
 
     case StmtType::EXPLAIN: {
       ExplainStmt *explain_stmt = static_cast<ExplainStmt *>(stmt);
 
-      rc = create_plan(explain_stmt, logical_operator, select_exprs);
+      rc = create_plan(explain_stmt, logical_operator);
     } break;
     default: {
       rc = RC::UNIMPLEMENTED;
@@ -95,7 +95,7 @@ RC LogicalPlanGenerator::create_plan(CalcStmt *calc_stmt, std::unique_ptr<Logica
   return RC::SUCCESS;
 }
 
-RC LogicalPlanGenerator::create_plan(SelectStmt *select_stmt, unique_ptr<LogicalOperator> &logical_operator, vector<SelectExpr*>* select_exprs)
+RC LogicalPlanGenerator::create_plan(SelectStmt *select_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
   unique_ptr<LogicalOperator> *last_oper = nullptr;
 
@@ -118,7 +118,7 @@ RC LogicalPlanGenerator::create_plan(SelectStmt *select_stmt, unique_ptr<Logical
 
   unique_ptr<LogicalOperator> predicate_oper;
 
-  RC rc = create_plan(select_stmt->filter_stmt(), predicate_oper, select_exprs);
+  RC rc = create_plan(select_stmt->filter_stmt(), predicate_oper);
   if (OB_FAIL(rc)) {
     LOG_WARN("failed to create predicate logical plan. rc=%s", strrc(rc));
     return rc;
@@ -182,7 +182,7 @@ RC LogicalPlanGenerator::create_plan(SelectStmt *select_stmt, unique_ptr<Logical
   return RC::SUCCESS;
 }
 
-RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<LogicalOperator> &logical_operator, vector<SelectExpr*>* select_exprs)
+RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
   RC                                  rc = RC::SUCCESS;
   std::vector<unique_ptr<Expression>> cmp_exprs;
@@ -191,17 +191,6 @@ RC LogicalPlanGenerator::create_plan(FilterStmt *filter_stmt, unique_ptr<Logical
     ComparisonExpr* cmp_expr = static_cast<ComparisonExpr*>(expr.get());
     auto& left  = cmp_expr->left();
     auto& right = cmp_expr->right(); 
-
-    if(left->type() == ExprType::SELECT)
-    {
-      rc = static_cast<SelectExpr*>(left.get())->logical_generate(select_exprs);
-      if(rc != RC::SUCCESS)return rc;
-    }
-    if(right->type() == ExprType::SELECT)
-    {
-      rc = static_cast<SelectExpr*>(right.get())->logical_generate(select_exprs);
-      if(rc != RC::SUCCESS)return rc;
-    }
 
     if(left->value_type() == AttrType::NULLS || right->value_type() == AttrType::NULLS){
       cmp_exprs.emplace_back(std::move(expr));
@@ -320,7 +309,7 @@ RC LogicalPlanGenerator::create_plan(InsertStmt *insert_stmt, unique_ptr<Logical
   return RC::SUCCESS;
 }
 
-RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<LogicalOperator> &logical_operator, vector<SelectExpr*>* select_exprs)
+RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
   Table                      *table       = update_stmt->table();
   FilterStmt                 *filter_stmt = update_stmt->filter_stmt();
@@ -328,7 +317,7 @@ RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<Logical
 
   unique_ptr<LogicalOperator> predicate_oper;
 
-  RC rc = create_plan(filter_stmt, predicate_oper, select_exprs);
+  RC rc = create_plan(filter_stmt, predicate_oper);
   if (rc != RC::SUCCESS) {
     return rc;
   }
@@ -336,9 +325,7 @@ RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<Logical
   const std::vector<const FieldMeta *>& fields = update_stmt->fields();
   const vector<Value>& values = update_stmt->values();
   std::unordered_map<size_t, SelectExpr*>& stmt_map = update_stmt->stmt_map();
-  for(auto& [id, select] : stmt_map){
-    select->logical_generate(select_exprs);
-  }
+
   unique_ptr<LogicalOperator> update_oper(new UpdateLogicalOperator(table, move(fields), move(values), move(stmt_map)));
 
   if (predicate_oper) {
@@ -352,7 +339,7 @@ RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<Logical
   return rc;
 }
 
-RC LogicalPlanGenerator::create_plan(DeleteStmt *delete_stmt, unique_ptr<LogicalOperator> &logical_operator, vector<SelectExpr*>* select_exprs)
+RC LogicalPlanGenerator::create_plan(DeleteStmt *delete_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
   Table                      *table       = delete_stmt->table();
   FilterStmt                 *filter_stmt = delete_stmt->filter_stmt();
@@ -360,7 +347,7 @@ RC LogicalPlanGenerator::create_plan(DeleteStmt *delete_stmt, unique_ptr<Logical
 
   unique_ptr<LogicalOperator> predicate_oper;
 
-  RC rc = create_plan(filter_stmt, predicate_oper, select_exprs);
+  RC rc = create_plan(filter_stmt, predicate_oper);
   if (rc != RC::SUCCESS) {
     return rc;
   }
@@ -378,13 +365,13 @@ RC LogicalPlanGenerator::create_plan(DeleteStmt *delete_stmt, unique_ptr<Logical
   return rc;
 }
 
-RC LogicalPlanGenerator::create_plan(ExplainStmt *explain_stmt, unique_ptr<LogicalOperator> &logical_operator, vector<SelectExpr*>* select_exprs)
+RC LogicalPlanGenerator::create_plan(ExplainStmt *explain_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
   unique_ptr<LogicalOperator> child_oper;
 
   Stmt *child_stmt = explain_stmt->child();
 
-  RC rc = create(child_stmt, child_oper, select_exprs);
+  RC rc = create(child_stmt, child_oper);
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to create explain's child operator. rc=%s", strrc(rc));
     return rc;

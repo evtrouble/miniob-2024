@@ -40,11 +40,12 @@ public:
   const bool and_or() const { return and_or_; }
 
 public:
-  static RC create(Db *db, Table *default_table, BinderContext& table_map, const Conditions& conditions, 
-    FilterStmt *&stmt, vector<vector<uint32_t>>* depends, int fa = -1);
+  static RC create(Db *db, Table *default_table, tables_t& table_map, const Conditions& conditions, 
+    FilterStmt *&stmt, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+    int fa = -1);
 
-  static RC get_table_and_field(Db *db, Table *default_table, BinderContext& table_map,
-    const char* relation_name, const char* attribute_name, size_t *min_depend);
+  static RC get_table_and_field(Db *db, Table *default_table, tables_t& table_map, Table*& table, const FieldMeta*& field, 
+    UnboundFieldExpr& expr, size_t *min_depend);
 
 private:
   std::vector<unique_ptr<Expression>> filter_units_;  // 默认当前都是AND关系

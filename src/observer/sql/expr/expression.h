@@ -32,7 +32,6 @@ class PhysicalOperator;
 class Session;
 class ParsedSqlNode;
 class SqlResult;
-class BinderContext;
 
 /**
  * @defgroup Expression
@@ -516,9 +515,10 @@ private:
 class SelectExpr : public Expression
 {
 public:
+  using tables_t = std::unordered_map<std::string, std::pair<Table*, size_t>>;
+
   SelectExpr() = default;
   SelectExpr(ParsedSqlNode* sql_node);
-  SelectExpr(Stmt* stmt);
 
   virtual ~SelectExpr();
 
@@ -530,9 +530,10 @@ public:
 
   RC pretreatment();
 
-  RC logical_generate(vector<SelectExpr*>* select_exprs);
+  RC logical_generate();
   RC physical_generate();
-  RC create_stmt(Db *db, vector<vector<uint32_t>> *depends, BinderContext& table_map, int fa);
+  RC create_stmt(Db *db, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+    tables_t& table_map, int fa);
 
   bool check() {return values_ != nullptr;}
 

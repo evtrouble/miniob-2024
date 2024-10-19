@@ -29,7 +29,8 @@ DeleteStmt::~DeleteStmt()
 }
 
 RC DeleteStmt::create(Db *db, const DeleteSqlNode &delete_sql, Stmt *&stmt, 
-  vector<vector<uint32_t>>* depends, BinderContext& table_map, int fa)
+  unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  tables_t& table_map, int fa)
 {
   const char *table_name = delete_sql.relation_name.c_str();
   if (nullptr == db || nullptr == table_name) {
@@ -46,19 +47,24 @@ RC DeleteStmt::create(Db *db, const DeleteSqlNode &delete_sql, Stmt *&stmt,
 
   auto size = depends->size();
 
-  table_map.add_table(table_name, table, size);
+  if(!table_map.count(table_name)){
+    auto temp = std::make_pair(table, size);
+    table_map.insert({table_name, temp});
+  }
 
   depends->push_back(vector<uint32_t>());
 
   FilterStmt *filter_stmt = nullptr;
   RC          rc          = FilterStmt::create(
-      db, table, table_map, delete_sql.conditions, filter_stmt, depends, fa);
+      db, table, table_map, delete_sql.conditions, filter_stmt, depends, select_exprs, fa);
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to create filter statement. rc=%d:%s", rc, strrc(rc));
     return rc;
   }
 
-  table_map.del_table(table_name, size);
+  if(table_map.at(table_name).second == size){
+    table_map.erase(table_name);
+  }
 
   stmt = new DeleteStmt(table, filter_stmt);
   return rc;

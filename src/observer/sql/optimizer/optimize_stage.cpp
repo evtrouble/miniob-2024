@@ -33,14 +33,20 @@ RC OptimizeStage::handle_request(SQLStageEvent *sql_event)
 {
   unique_ptr<LogicalOperator> logical_operator;
 
-  auto select_exprs = make_unique<vector<SelectExpr*>>();
-  RC rc = create_logical_plan(sql_event, logical_operator, select_exprs.get());
+  RC rc = RC::SUCCESS;
+  auto& select_exprs = *sql_event->select_exprs();
+  for(int id = select_exprs.size() - 1; id >= 0; id--){
+    rc = select_exprs[id]->logical_generate();
+  }
+  if (rc != RC::SUCCESS) return rc;
+  rc = create_logical_plan(sql_event, logical_operator);
   if (rc != RC::SUCCESS) {
     if (rc != RC::UNIMPLEMENTED) {
       LOG_WARN("failed to create logical plan. rc=%s", strrc(rc));
     }
     return rc;
   }
+
 
   ASSERT(logical_operator, "logical operator is null");
 
@@ -62,11 +68,11 @@ RC OptimizeStage::handle_request(SQLStageEvent *sql_event)
     LOG_WARN("failed to generate physical plan. rc=%s", strrc(rc));
     return rc;
   }
-  for(auto& select_expr : *select_exprs){
-    select_expr->physical_generate();
+  for(auto& select_expr : *sql_event->select_exprs()){
+    rc = select_expr->physical_generate();
   }
-
-  sql_event->set_exprs(std::move(select_exprs));
+  if (rc != RC::SUCCESS) return rc;
+  
   sql_event->set_operator(std::move(physical_operator));
 
   return rc;
@@ -114,13 +120,12 @@ RC OptimizeStage::rewrite(unique_ptr<LogicalOperator> &logical_operator)
   return rc;
 }
 
-RC OptimizeStage::create_logical_plan(SQLStageEvent *sql_event, unique_ptr<LogicalOperator> &logical_operator,
-  vector<SelectExpr*>* select_exprs)
+RC OptimizeStage::create_logical_plan(SQLStageEvent *sql_event, unique_ptr<LogicalOperator> &logical_operator)
 {
   Stmt *stmt = sql_event->stmt();
   if (nullptr == stmt) {
     return RC::UNIMPLEMENTED;
   }
 
-  return logical_plan_generator_.create(stmt, logical_operator, select_exprs);
+  return logical_plan_generator_.create(stmt, logical_operator);
 }

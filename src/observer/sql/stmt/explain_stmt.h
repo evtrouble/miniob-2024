@@ -15,6 +15,7 @@ See the Mulan PSL v2 for more details. */
 #pragma once
 
 #include "sql/stmt/stmt.h"
+class SelectExpr;
 
 /**
  * @brief explain语句
@@ -31,7 +32,8 @@ public:
   Stmt *child() const { return child_stmt_.get(); }
 
   static RC create(Db *db, const ExplainSqlNode &query, Stmt *&stmt,
-    vector<vector<uint32_t>>* depends, BinderContext& table_map, int fa = -1);
+    unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs,
+    tables_t& table_map, int fa = -1);
 
 private:
   std::unique_ptr<Stmt> child_stmt_;

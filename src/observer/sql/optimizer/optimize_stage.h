@@ -47,8 +47,7 @@ private:
    * @param sql_event   包含SQL信息的事件
    * @param logical_operator  生成的逻辑计划
    */
-  RC create_logical_plan(SQLStageEvent *sql_event, std::unique_ptr<LogicalOperator> &logical_operator, 
-    vector<SelectExpr*>* select_exprs);
+  RC create_logical_plan(SQLStageEvent *sql_event, std::unique_ptr<LogicalOperator> &logical_operator);
 
   /**
    * @brief 重写逻辑计划

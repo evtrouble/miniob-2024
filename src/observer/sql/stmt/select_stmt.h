@@ -39,7 +39,8 @@ public:
 
 public:
   static RC create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt, 
-    vector<vector<uint32_t>>* depends, BinderContext& table_map, int fa = -1);
+    unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+    tables_t& table_map, int fa = -1);
 
 public:
   const std::vector<Table *> &tables() const { return tables_; }
