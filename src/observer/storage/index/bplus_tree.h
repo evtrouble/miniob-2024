@@ -101,6 +101,7 @@ public:
   int operator()(const char *v1, const char *v2) const
   {
     int result = attr_comparator_(v1, v2);
+    if(unique_ && result == 0)return result;
     if (result != 0) {
       return result;
     }
@@ -112,7 +113,7 @@ public:
 
 private:
   AttrComparator attr_comparator_;
-  bool           unique_;
+  bool           unique_ = false;
 };
 
 /**

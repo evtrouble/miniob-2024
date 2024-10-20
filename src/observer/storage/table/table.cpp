@@ -29,6 +29,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/index/index.h"
 #include "storage/record/record_manager.h"
 #include "storage/table/table.h"
+#include "event/sql_debug.h"
 #include "storage/trx/trx.h"
 
 Table::~Table()
@@ -579,9 +580,21 @@ RC Table::delete_record(const Record &record)
 RC Table::insert_entry_of_indexes(const char *record, const RID &rid)
 {
   RC rc = RC::SUCCESS;
-  for (Index *index : indexes_) {
+  for (size_t i = 0; i < indexes_.size(); i++) {
+    Index *index = indexes_[i];
     rc = index->insert_entry(record, &rid);
+  
+    // 插入失败的时候，回滚已经成功的索引
     if (rc != RC::SUCCESS) {
+      RC rc2 = RC::SUCCESS;
+      for (size_t j = 0; j < i; j++) {
+        rc2 = indexes_[j]->delete_entry(record, &rid);
+        if (RC::SUCCESS != rc2) {
+          sql_debug("Delete index failed after insert index failed. rc=%s", strrc(rc2));
+          LOG_ERROR("rollback index [%d] failed after insert index failed", j);
+          break;
+        }
+      }
       break;
     }
   }
