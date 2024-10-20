@@ -79,6 +79,9 @@ public:
   Expression()          = default;
   virtual ~Expression() = default;
 
+  RC recursion(std::unique_ptr<Expression>& expr, 
+    const std::function<RC(std::unique_ptr<Expression>&)>& func);
+
   /**
    * @brief 判断两个表达式是否相等
    */

@@ -22,6 +22,54 @@ See the Mulan PSL v2 for more details. */
 
 using namespace std;
 
+RC Expression::recursion(std::unique_ptr<Expression>& expr, 
+    const std::function<RC(std::unique_ptr<Expression>&)>& func)
+{
+  if (nullptr == expr) {
+    return RC::SUCCESS;
+  }
+
+  switch (expr->type())
+  {
+    case ExprType::ARITHMETIC:{
+      auto arithmetic_expr = static_cast<ArithmeticExpr*>(expr.get());
+
+       unique_ptr<Expression>        &left_expr  = arithmetic_expr->left();
+       unique_ptr<Expression>        &right_expr = arithmetic_expr->right();
+
+      RC rc = recursion(left_expr, func);
+      if (OB_FAIL(rc)) {
+        return rc;
+      }
+
+      rc = recursion(right_expr, func);
+      if (OB_FAIL(rc)) {
+        return rc;
+      }
+      return RC::SUCCESS;
+    }break;
+    case ExprType::COMPARISON:{
+      auto comparison_expr = static_cast<ComparisonExpr*>(expr.get());
+      unique_ptr<Expression> child_bound_expression;
+      unique_ptr<Expression>        &left_expr  = comparison_expr->left();
+      unique_ptr<Expression>        &right_expr = comparison_expr->right();
+  
+      RC rc = recursion(left_expr, func);
+      if (rc != RC::SUCCESS) {
+        return rc;
+      }
+
+      rc = recursion(right_expr, func);
+      if (rc != RC::SUCCESS) {
+        return rc;
+      }
+      return RC::SUCCESS;
+    }break;
+    default:return func(expr);
+  }
+  return RC::SUCCESS;
+}
+
 RC FieldExpr::get_value(const Tuple &tuple, Value &value) const
 {
   return tuple.find_cell(TupleCellSpec(table_name(), field_name()), value);

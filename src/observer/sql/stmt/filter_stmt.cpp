@@ -33,48 +33,13 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, const C
   auto size = depends->size() - 1;
   vector<unique_ptr<Expression>> bound_expressions;
 
-  function<RC(std::unique_ptr<Expression>&)> bind_expression = 
-    [&](unique_ptr<Expression> &expr){
+  auto bind_expression = [&](unique_ptr<Expression> &expr){
     if (nullptr == expr) {
       return RC::SUCCESS;
     }
 
     switch (expr->type())
     {
-      case ExprType::ARITHMETIC:{
-        auto arithmetic_expr = static_cast<ArithmeticExpr *>(expr.get());
-
-        unique_ptr<Expression>        &left_expr  = arithmetic_expr->left();
-        unique_ptr<Expression>        &right_expr = arithmetic_expr->right();
-
-        RC rc = bind_expression(left_expr);
-        if (OB_FAIL(rc)) {
-          return rc;
-        }
-
-        rc = bind_expression(right_expr);
-        if (OB_FAIL(rc)) {
-          return rc;
-        }
-        return RC::SUCCESS;
-      }break;
-      case ExprType::COMPARISON:{
-        auto comparison_expr = static_cast<ComparisonExpr *>(expr.get());
-        unique_ptr<Expression> child_bound_expression;
-        unique_ptr<Expression>        &left_expr  = comparison_expr->left();
-        unique_ptr<Expression>        &right_expr = comparison_expr->right();
-  
-        RC rc = bind_expression(left_expr);
-        if (rc != RC::SUCCESS) {
-          return rc;
-        }
-
-        rc = bind_expression(right_expr);
-        if (rc != RC::SUCCESS) {
-          return rc;
-        }
-        return RC::SUCCESS;
-      }break;
       case ExprType::UNBOUND_FIELD:{
         auto unbound_field_expr = static_cast<UnboundFieldExpr *>(expr.get());
 
@@ -105,7 +70,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, const C
     unique_ptr<Expression> right(cond.right_expr);
 
     unique_ptr<Expression> expr(new ComparisonExpr(cond.comp, std::move(left), std::move(right)));
-    rc = bind_expression(expr);
+    rc = expr->recursion(expr, bind_expression);
     if(rc != RC::SUCCESS){
         delete tmp_stmt;
         return rc;

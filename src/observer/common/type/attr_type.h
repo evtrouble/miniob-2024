@@ -10,6 +10,8 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+//static int ATTR_TYPE_LENGTH[] = {-1, 4, 4, 4, 4, 1, 10, 0};
+
 /**
  * @brief 属性的类型
  * @details AttrType 枚举列出了属性的各种数据类型。
