@@ -80,14 +80,14 @@ struct ConditionSqlNode
 
 struct Conditions
 {
-  std::vector<ConditionSqlNode>            conditions;
-  bool                                     and_or = false;///< false为and，true为false
+  std::vector<ConditionSqlNode> conditions;
+  bool                          and_or = false;  ///< false为and，true为false
 };
 
 struct OrderByNode
 {
-  Expression* expression = nullptr; 
-  bool        is_asc;     ///< 升序or降序
+  Expression *expression = nullptr;
+  bool        is_asc;  ///< 升序or降序
 };
 
 struct HavingNode
@@ -115,7 +115,7 @@ struct SelectSqlNode
   Conditions                               conditions;   ///< 查询条件，使用AND或OR串联起来多个条件
   std::vector<std::unique_ptr<Expression>> group_by;     ///< group by clause
   HavingNode                               having_list;
-  std::vector<OrderByNode>                 order_by;    ///< order by clause
+  std::vector<OrderByNode>                 order_by;  ///< order by clause
 };
 
 /**
@@ -134,7 +134,7 @@ struct CalcSqlNode
  */
 struct InsertSqlNode
 {
-  std::string        relation_name;  ///< Relation to insert into
+  std::string                     relation_name;  ///< Relation to insert into
   std::vector<std::vector<Value>> values;         ///< 要插入的值
 };
 
@@ -144,8 +144,8 @@ struct InsertSqlNode
  */
 struct DeleteSqlNode
 {
-  std::string                   relation_name;  ///< Relation to delete from
-  Conditions                    conditions;
+  std::string relation_name;  ///< Relation to delete from
+  Conditions  conditions;
 };
 
 /**
@@ -167,10 +167,10 @@ struct UpdateSqlNode
  */
 struct AttrInfoSqlNode
 {
-  AttrType    type;    ///< Type of attribute
-  std::string name;    ///< Attribute name
-  size_t      length;  ///< Length of attribute
-  bool        is_null; /// is null
+  AttrType    type;     ///< Type of attribute
+  std::string name;     ///< Attribute name
+  size_t      length;   ///< Length of attribute
+  bool        is_null;  /// is null
 };
 
 /**
@@ -202,6 +202,7 @@ struct DropTableSqlNode
  */
 struct CreateIndexSqlNode
 {
+  bool        unique;          ///< Unique Index
   std::string index_name;      ///< Index name
   std::string relation_name;   ///< Relation name
   std::string attribute_name;  ///< Attribute name
@@ -214,6 +215,10 @@ struct CreateIndexSqlNode
 struct DropIndexSqlNode
 {
   std::string index_name;     ///< Index name
+  std::string relation_name;  ///< Relation name
+};
+struct ShowIndexSqlNode
+{
   std::string relation_name;  ///< Relation name
 };
 
@@ -290,6 +295,7 @@ enum SqlCommandFlag
   SCF_CREATE_INDEX,
   SCF_DROP_INDEX,
   SCF_SYNC,
+  SCF_SHOW_INDEX,
   SCF_SHOW_TABLES,
   SCF_DESC_TABLE,
   SCF_BEGIN,  ///< 事务开始语句，可以在这里扩展只读事务
@@ -319,6 +325,7 @@ public:
   CreateTableSqlNode  create_table;
   DropTableSqlNode    drop_table;
   CreateIndexSqlNode  create_index;
+  ShowIndexSqlNode    show_index;
   DropIndexSqlNode    drop_index;
   DescTableSqlNode    desc_table;
   LoadDataSqlNode     load_data;

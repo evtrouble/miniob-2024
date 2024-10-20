@@ -127,6 +127,8 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         LE
         GE
         NE
+        UNIQUE
+
 
 /** union 中定义各种数据类型，真实生成的代码也是union类型，所以不能有非POD类型的数据 **/
 %union {
@@ -173,6 +175,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <number>              number
 %type <string>              relation
 %type <comp>                comp_op
+%type <boolean>             unique_option
 %type <comp>                unary_op
 %type <rel_attr>            rel_attr
 %type <attr_infos>          attr_def_list
@@ -204,6 +207,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <sql_node>            delete_stmt
 %type <sql_node>            create_table_stmt
 %type <sql_node>            drop_table_stmt
+%type <sql_node>            show_index_stmt
 %type <sql_node>            show_tables_stmt
 %type <sql_node>            desc_table_stmt
 %type <sql_node>            create_index_stmt
@@ -234,7 +238,7 @@ commands: command_wrapper opt_semicolon  //commands or sqls. parser starts here.
     if($1 != nullptr){
       std::unique_ptr<ParsedSqlNode> sql_node = std::unique_ptr<ParsedSqlNode>($1);
       sql_result->add_sql_node(std::move(sql_node));
-    } 
+    }
   }
   ;
 
@@ -246,6 +250,7 @@ command_wrapper:
   | delete_stmt
   | create_table_stmt
   | drop_table_stmt
+  | show_index_stmt
   | show_tables_stmt
   | desc_table_stmt
   | create_index_stmt
@@ -302,7 +307,14 @@ drop_table_stmt:    /*drop table 语句的语法解析树*/
       $$->drop_table.relation_name = $3;
       free($3);
     };
-
+show_index_stmt:      /*show index 语句的语法解析树*/
+    SHOW INDEX FROM ID
+    {
+      $$ = new ParsedSqlNode(SCF_SHOW_INDEX);
+      $$->show_index.relation_name = $4;
+      free($4);
+    }
+    ;
 show_tables_stmt:
     SHOW TABLES {
       $$ = new ParsedSqlNode(SCF_SHOW_TABLES);
@@ -318,19 +330,28 @@ desc_table_stmt:
     ;
 
 create_index_stmt:    /*create index 语句的语法解析树*/
-    CREATE INDEX ID ON ID LBRACE ID RBRACE
+    CREATE unique_option INDEX ID ON ID LBRACE ID RBRACE
     {
       $$ = new ParsedSqlNode(SCF_CREATE_INDEX);
       CreateIndexSqlNode &create_index = $$->create_index;
-      create_index.index_name = $3;
-      create_index.relation_name = $5;
-      create_index.attribute_name = $7;
-      free($3);
-      free($5);
-      free($7);
+      create_index.unique = $2;
+      create_index.index_name = $4;
+      create_index.relation_name = $6;
+      create_index.attribute_name = $8;
+      free($4);
+      free($6);
+      free($8);
     }
     ;
-
+unique_option:
+    /* empty */
+    {
+      $$ = false;
+    }
+    | UNIQUE
+    {
+      $$ = true;
+    }
 drop_index_stmt:      /*drop index 语句的语法解析树*/
     DROP INDEX ID ON ID
     {
@@ -456,7 +477,7 @@ type:
 date_type:
     DATE_T   {$$ = static_cast<int>(AttrType::DATES);}
     ;
-    
+
 insert_stmt:        /*insert   语句的语法解析树*/
     INSERT INTO ID VALUES values_list
     {
@@ -467,7 +488,7 @@ insert_stmt:        /*insert   语句的语法解析树*/
         std::reverse($$->insertion.values.begin(), $$->insertion.values.end());
         delete $5;
       }
-      
+
       free($3);
     }
     ;
@@ -575,7 +596,7 @@ update_stmt:      /*  update 语句的语法解析树*/
       $$->update.relation_name = $2;
       $$->update.attribute_names.swap($4->relation_list);
       $$->update.values.swap($4->value_list);
-      
+
       delete $4;
       free($2);
 
@@ -631,7 +652,7 @@ select_stmt:        /*  select 语句的语法解析树*/
       if ($5 != nullptr) {
         auto& conditions = $$->selection.conditions;
         if(conditions.conditions.size()){
-          conditions.conditions.insert(conditions.conditions.begin(), 
+          conditions.conditions.insert(conditions.conditions.begin(),
             $5->conditions.begin(), $5->conditions.end());
           conditions.and_or = $5->and_or;
         }

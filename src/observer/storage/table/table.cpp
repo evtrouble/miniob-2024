@@ -29,6 +29,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/index/index.h"
 #include "storage/record/record_manager.h"
 #include "storage/table/table.h"
+#include "event/sql_debug.h"
 #include "storage/trx/trx.h"
 
 Table::~Table()
@@ -39,7 +40,7 @@ Table::~Table()
   }
 
   if (data_buffer_pool_ != nullptr) {
-    //data_buffer_pool_->close_file();
+    // data_buffer_pool_->close_file();
     db_->buffer_pool_manager().close_file(data_buffer_pool_->filename());
     data_buffer_pool_ = nullptr;
   }
@@ -146,10 +147,10 @@ RC Table::drop(const char *path)
   record_handler_ = nullptr;
 
   // 删除data数据文件
-  BufferPoolManager &bpm       = db_->buffer_pool_manager();
-  rc                           = bpm.remove_file(data_buffer_pool_->filename());
+  BufferPoolManager &bpm = db_->buffer_pool_manager();
+  rc                     = bpm.remove_file(data_buffer_pool_->filename());
   if (rc != RC::SUCCESS) {
-    //LOG_ERROR("Failed to remove %s.", data_buffer_pool_->filename());
+    // LOG_ERROR("Failed to remove %s.", data_buffer_pool_->filename());
     return rc;
   }
   data_buffer_pool_ = nullptr;
@@ -255,11 +256,11 @@ RC Table::update_record(const RID &rid, std::vector<const FieldMeta *> &fields, 
     return rc;
   }
 
-  for(std::size_t id = 0; id < fields.size(); id++) {
-    const FieldMeta * &field = fields[id];
-    Value &value = values[id];
+  for (std::size_t id = 0; id < fields.size(); id++) {
+    const FieldMeta *&field = fields[id];
+    Value            &value = values[id];
 
-    if(value.attr_type() == AttrType::NULLS && !field->nullable()){
+    if (value.attr_type() == AttrType::NULLS && !field->nullable()) {
       LOG_WARN("value is null. table name:%s,field name:%s",
         table_meta_.name(), field->name());
       return RC::INVALID_ARGUMENT;
@@ -291,7 +292,7 @@ RC Table::update_record(const Record &record)
   RC rc = RC::SUCCESS;
   for (Index *index : indexes_) {
     rc = index->update_entry(record.data(), &record.rid());
-    ASSERT(RC::SUCCESS == rc, 
+    ASSERT(RC::SUCCESS == rc,
            "failed to update entry from index. table name=%s, index name=%s, rid=%s, rc=%s",
            name(), index->index_meta().name(), record.rid().to_string().c_str(), strrc(rc));
   }
@@ -361,9 +362,9 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
 
   for (int i = 0; i < value_num && OB_SUCC(rc); i++) {
     const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
-    const Value &    value = values[i];
+    const Value     &value = values[i];
 
-    if(value.attr_type() == AttrType::NULLS && !field->nullable()){
+    if (value.attr_type() == AttrType::NULLS && !field->nullable()) {
       LOG_WARN("value is null. table name:%s,field name:%s",
         table_meta_.name(), field->name());
       return RC::INVALID_ARGUMENT;
@@ -404,7 +405,7 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
 
   field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
 
-  if(value.attr_type() != AttrType::NULLS)
+  if (value.attr_type() != AttrType::NULLS)
     memcpy(record_data + field->offset(), value.data(), copy_len);
   return RC::SUCCESS;
 }
@@ -453,7 +454,7 @@ RC Table::get_chunk_scanner(ChunkFileScanner &scanner, Trx *trx, ReadWriteMode m
   return rc;
 }
 
-RC Table::create_index(Trx *trx, const FieldMeta *field_meta, const char *index_name)
+RC Table::create_index(Trx *trx, bool unique, const FieldMeta *field_meta, const char *index_name)
 {
   if (common::is_blank(index_name) || nullptr == field_meta) {
     LOG_INFO("Invalid input arguments, table name is %s, index_name is blank or attribute_name is blank", name());
@@ -462,9 +463,9 @@ RC Table::create_index(Trx *trx, const FieldMeta *field_meta, const char *index_
 
   IndexMeta new_index_meta;
 
-  RC rc = new_index_meta.init(index_name, *field_meta);
+  RC rc = new_index_meta.init(index_name, unique, *field_meta);
   if (rc != RC::SUCCESS) {
-    LOG_INFO("Failed to init IndexMeta in table:%s, index_name:%s, field_name:%s", 
+    LOG_INFO("Failed to init IndexMeta in table:%s, index_name:%s, field_name:%s",
              name(), index_name, field_meta->name());
     return rc;
   }
@@ -473,7 +474,7 @@ RC Table::create_index(Trx *trx, const FieldMeta *field_meta, const char *index_
   BplusTreeIndex *index      = new BplusTreeIndex();
   string          index_file = table_index_file(base_dir_.c_str(), name(), index_name);
 
-  rc = index->create(this, index_file.c_str(), new_index_meta, *field_meta);
+  rc = index->create(this, index_file.c_str(), unique, new_index_meta, *field_meta);
   if (rc != RC::SUCCESS) {
     delete index;
     LOG_ERROR("Failed to create bplus tree index. file name=%s, rc=%d:%s", index_file.c_str(), rc, strrc(rc));
@@ -484,7 +485,7 @@ RC Table::create_index(Trx *trx, const FieldMeta *field_meta, const char *index_
   RecordFileScanner scanner;
   rc = get_record_scanner(scanner, trx, ReadWriteMode::READ_ONLY);
   if (rc != RC::SUCCESS) {
-    LOG_WARN("failed to create scanner while creating index. table=%s, index=%s, rc=%s", 
+    LOG_WARN("failed to create scanner while creating index. table=%s, index=%s, rc=%s",
              name(), index_name, strrc(rc));
     return rc;
   }
@@ -568,7 +569,7 @@ RC Table::delete_record(const Record &record)
   RC rc = RC::SUCCESS;
   for (Index *index : indexes_) {
     rc = index->delete_entry(record.data(), &record.rid());
-    ASSERT(RC::SUCCESS == rc, 
+    ASSERT(RC::SUCCESS == rc,
            "failed to delete entry from index. table name=%s, index name=%s, rid=%s, rc=%s",
            name(), index->index_meta().name(), record.rid().to_string().c_str(), strrc(rc));
   }
@@ -579,9 +580,21 @@ RC Table::delete_record(const Record &record)
 RC Table::insert_entry_of_indexes(const char *record, const RID &rid)
 {
   RC rc = RC::SUCCESS;
-  for (Index *index : indexes_) {
+  for (size_t i = 0; i < indexes_.size(); i++) {
+    Index *index = indexes_[i];
     rc = index->insert_entry(record, &rid);
+  
+    // 插入失败的时候，回滚已经成功的索引
     if (rc != RC::SUCCESS) {
+      RC rc2 = RC::SUCCESS;
+      for (size_t j = 0; j < i; j++) {
+        rc2 = indexes_[j]->delete_entry(record, &rid);
+        if (RC::SUCCESS != rc2) {
+          sql_debug("Delete index failed after insert index failed. rc=%s", strrc(rc2));
+          LOG_ERROR("rollback index [%d] failed after insert index failed", j);
+          break;
+        }
+      }
       break;
     }
   }
