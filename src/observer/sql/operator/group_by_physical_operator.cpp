@@ -71,7 +71,7 @@ RC GroupByPhysicalOperator::aggregate(AggregatorList &aggregator_list, const Tup
   return rc;
 }
 
-RC GroupByPhysicalOperator::evaluate(GroupValueType &group_value)
+RC GroupByPhysicalOperator::evaluate(GroupValueType &group_value, bool have_groub_by)
 {
   RC rc = RC::SUCCESS;
 
@@ -87,7 +87,7 @@ RC GroupByPhysicalOperator::evaluate(GroupValueType &group_value)
   vector<Value>  values;
   for (unique_ptr<Aggregator> &aggregator : aggregators) {
     Value value;
-    rc = aggregator->evaluate(value);
+    rc = aggregator->evaluate(value, have_groub_by);
     if (OB_FAIL(rc)) {
       LOG_WARN("failed to evaluate aggregator. rc=%s", strrc(rc));
       return rc;

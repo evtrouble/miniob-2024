@@ -69,7 +69,8 @@ RC ScalarGroupByPhysicalOperator::next()
       create_aggregator_list(aggregator_list);
       group_value_ = make_unique<GroupValueType>(std::move(aggregator_list), CompositeTuple());
     }
-    rc = evaluate(*group_value_);
+    rc = evaluate(*group_value_, false);
+    if(rc != RC::SUCCESS)return rc;
 
     emitted_ = false;
     have_value = true;
@@ -98,6 +99,8 @@ RC ScalarGroupByPhysicalOperator::next(Tuple *upper_tuple)
       if(rc != RC::SUCCESS)return rc;
     }
 
+    rc = evaluate(*group_value_, false);
+
     if (RC::RECORD_EOF == rc) {
       rc = RC::SUCCESS;
     }
@@ -114,6 +117,7 @@ RC ScalarGroupByPhysicalOperator::next(Tuple *upper_tuple)
       group_value_ = make_unique<GroupValueType>(std::move(aggregator_list), CompositeTuple());
     }
     rc = evaluate(*group_value_);
+    if(rc != RC::SUCCESS)return rc;
 
     emitted_ = false;
     have_value = true;

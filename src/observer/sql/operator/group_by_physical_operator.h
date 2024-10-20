@@ -49,7 +49,7 @@ protected:
   RC aggregate(AggregatorList &aggregator_list, const Tuple &tuple);
 
   /// @brief 所有tuple聚合结束后，运算最终结果
-  RC evaluate(GroupValueType &group_value);
+  RC evaluate(GroupValueType &group_value, bool have_groub_by = true);
 
 protected:
   std::vector<Expression *> aggregate_expressions_;  /// 聚合表达式

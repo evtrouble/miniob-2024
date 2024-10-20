@@ -30,7 +30,7 @@ RC SumAggregator::accumulate(const Value &value)
   return RC::SUCCESS;
 }
 
-RC SumAggregator::evaluate(Value& result)
+RC SumAggregator::evaluate(Value& result, bool have_groub_by)
 {
   if (value_.attr_type() == AttrType::UNDEFINED)
     result.set_null();
@@ -53,7 +53,7 @@ RC MaxAggregator::accumulate(const Value &value)
   return RC::SUCCESS;
 }
 
-RC MaxAggregator::evaluate(Value& result)
+RC MaxAggregator::evaluate(Value& result, bool have_groub_by)
 {
   if (value_.attr_type() == AttrType::UNDEFINED)
     result.set_null();
@@ -76,7 +76,7 @@ RC MinAggregator::accumulate(const Value &value)
   return RC::SUCCESS;
 }
 
-RC MinAggregator::evaluate(Value& result)
+RC MinAggregator::evaluate(Value& result, bool have_groub_by)
 {
   if (value_.attr_type() == AttrType::UNDEFINED)
     result.set_null();
@@ -99,7 +99,7 @@ RC AvgAggregator::accumulate(const Value &value)
   return RC::SUCCESS;
 }
 
-RC AvgAggregator::evaluate(Value& result)
+RC AvgAggregator::evaluate(Value& result, bool have_groub_by)
 {
   if (value_.attr_type() == AttrType::UNDEFINED)
     result.set_null();
@@ -124,10 +124,12 @@ RC CountAggregator::accumulate(const Value &value)
   return RC::SUCCESS;
 }
 
-RC CountAggregator::evaluate(Value& result)
+RC CountAggregator::evaluate(Value& result, bool have_groub_by)
 {
-  if (value_.attr_type() == AttrType::UNDEFINED)
-    result.set_null();
+  if (value_.attr_type() == AttrType::UNDEFINED){
+    if(have_groub_by)result.set_null();
+    else result = Value((int)0);
+  }
   else result = std::move(value_);
   return RC::SUCCESS;
 }
