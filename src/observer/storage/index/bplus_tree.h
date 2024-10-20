@@ -68,11 +68,26 @@ public:
   {
     // TODO: optimized the comparison
     Value left;
-    left.set_type(attr_type_);
-    left.set_data(v1, attr_length_);
+    if(*(v1 + attr_length_ - 1)){
+      left.set_null();
+    } else {
+      left.set_type(attr_type_);
+      left.set_data(v1, attr_length_);
+    }
+    
     Value right;
-    right.set_type(attr_type_);
-    right.set_data(v2, attr_length_);
+    if(*(v2 + attr_length_ - 1)){
+      left.set_null();
+    } else {
+      right.set_type(attr_type_);
+      right.set_data(v2, attr_length_);
+    }
+    
+    if(left.attr_type() == AttrType::NULLS){
+      if(right.attr_type() == AttrType::NULLS)return 0;
+      return 1;
+    }
+    if(right.attr_type() == AttrType::NULLS)return 1;
     return DataType::type_instance(attr_type_)->compare(left, right);
   }
 
