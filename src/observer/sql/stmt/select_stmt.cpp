@@ -71,6 +71,8 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     if(!table_alias.empty()){
       if(table_alias_map.count(table_alias))return RC::INVALID_ARGUMENT;
       table_alias_map.insert({table_alias, select_sql.relations[i]});
+      auto temp = make_pair(table, size);
+      table_map.insert({table_alias, temp});
     }
   }
 
@@ -83,6 +85,20 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     if (OB_FAIL(rc)) {
       LOG_INFO("bind expression failed. rc=%s", strrc(rc));
       return rc;
+    }
+  }
+
+   for (auto& expr : bound_expressions) {
+    if (expr->type() == ExprType::FIELD) {
+      FieldExpr *field_expr = static_cast<FieldExpr*>(expr.get());
+      const char *table_name = field_expr->table_name();
+      const char *field_name = field_expr->field_name();
+      ASSERT(!common::is_blank(field_name), "Parse ERROR!");
+      auto& temp = select_sql.relations;
+      size_t id = find(temp.begin(), temp.end(), table_name) - temp.begin();
+      if(id != temp.size() && !select_sql.alias[id].empty()){
+        field_expr->set_table_alias(select_sql.alias[id].c_str());
+      }
     }
   }
 
@@ -103,57 +119,6 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   depends->emplace_back(vector<uint32_t>());
   if(fa >= 0){
     depends->at(fa).emplace_back(size);
-  }
-
-  function<RC(Expression*)> change_name = [&](Expression* expr){
-    if (nullptr == expr) {
-      return RC::SUCCESS;
-    }
-
-    switch (expr->type())
-    {
-      case ExprType::ARITHMETIC:{
-        auto arithmetic_expr = static_cast<ArithmeticExpr *>(expr);
-
-        unique_ptr<Expression>        &left_expr  = arithmetic_expr->left();
-        unique_ptr<Expression>        &right_expr = arithmetic_expr->right();
-
-        RC rc = change_name(left_expr.get());
-        if (OB_FAIL(rc)) {
-          return rc;
-        }
-
-        rc = change_name(right_expr.get());
-        if (OB_FAIL(rc)) {
-          return rc;
-        }
-        return RC::SUCCESS;
-      }break;
-      case ExprType::UNBOUND_FIELD:{
-        auto unbound_field_expr = static_cast<UnboundFieldExpr *>(expr);
-        const char* table_name = unbound_field_expr->table_name();
-
-        if(!common::is_blank(table_name) && !table_map.count(table_name)){
-          if(table_alias_map.count(table_name)){
-            unbound_field_expr->set_table_name(table_alias_map.at(table_name).c_str());
-          } else return RC::INVALID_ARGUMENT;
-        }
-      }break;
-      default:return RC::SUCCESS;
-    }
-    return RC::SUCCESS;
-  };
-  
-  for (auto& cond : select_sql.conditions.conditions){
-    RC rc = change_name(cond.left_expr);
-    if (OB_FAIL(rc)) {
-          return rc;
-    }
-
-    rc = change_name(cond.right_expr);
-    if (OB_FAIL(rc)) {
-          return rc;
-    }
   }
 
   // create filter statement in `where` statement
@@ -182,6 +147,9 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     if(table_map.at(table_name).second == size){
       table_map.erase(table_name);
     }
+    string& table_alias = select_sql.alias[i];
+    if(!table_alias.empty())
+      table_map.erase(table_alias);
   }
 
   vector<unique_ptr<Expression>> order_by_expressions;

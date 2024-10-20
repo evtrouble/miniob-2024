@@ -2524,7 +2524,7 @@ yyreduce:
         (yyval.join_list) = new Joins;
       }
 
-      (yyval.join_list)->relation_list.emplace_back((yyvsp[-2].string));
+      (yyval.join_list)->relation_list.emplace((yyval.join_list)->relation_list.begin(), (yyvsp[-2].string));
       free((yyvsp[-2].string));
       if((yyvsp[-1].string) != nullptr){
         (yyval.join_list)->alias_list.emplace((yyval.join_list)->alias_list.begin(), (yyvsp[-1].string));

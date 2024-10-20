@@ -187,14 +187,11 @@ public:
 
   RC get_value(const Tuple &tuple, Value &value) const override { return RC::INTERNAL; }
 
-  void        set_table_name(const char * table_name) { swap(table_alias_, table_name_); table_name_ = table_name; }
   const char *table_name() const { return table_name_.c_str(); }
   const char *field_name() const { return field_name_.c_str(); }
-  const string     &table_alias() const { return table_alias_; }
 
 private:
   std::string table_name_;
-  std::string table_alias_;
   std::string field_name_;
 };
 

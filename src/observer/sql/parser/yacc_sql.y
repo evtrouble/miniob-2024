@@ -752,7 +752,7 @@ rel_list:
         $$ = new Joins;
       }
 
-      $$->relation_list.emplace_back($1);
+      $$->relation_list.emplace($$->relation_list.begin(), $1);
       free($1);
       if($2 != nullptr){
         $$->alias_list.emplace($$->alias_list.begin(), $2);
