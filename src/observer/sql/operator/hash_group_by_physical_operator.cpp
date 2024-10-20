@@ -112,7 +112,12 @@ RC HashGroupByPhysicalOperator::next(Tuple *upper_tuple)
     }
 
     // 得到最终聚合后的值
-    if(groups_.size() == 0)groups_.emplace_back(GroupType());
+    if(groups_.size() == 0)
+    {
+      AggregatorList aggregator_list;
+      create_aggregator_list(aggregator_list);
+      groups_.emplace_back(ValueListTuple(), GroupValueType(std::move(aggregator_list), CompositeTuple()));
+    }
     for (GroupType &group : groups_) {
       GroupValueType &group_value = get<1>(group);
       rc = evaluate(group_value);
