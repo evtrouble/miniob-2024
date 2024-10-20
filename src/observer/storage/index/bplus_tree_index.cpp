@@ -32,7 +32,7 @@ RC BplusTreeIndex::create(
 
   BufferPoolManager &bpm = table->db()->buffer_pool_manager();
   RC                 rc  = index_handler_.create(
-      table->db()->log_handler(), bpm, unique, file_name, field_meta.type(), field_meta.len() - 1);
+      table->db()->log_handler(), bpm, unique, file_name, field_meta.type(), field_meta.len());
   if (RC::SUCCESS != rc) {
     LOG_WARN("Failed to create index_handler, file_name:%s, index:%s, field:%s, rc:%s",
         file_name, index_meta.name(), index_meta.field(), strrc(rc));

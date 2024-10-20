@@ -341,6 +341,9 @@ const char *Value::data() const
     case AttrType::VECTORS:{
       return (const char *)value_.vector_value_;
     } break;
+    case AttrType::NULLS:{
+      return nullptr;
+    } break;
     default: {
       return (const char *)&value_;
     } break;

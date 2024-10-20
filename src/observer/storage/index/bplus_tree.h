@@ -67,27 +67,29 @@ public:
   int operator()(const char *v1, const char *v2) const
   {
     // TODO: optimized the comparison
+    if(v1 == v2)return 0;
     Value left;
-    if(*(v1 + attr_length_ - 1)){
+
+    if(v1 == nullptr || *(v1 + attr_length_ - 1)){
       left.set_null();
     } else {
       left.set_type(attr_type_);
-      left.set_data(v1, attr_length_);
+      left.set_data(v1, attr_length_ - 1);
     }
     
     Value right;
-    if(*(v2 + attr_length_ - 1)){
+    if(v2 == nullptr || *(v2 + attr_length_ - 1)){
       left.set_null();
     } else {
       right.set_type(attr_type_);
-      right.set_data(v2, attr_length_);
+      right.set_data(v2, attr_length_ - 1);
     }
     
     if(left.attr_type() == AttrType::NULLS){
       if(right.attr_type() == AttrType::NULLS)return 0;
       return 1;
     }
-    if(right.attr_type() == AttrType::NULLS)return 1;
+    if(right.attr_type() == AttrType::NULLS)return 0;
     return DataType::type_instance(attr_type_)->compare(left, right);
   }
 
