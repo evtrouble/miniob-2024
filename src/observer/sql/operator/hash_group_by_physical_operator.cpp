@@ -251,6 +251,6 @@ RC HashGroupByPhysicalOperator::fetch_next()
   if (current_group_ == groups_.end()) {
     return RC::RECORD_EOF;
   }
-  if(is_null)return RC::EMPTY;
+  if(is_null)return RC::NULL_RECORD;
   return RC::SUCCESS;
 }

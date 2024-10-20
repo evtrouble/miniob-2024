@@ -46,7 +46,7 @@ RC ProjectPhysicalOperator::next()
     return RC::RECORD_EOF;
   }
   RC rc = children_[0]->next();
-  if(rc == RC::EMPTY){
+  if(rc == RC::NULL_RECORD){
     for (const unique_ptr<Expression> &expression : expressions_) {
       if(expression->type() != ExprType::AGGREGATION){
         return rc;
@@ -63,7 +63,7 @@ RC ProjectPhysicalOperator::next(Tuple *upper_tuple)
     return RC::RECORD_EOF;
   }
   RC rc = children_[0]->next(upper_tuple);
-  if(rc == RC::EMPTY){
+  if(rc == RC::NULL_RECORD){
     for (const unique_ptr<Expression> &expression : expressions_) {
       if(expression->type() != ExprType::AGGREGATION){
         return rc;
