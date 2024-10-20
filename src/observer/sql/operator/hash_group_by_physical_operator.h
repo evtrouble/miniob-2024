@@ -50,7 +50,7 @@ private:
 
 private:
   RC find_group(const Tuple &child_tuple, GroupType *&found_group);
-  RC collect(ExpressionTuple<Expression *> &group_value_expression_tuple, ValueListTuple &group_by_evaluated_tuple);
+  RC collect(ExpressionTuple<Expression *> &group_value_expression_tuple);
   RC fetch_next();
 
 private:
@@ -64,4 +64,5 @@ private:
   std::vector<GroupType>::iterator current_group_;
   bool                             first_emited_ = false;  /// 第一条数据是否已经输出
   bool                             have_value = false;
+  bool                             is_null = false;
 };

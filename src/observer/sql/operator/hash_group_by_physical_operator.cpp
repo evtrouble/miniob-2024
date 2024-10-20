@@ -37,6 +37,7 @@ RC HashGroupByPhysicalOperator::open(Trx *trx)
   }
 
   have_value = false;
+  is_null = false;
   groups_.clear();
   return rc;
 }
@@ -51,7 +52,7 @@ RC HashGroupByPhysicalOperator::next()
     ValueListTuple group_by_evaluated_tuple;
 
     while (OB_SUCC(rc = child.next())) {
-      rc = collect(group_value_expression_tuple, group_by_evaluated_tuple);
+      rc = collect(group_value_expression_tuple);
       if(rc != RC::SUCCESS)return rc;
     }
 
@@ -67,8 +68,10 @@ RC HashGroupByPhysicalOperator::next()
     // 得到最终聚合后的值
     if(groups_.size() == 0)
     {
+      is_null = true;
       AggregatorList aggregator_list;
       create_aggregator_list(aggregator_list);
+
       groups_.emplace_back(ValueListTuple(), GroupValueType(std::move(aggregator_list), CompositeTuple()));
     }
     for (GroupType &group : groups_) {
@@ -98,7 +101,7 @@ RC HashGroupByPhysicalOperator::next(Tuple *upper_tuple)
     ValueListTuple group_by_evaluated_tuple;
 
     while (OB_SUCC(rc = child.next(upper_tuple))) {
-      rc = collect(group_value_expression_tuple, group_by_evaluated_tuple);
+      rc = collect(group_value_expression_tuple);
       if(rc != RC::SUCCESS)return rc;
     }
 
@@ -203,7 +206,7 @@ RC HashGroupByPhysicalOperator::find_group(const Tuple &child_tuple, GroupType *
   return rc;
 }
 
-RC HashGroupByPhysicalOperator::collect(ExpressionTuple<Expression *> &group_value_expression_tuple, ValueListTuple &group_by_evaluated_tuple)
+RC HashGroupByPhysicalOperator::collect(ExpressionTuple<Expression *> &group_value_expression_tuple)
 {
   RC rc = RC::SUCCESS;
   Tuple *child_tuple = (*children_[0]).current_tuple();
@@ -248,6 +251,6 @@ RC HashGroupByPhysicalOperator::fetch_next()
   if (current_group_ == groups_.end()) {
     return RC::RECORD_EOF;
   }
-
+  if(is_null)return RC::EMPTY;
   return RC::SUCCESS;
 }

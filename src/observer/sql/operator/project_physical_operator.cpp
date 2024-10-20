@@ -45,7 +45,16 @@ RC ProjectPhysicalOperator::next()
   if (children_.empty()) {
     return RC::RECORD_EOF;
   }
-  return children_[0]->next();
+  RC rc = children_[0]->next();
+  if(rc == RC::EMPTY){
+    for (const unique_ptr<Expression> &expression : expressions_) {
+      if(expression->type() != ExprType::AGGREGATION){
+        return rc;
+      }
+    }
+    rc = RC::SUCCESS;
+  }
+  return rc;
 }
 
 RC ProjectPhysicalOperator::next(Tuple *upper_tuple)
@@ -53,7 +62,16 @@ RC ProjectPhysicalOperator::next(Tuple *upper_tuple)
   if (children_.empty()) {
     return RC::RECORD_EOF;
   }
-  return children_[0]->next(upper_tuple);
+  RC rc = children_[0]->next(upper_tuple);
+  if(rc == RC::EMPTY){
+    for (const unique_ptr<Expression> &expression : expressions_) {
+      if(expression->type() != ExprType::AGGREGATION){
+        return rc;
+      }
+    }
+    rc = RC::SUCCESS;
+  }
+  return rc;
 }
 
 RC ProjectPhysicalOperator::close()
