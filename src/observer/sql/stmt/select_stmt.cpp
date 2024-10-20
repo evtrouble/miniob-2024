@@ -81,6 +81,10 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   ExpressionBinder expression_binder(binder_context);
   
   for (unique_ptr<Expression> &expression : select_sql.expressions) {
+    if(expression->type() == ExprType::STAR){
+      StarExpr* star_expr = static_cast<StarExpr*>(expression.get());
+      if(!star_expr->alias().empty())return RC::INVALID_ARGUMENT;
+    }
     RC rc = expression_binder.bind_expression(expression, bound_expressions);
     if (OB_FAIL(rc)) {
       LOG_INFO("bind expression failed. rc=%s", strrc(rc));
