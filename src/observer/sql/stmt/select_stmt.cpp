@@ -160,8 +160,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   vector<bool> is_asc;
 
   for (auto& [expr, asc] : select_sql.order_by) {
-    unique_ptr<Expression> expression(expr);
-    RC rc = expression_binder.bind_expression(expression, order_by_expressions);
+    RC rc = expression_binder.bind_expression(expr, order_by_expressions);
     if (OB_FAIL(rc)) {
       LOG_INFO("bind expression failed. rc=%s", strrc(rc));
       return rc;

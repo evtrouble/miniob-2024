@@ -656,7 +656,8 @@ select_stmt:        /*  select 语句的语法解析树*/
         auto& conditions = $$->selection.conditions;
         if(conditions.conditions.size()){
           conditions.conditions.insert(conditions.conditions.begin(),
-            $5->conditions.begin(), $5->conditions.end());
+            std::make_move_iterator($5->conditions.begin()), 
+            std::make_move_iterator($5->conditions.end()));
           conditions.and_or = $5->and_or;
         }
         else swap(conditions, *$5);
@@ -823,7 +824,8 @@ rel_list:
           $3->relation_list.begin(), $3->relation_list.end());
         auto& conditions = $$->condition_list.conditions;
         conditions.insert(conditions.begin(), 
-          $3->condition_list.conditions.begin(), $3->condition_list.conditions.end());
+          std::make_move_iterator($3->condition_list.conditions.begin()), 
+          std::make_move_iterator($3->condition_list.conditions.end()));
       }
 
       $$->relation_list.emplace($$->relation_list.begin(), $1);
@@ -863,7 +865,8 @@ join_list:
 
       if($5 != nullptr){
         auto& conditions = $$->condition_list.conditions;
-        conditions.insert(conditions.end(), $5->conditions.begin(), $5->conditions.end());
+        conditions.insert(conditions.end(), std::make_move_iterator($5->conditions.begin()), 
+          std::make_move_iterator($5->conditions.end()));
         delete $5;
       }
     }
@@ -923,15 +926,15 @@ condition:
     expression comp_op expression
     {
       $$ = new ConditionSqlNode;
-      $$->left_expr = $1;
-      $$->right_expr = $3;
+      $$->left_expr = unique_ptr<Expression>($1);
+      $$->right_expr = unique_ptr<Expression>($3);
       $$->comp = $2;
     }
     | unary_op expression
     {
       $$ = new ConditionSqlNode;
-      $$->left_expr = new ValueExpr(Value((void*)nullptr));
-      $$->right_expr = $2;
+      $$->left_expr = unique_ptr<Expression>(new ValueExpr(Value((void*)nullptr)));
+      $$->right_expr = unique_ptr<Expression>($2);
       $$->comp = $1;
     }
     ;
@@ -1042,19 +1045,19 @@ order_by_unit:
     {
       $$ = new OrderByNode;
       $$->is_asc = true;
-      $$->expression = $1;
+      $$->expression = unique_ptr<Expression>($1);
     }
     | expression ASC
     {
       $$ = new OrderByNode;
       $$->is_asc = true;
-      $$->expression = $1;
+      $$->expression = unique_ptr<Expression>($1);
     }
     | expression DESC
     {
       $$ = new OrderByNode;
       $$->is_asc = false;
-      $$->expression = $1;
+      $$->expression = unique_ptr<Expression>($1);
     }
     ;
 

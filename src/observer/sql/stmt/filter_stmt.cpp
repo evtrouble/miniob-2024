@@ -20,7 +20,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 
-RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, const Conditions& conditions, 
+RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, Conditions& conditions, 
     FilterStmt *&stmt, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
     int fa)
 {
@@ -66,10 +66,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, const C
   };
   
   for (auto& cond : conditions.conditions){
-    unique_ptr<Expression> left(cond.left_expr);
-    unique_ptr<Expression> right(cond.right_expr);
-
-    unique_ptr<Expression> expr(new ComparisonExpr(cond.comp, std::move(left), std::move(right)));
+    unique_ptr<Expression> expr(new ComparisonExpr(cond.comp, std::move(cond.left_expr), std::move(cond.right_expr)));
     rc = expr->recursion(expr, bind_expression);
     if(rc != RC::SUCCESS){
         delete tmp_stmt;

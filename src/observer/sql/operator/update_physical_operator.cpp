@@ -39,6 +39,7 @@ RC UpdatePhysicalOperator::open(Trx *trx)
     LOG_WARN("failed to open child operator: %s", strrc(rc));
     return rc;
   }
+
   rc = find_target_columns();
   if (rc != RC::SUCCESS) {
     LOG_WARN("failed to find column info: %s", strrc(rc));
@@ -50,7 +51,7 @@ RC UpdatePhysicalOperator::open(Trx *trx)
   Tuple *tuple = nullptr;
   ctl = true;
   vector<Value> values(values_.size());
-  
+
   // 记录的有效性由事务来保证，如果事务不保证更新的有效性，那说明此事务类型不支持并发控制，比如VacuousTrx
   while (OB_SUCC(rc = child->next())) {
     tuple = child->current_tuple();

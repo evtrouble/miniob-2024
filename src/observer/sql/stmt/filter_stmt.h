@@ -40,7 +40,7 @@ public:
   const bool and_or() const { return and_or_; }
 
 public:
-  static RC create(Db *db, Table *default_table, tables_t& table_map, const Conditions& conditions, 
+  static RC create(Db *db, Table *default_table, tables_t& table_map, Conditions& conditions, 
     FilterStmt *&stmt, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
     int fa = -1);
 

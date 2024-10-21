@@ -65,7 +65,7 @@ RC DefaultConditionFilter::init(Table &table, const ConditionSqlNode &condition)
   AttrType type_left  = AttrType::UNDEFINED;
   AttrType type_right = AttrType::UNDEFINED;
 
-  FieldExpr *field_expr_left = dynamic_cast<FieldExpr*>(condition.left_expr);
+  FieldExpr *field_expr_left = dynamic_cast<FieldExpr*>(condition.left_expr.get());
   if(field_expr_left != nullptr)
   {
     left.is_attr = true;
@@ -78,7 +78,7 @@ RC DefaultConditionFilter::init(Table &table, const ConditionSqlNode &condition)
     left.attr_offset = field_left->offset();
     type_left = field_left->type();
   } else {
-    ValueExpr *value_expr = dynamic_cast<ValueExpr*>(condition.left_expr);
+    ValueExpr *value_expr = dynamic_cast<ValueExpr*>(condition.left_expr.get());
     ASSERT(value_expr != nullptr,"left_expr is not a valueExpr");
     left.is_attr = false;
     left.value = value_expr->get_value();
@@ -87,7 +87,7 @@ RC DefaultConditionFilter::init(Table &table, const ConditionSqlNode &condition)
     left.attr_offset = 0;
   }
 
-  FieldExpr *field_expr_right = dynamic_cast<FieldExpr*>(condition.right_expr);
+  FieldExpr *field_expr_right = dynamic_cast<FieldExpr*>(condition.right_expr.get());
   if(field_expr_right != nullptr)
   {
     right.is_attr = true;
@@ -100,7 +100,7 @@ RC DefaultConditionFilter::init(Table &table, const ConditionSqlNode &condition)
     right.attr_offset = field_right->offset();
     type_right = field_right->type();
   } else {
-    ValueExpr *value_expr = dynamic_cast<ValueExpr*>(condition.right_expr);
+    ValueExpr *value_expr = dynamic_cast<ValueExpr*>(condition.right_expr.get());
     ASSERT(value_expr != nullptr,"right_expr is not a valueExpr");
     right.is_attr = false;
     right.value = value_expr->get_value();

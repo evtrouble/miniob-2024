@@ -61,11 +61,12 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt,
   auto size = depends->size();
   for(auto& attribute_name : update.attribute_names){
     field = table_meta.field(attribute_name.c_str());
-    const AttrType field_type = field->type();
+    
     if (nullptr == field) {
       LOG_WARN("schema mismatch. field %s doesn't exist.", attribute_name.c_str());
       return RC::SCHEMA_FIELD_MISSING;
     }
+    const AttrType field_type = field->type();
     for (auto& value : update.values){
       if (ExprType::VALUE == value->type()){
         const AttrType value_type = value->value_type();

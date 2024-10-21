@@ -73,8 +73,8 @@ class ParsedSqlNode;
  */
 struct ConditionSqlNode
 {
-  Expression *left_expr;
-  Expression *right_expr;
+  std::unique_ptr<Expression> left_expr;
+  std::unique_ptr<Expression> right_expr;
   CompOp      comp;
 };
 
@@ -86,7 +86,7 @@ struct Conditions
 
 struct OrderByNode
 {
-  Expression *expression = nullptr;
+  std::unique_ptr<Expression> expression;
   bool        is_asc;  ///< 升序or降序
 };
 

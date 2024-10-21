@@ -227,7 +227,7 @@ public:
         int64_t offset = *(int64_t*)(this->record_->data() + field_meta->offset());
         int64_t length = *(int64_t*)(this->record_->data() + field_meta->offset() + sizeof(int64_t));
         // 输出日志，检查 offset 和 length
-        cout<<field_meta->offset()<<endl<<this->record_->data()<<endl;
+
         LOG_DEBUG("Text field: offset=%ld, length=%ld,size=%d", offset, length,sizeof(int64_t));
         char *text = (char*)malloc(length);
         // 设置读取到的TEXT数据内容
