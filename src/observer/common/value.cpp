@@ -536,13 +536,6 @@ bool Value::get_boolean() const
   return false;
 }
 
-void Value::set_vector_from_other(const Value &other)
-{
-  ASSERT(attr_type_ == AttrType::VECTORS, "attr type is not VECTORS");
-  if (own_data_ && other.value_.pointer_value_ != nullptr && length_ != 0) {
-    this->value_.vector_value_ = new vector<float>(*(other.value_.vector_value_));
-  }
-}
 int64_t Value::get_long() const
 {
   return value_.long_value_;
