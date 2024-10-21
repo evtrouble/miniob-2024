@@ -274,7 +274,41 @@ public:
   const char *filename() const { return file_name_.c_str(); }
 
   BufferPoolManager &bp_manager() const { return bp_manager_; }
+/**
+ * @brief 将数据追加到文件的末尾，并更新文件的页面计数。
+ * 
+ * @param[out] offset 文件末尾的偏移量，记录数据追加的起始位置。
+ * @param[in] length 要写入数据的长度（字节）。
+ * @param[in] data 指向要写入的数据的指针。
+ * 
+ * @return RC::SUCCESS 如果操作成功。
+ * @return RC::IOERR_SEEK 如果移动文件指针失败。
+ * @return RC::IOERR_WRITE 如果写入数据失败。
+ * 
+ * @details
+ * 该方法通过计算当前文件的末尾偏移量，将给定的数据写入该位置。
+ * 文件的页面计数会根据写入的数据长度进行更新，以保持页面对齐。
+ * 如果 lseek 或 writen 操作失败，则会记录错误日志并返回相应的错误码。
+ */
+  RC append_data(int64_t &offset, int64_t length, const char *data);
 
+/**
+ * @brief 从文件的指定偏移量读取数据。
+ * 
+ * @param[in] offset 要读取数据的起始位置（偏移量，以字节为单位）。
+ * @param[in] length 要读取数据的长度（字节）。
+ * @param[out] data 用于存储读取数据的缓冲区指针。
+ * 
+ * @return RC::SUCCESS 如果操作成功。
+ * @return RC::IOERR_SEEK 如果移动文件指针失败。
+ * @return RC::IOERR_READ 如果读取数据失败。
+ * 
+ * @details
+ * 该方法将文件指针移动到指定的偏移量，然后读取指定长度的数据并存储在
+ * 传入的缓冲区中。如果 lseek 或 readn 操作失败，则记录错误日志并返回错误码。
+ */
+  RC get_data(int64_t offset, int64_t length, char *data);
+  
 protected:
   RC allocate_frame(PageNum page_num, Frame **buf);
 

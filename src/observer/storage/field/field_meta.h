@@ -55,6 +55,8 @@ public:
   static RC from_json(const Json::Value &json_value, FieldMeta &field);
 
 protected:
+  const static int TEXT_FIELD_LENGTH = 16;
+protected:
   string   name_;
   AttrType attr_type_;
   int      attr_offset_;

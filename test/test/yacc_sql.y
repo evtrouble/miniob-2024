@@ -94,7 +94,6 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         STRING_T
         FLOAT_T
         DATE_T
-        VECTOR_T
         TEXT_T
         HELP
         EXIT
@@ -109,7 +108,6 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         OR
         SET
         ON
-        AS
         LOAD
         DATA
         LIKE
@@ -128,14 +126,11 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         LE
         GE
         NE
-        UNIQUE
-
 
 /** union 中定义各种数据类型，真实生成的代码也是union类型，所以不能有非POD类型的数据 **/
 %union {
   ParsedSqlNode *                            sql_node;
   ConditionSqlNode *                         condition;
-  HavingNode *                               having_list;
   Value *                                    value;
   enum CompOp                                comp;
   RelAttrSqlNode *                           rel_attr;
@@ -147,7 +142,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
   OrderByNode *                              order_by_unit;
   std::vector<Value> *                       value_list;
   std::vector<std::vector<Value>> *          values_list;
-  Conditions *                               condition_list;
+  std::vector<ConditionSqlNode> *            condition_list;
   std::vector<RelAttrSqlNode> *              rel_attr_list;
   std::vector<std::string> *                 relation_list;
   char *                                     string;
@@ -176,7 +171,6 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <number>              number
 %type <string>              relation
 %type <comp>                comp_op
-%type <boolean>             unique_option
 %type <comp>                unary_op
 %type <rel_attr>            rel_attr
 %type <attr_infos>          attr_def_list
@@ -184,20 +178,17 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <values_list>         values_list
 %type <value_list>          value_list
 %type <key_values>          key_values
-%type <expression>          assign_value
+%type <value>               assign_value
 %type <condition_list>      where
 %type <condition_list>      on
 %type <join_list>           join_list
 %type <condition_list>      condition_list
 %type <string>              storage_format
-%type <string>              alias
 %type <join_list>           rel_list
 %type <expression>          expression
 %type <expression_list>     expression_list
 %type <expression_list>     group_by
-%type <having_list>         having_list
-%type <having_list>         having_node
-%type <expression>          having_unit
+%type <condition_list>      having_list
 %type <order_by_list>       order_by
 %type <order_by_list>       order_by_list
 %type <order_by_unit>       order_by_unit
@@ -208,7 +199,6 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <sql_node>            delete_stmt
 %type <sql_node>            create_table_stmt
 %type <sql_node>            drop_table_stmt
-%type <sql_node>            show_index_stmt
 %type <sql_node>            show_tables_stmt
 %type <sql_node>            desc_table_stmt
 %type <sql_node>            create_index_stmt
@@ -226,9 +216,6 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 // commands should be a list but I use a single command instead
 %type <sql_node>            commands
 
-%left OR
-%left AND
-%left EQ LT GT LE GE NE
 %left '+' '-'
 %left '*' '/'
 %nonassoc UMINUS
@@ -239,7 +226,7 @@ commands: command_wrapper opt_semicolon  //commands or sqls. parser starts here.
     if($1 != nullptr){
       std::unique_ptr<ParsedSqlNode> sql_node = std::unique_ptr<ParsedSqlNode>($1);
       sql_result->add_sql_node(std::move(sql_node));
-    }
+    } 
   }
   ;
 
@@ -251,7 +238,6 @@ command_wrapper:
   | delete_stmt
   | create_table_stmt
   | drop_table_stmt
-  | show_index_stmt
   | show_tables_stmt
   | desc_table_stmt
   | create_index_stmt
@@ -308,14 +294,7 @@ drop_table_stmt:    /*drop table 语句的语法解析树*/
       $$->drop_table.relation_name = $3;
       free($3);
     };
-show_index_stmt:      /*show index 语句的语法解析树*/
-    SHOW INDEX FROM ID
-    {
-      $$ = new ParsedSqlNode(SCF_SHOW_INDEX);
-      $$->show_index.relation_name = $4;
-      free($4);
-    }
-    ;
+
 show_tables_stmt:
     SHOW TABLES {
       $$ = new ParsedSqlNode(SCF_SHOW_TABLES);
@@ -331,28 +310,19 @@ desc_table_stmt:
     ;
 
 create_index_stmt:    /*create index 语句的语法解析树*/
-    CREATE unique_option INDEX ID ON ID LBRACE ID RBRACE
+    CREATE INDEX ID ON ID LBRACE ID RBRACE
     {
       $$ = new ParsedSqlNode(SCF_CREATE_INDEX);
       CreateIndexSqlNode &create_index = $$->create_index;
-      create_index.unique = $2;
-      create_index.index_name = $4;
-      create_index.relation_name = $6;
-      create_index.attribute_name = $8;
-      free($4);
-      free($6);
-      free($8);
+      create_index.index_name = $3;
+      create_index.relation_name = $5;
+      create_index.attribute_name = $7;
+      free($3);
+      free($5);
+      free($7);
     }
     ;
-unique_option:
-    /* empty */
-    {
-      $$ = false;
-    }
-    | UNIQUE
-    {
-      $$ = true;
-    }
+
 drop_index_stmt:      /*drop index 语句的语法解析树*/
     DROP INDEX ID ON ID
     {
@@ -384,32 +354,6 @@ create_table_stmt:    /*create table 语句的语法解析树*/
         create_table.storage_format = $8;
         free($8);
       }
-    }
-    | CREATE TABLE ID LBRACE attr_def attr_def_list RBRACE AS select_stmt
-    {
-      $$ = $9;
-      $$->flag = SCF_CREATE_TABLE;
-      CreateTableSqlNode &create_table = $$->create_table;
-      create_table.relation_name = $3;
-      free($3);
-
-      std::vector<AttrInfoSqlNode> *src_attrs = $6;
-
-      if (src_attrs != nullptr) {
-        create_table.attr_infos.swap(*src_attrs);
-        delete src_attrs;
-      }
-      create_table.attr_infos.emplace_back(move(*$5));
-      std::reverse(create_table.attr_infos.begin(), create_table.attr_infos.end());
-      delete $5;
-    }
-    | CREATE TABLE ID AS select_stmt
-    {
-      $$ = $5;
-      $$->flag = SCF_CREATE_TABLE;
-      CreateTableSqlNode &create_table = $$->create_table;
-      create_table.relation_name = $3;
-      free($3);
     }
     ;
 attr_def_list:
@@ -473,13 +417,12 @@ type:
     INT_T      { $$ = static_cast<int>(AttrType::INTS); }
     | STRING_T { $$ = static_cast<int>(AttrType::CHARS); }
     | FLOAT_T  { $$ = static_cast<int>(AttrType::FLOATS); }
-    | VECTOR_T { $$ = static_cast<int>(AttrType::VECTORS); }
     | TEXT_T   { $$ = static_cast<int>(AttrType::TEXTS);}
     ;
 date_type:
     DATE_T   {$$ = static_cast<int>(AttrType::DATES);}
     ;
-
+    
 insert_stmt:        /*insert   语句的语法解析树*/
     INSERT INTO ID VALUES values_list
     {
@@ -490,7 +433,7 @@ insert_stmt:        /*insert   语句的语法解析树*/
         std::reverse($$->insertion.values.begin(), $$->insertion.values.end());
         delete $5;
       }
-
+      
       free($3);
     }
     ;
@@ -516,29 +459,18 @@ values_list:
     ;
 
 value_list:
-    expression {
+    value {
       $$ = new std::vector<Value>;
-      Value temp;
-      if(OB_FAIL($1->try_get_value(temp))){
-        yyerror(&@$, sql_string, sql_result, scanner, "error");
-        YYERROR;
-      }
-      $$->emplace_back(temp);
+      $$->emplace_back(move(*$1));
       delete $1;
     }
-    | expression COMMA value_list  {
-      Value temp;
+    | value COMMA value_list  {
       if ($3 != nullptr) {
         $$ = $3;
       } else {
         $$ = new std::vector<Value>;
       }
-      if(OB_FAIL($1->try_get_value(temp))){
-        yyerror(&@$, sql_string, sql_result, scanner, "error");
-        YYERROR;
-      }
-
-      $$->emplace($$->begin(), move(temp));
+      $$->emplace($$->begin(), move(*$1));
       delete $1;
     }
     ;
@@ -552,9 +484,8 @@ value:
       @$ = @1;
     }
     |SSS {
-      int len = strlen($1)-2;
-      char *tmp = common::substr($1,1,len);
-      $$ = new Value(tmp, len);
+      char *tmp = common::substr($1,1,strlen($1)-2);
+      $$ = new Value(tmp);
       free(tmp);
       free($1);
     }
@@ -586,7 +517,7 @@ delete_stmt:    /*  delete 语句的语法解析树*/
       $$ = new ParsedSqlNode(SCF_DELETE);
       $$->deletion.relation_name = $3;
       if ($4 != nullptr) {
-        swap($$->deletion.conditions, *$4);
+        $$->deletion.conditions.swap(*$4);
         delete $4;
       }
       free($3);
@@ -599,12 +530,12 @@ update_stmt:      /*  update 语句的语法解析树*/
       $$->update.relation_name = $2;
       $$->update.attribute_names.swap($4->relation_list);
       $$->update.values.swap($4->value_list);
-
+      
       delete $4;
       free($2);
 
       if($5 != nullptr){
-        swap($$->update.conditions, *$5);
+        $$->update.conditions.swap(*$5);
         delete $5;
       }
     }
@@ -616,7 +547,8 @@ key_values:
       $$ = new Key_values;
       $$->relation_list.emplace_back(move($1));
       free($1);
-      $$->value_list.emplace_back(unique_ptr<Expression>($3));
+      $$->value_list.emplace_back(move(*$3));
+      delete $3;
     }
     | ID EQ assign_value COMMA key_values
     {
@@ -628,16 +560,21 @@ key_values:
 
       $$->relation_list.emplace_back(move($1));
       free($1);
-      $$->value_list.emplace_back(unique_ptr<Expression>($3));
+      $$->value_list.emplace_back(move(*$3));
+      delete $3;
     }
     ;
 
 assign_value:
-    expression { $$ = $1; }
+    value { $$ = $1; }
+    | LBRACE select_stmt RBRACE
+    {
+      $$ = new Value($2);
+    }
     ;
 
 select_stmt:        /*  select 语句的语法解析树*/
-    SELECT expression_list FROM rel_list where group_by having_node order_by
+    SELECT expression_list FROM rel_list where group_by having_list order_by
     {
       $$ = new ParsedSqlNode(SCF_SELECT);
       if ($2 != nullptr) {
@@ -646,31 +583,24 @@ select_stmt:        /*  select 语句的语法解析树*/
       }
 
       if ($4 != nullptr) {
-        $$->selection.relations.swap($4->relation_list);
-        $$->selection.alias.swap($4->alias_list);
-        swap($$->selection.conditions, $4->condition_list);
+        $$->selection.relations.swap(*($4->relation_list));
+        $$->selection.conditions.swap(*($4->condition_list));
+        delete $4->relation_list;
+        delete $4->condition_list;
         delete $4;
       }
 
       if ($5 != nullptr) {
-        auto& conditions = $$->selection.conditions;
-        if(conditions.conditions.size()){
-          conditions.conditions.insert(conditions.conditions.begin(),
-            $5->conditions.begin(), $5->conditions.end());
-          conditions.and_or = $5->and_or;
-        }
-        else swap(conditions, *$5);
+        if($$->selection.conditions.size())
+          $$->selection.conditions.insert($$->selection.conditions.begin(), 
+            $5->begin(), $5->end());
+        else $$->selection.conditions.swap(*$5);
         delete $5;
       }
 
       if ($6 != nullptr) {
         $$->selection.group_by.swap(*$6);
         delete $6;
-      }
-
-      if ($7 != nullptr) {
-        swap($$->selection.having_list, *$7);
-        delete $7;
       }
 
       if($8 != nullptr){
@@ -690,25 +620,17 @@ calc_stmt:
     ;
 
 expression_list:
-    expression alias
+    expression
     {
       $$ = new std::vector<std::unique_ptr<Expression>>;
-      if($2 != nullptr){
-        $1->set_alias($2);
-        free($2);
-      }
       $$->emplace_back(move($1));
     }
-    | expression alias COMMA expression_list
+    | expression COMMA expression_list
     {
-      if ($4 != nullptr) {
-        $$ = $4;
+      if ($3 != nullptr) {
+        $$ = $3;
       } else {
         $$ = new std::vector<std::unique_ptr<Expression>>;
-      }
-      if($2 != nullptr){
-        $1->set_alias($2);
-        free($2);
       }
       $$->emplace($$->begin(), move($1));
     }
@@ -726,17 +648,17 @@ expression:
     | expression '/' expression {
       $$ = create_arithmetic_expression(ArithmeticExpr::Type::DIV, $1, $3, sql_string, &@$);
     }
-    | LBRACE expression_list RBRACE {
-      if ($2->size() == 1) {
-        $$ = ($2->front()).release();
-      } else {
-        $$ = new ValueListExpr(*$2);
-      }
+    | LBRACE expression RBRACE {
+      $$ = $2;
       $$->set_name(token_name(sql_string, &@$));
-      delete $2;
     }
     | '-' expression %prec UMINUS {
       $$ = create_arithmetic_expression(ArithmeticExpr::Type::NEGATIVE, $2, nullptr, sql_string, &@$);
+    }
+    | value {
+      $$ = new ValueExpr(*$1);
+      $$->set_name(token_name(sql_string, &@$));
+      delete $1;
     }
     | rel_attr {
       RelAttrSqlNode *node = $1;
@@ -756,14 +678,6 @@ expression:
     | ID LBRACE RBRACE {
       $$ = create_aggregate_expression("", nullptr, sql_string, &@$);
       free($1);
-    }
-    | LBRACE select_stmt RBRACE {
-      $$ = new SelectExpr($2);
-    }
-    | value {
-        $$ = new ValueExpr(*$1);
-        $$->set_name(token_name(sql_string, &@$));
-        delete $1;
     }
     // your code here
     ;
@@ -795,90 +709,97 @@ relation:
     }
     ;
 rel_list:
-    relation alias join_list {
+    relation {
+      $$ = new Joins;
+      $$->relation_list = new std::vector<std::string>;
+      $$->condition_list = new std::vector<ConditionSqlNode>;
+      $$->relation_list->push_back($1);
+      free($1);
+    }
+    | relation COMMA rel_list {
       if ($3 != nullptr) {
         $$ = $3;
       } else {
         $$ = new Joins;
+        $$->relation_list = new std::vector<std::string>;
+        $$->condition_list = new std::vector<ConditionSqlNode>;
       }
 
-      $$->relation_list.emplace($$->relation_list.begin(), $1);
+      $$->relation_list->insert($$->relation_list->begin(), $1);
       free($1);
-      if($2 != nullptr){
-        $$->alias_list.emplace($$->alias_list.begin(), $2);
-        free($2);
-      } else {
-        $$->alias_list.emplace($$->alias_list.begin(), string());
-      }
     }
-    | relation alias join_list COMMA rel_list{
-      if ($5 != nullptr) {
-        $$ = $5;
+    | relation join_list {
+      $$ = new Joins;
+      $$->relation_list = new std::vector<std::string>;
+      $$->condition_list = new std::vector<ConditionSqlNode>;
+
+      $$->relation_list->emplace_back(move($1));
+      $$->relation_list->insert($$->relation_list->end(), 
+        $2->relation_list->begin(), $2->relation_list->end());
+      $$->condition_list->insert($$->condition_list->begin(), 
+        $2->condition_list->begin(), $2->condition_list->end());
+
+      delete $2->relation_list;
+      delete $2->condition_list;
+      delete $2;
+      free($1);
+    }
+    | relation join_list COMMA rel_list{
+      if ($4 != nullptr) {
+        $$ = $4;
       } else {
         $$ = new Joins;
+        $$->relation_list = new std::vector<std::string>;
+        $$->condition_list = new std::vector<ConditionSqlNode>;
       }
 
-      if($3 != nullptr){
-        $$->relation_list.insert($$->relation_list.begin(), 
-          $3->relation_list.begin(), $3->relation_list.end());
-        auto& conditions = $$->condition_list.conditions;
-        conditions.insert(conditions.begin(), 
-          $3->condition_list.conditions.begin(), $3->condition_list.conditions.end());
-      }
+      $$->relation_list->insert($$->relation_list->begin(), 
+        $2->relation_list->begin(), $2->relation_list->end());
+      $$->relation_list->insert($$->relation_list->begin(), $1);
+      $$->condition_list->insert($$->condition_list->begin(), 
+        $2->condition_list->begin(), $2->condition_list->end());
 
-      $$->relation_list.emplace($$->relation_list.begin(), $1);
-      if($2 != nullptr){
-        $$->alias_list.emplace($$->alias_list.begin(), $2);
-        free($2);
-      } else {
-        $$->alias_list.emplace($$->alias_list.begin(), string());
-      }
-
-      delete $3;
+      delete $2->relation_list;
+      delete $2->condition_list;
+      delete $2;
       free($1);
     }
     ;
 
 join_list:
-    /* empty */
+    INNER JOIN relation on
     {
-      $$ = nullptr;
-    }
-    | INNER JOIN relation alias on join_list
-    {
-      if ($6 != nullptr) {
-        $$ = $6;
-      } else {
-        $$ = new Joins;
-      }
+      $$ = new Joins;
+      $$->relation_list = new std::vector<std::string>;
+      $$->condition_list = new std::vector<ConditionSqlNode>;
+      $$->relation_list->emplace_back(move($3));
 
-      $$->relation_list.emplace($$->relation_list.begin(), $3);
       free($3);
       if($4 != nullptr){
-        $$->alias_list.emplace($$->alias_list.begin(), $4);
-        free($4);
+        $$->condition_list->insert($$->condition_list->end(), $4->begin(), $4->end());
+        delete $4;
+      }
+      
+    }
+    | INNER JOIN relation on join_list
+    {
+      if ($5 != nullptr) {
+        $$ = $5;
       } else {
-        $$->alias_list.emplace($$->alias_list.begin(), string());
+        $$ = new Joins;
+        $$->relation_list = new std::vector<std::string>;
+        $$->condition_list = new std::vector<ConditionSqlNode>;
       }
 
-      if($5 != nullptr){
-        auto& conditions = $$->condition_list.conditions;
-        conditions.insert(conditions.end(), $5->conditions.begin(), $5->conditions.end());
-        delete $5;
+      $$->relation_list->emplace($$->relation_list->begin(), move($3));
+      free($3);
+
+      if($4 != nullptr){
+        $$->condition_list->insert($$->condition_list->end(), $4->begin(), $4->end());
+        delete $4;
       }
     }
     ;
-
-alias:
-    /* empty */ {
-      $$ = nullptr;
-    }
-    | ID {
-      $$ = $1;
-    }
-    | AS ID {
-      $$ = $2;
-    }
 
 on:
     /* empty */
@@ -902,37 +823,170 @@ where:
     }
     ;
 condition_list:
-    condition {
-      $$ = new Conditions;
-      $$->conditions.emplace_back(move(*$1));
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | condition {
+      $$ = new std::vector<ConditionSqlNode>;
+      $$->emplace_back(move(*$1));
       delete $1;
     }
     | condition AND condition_list {
       $$ = $3;
-      $$->conditions.emplace_back(move(*$1));
+      $$->emplace_back(move(*$1));
       delete $1;
     }
     | condition OR condition_list {
       $$ = $3;
-      $$->and_or = true;
-      $$->conditions.emplace_back(move(*$1));
+      $$->emplace_back(move(*$1));
       delete $1;
     }
     ;
 condition:
-    expression comp_op expression
+    rel_attr comp_op value
     {
       $$ = new ConditionSqlNode;
-      $$->left_expr = $1;
-      $$->right_expr = $3;
+      $$->left_type = 1;
+      $$->left_attr = *$1;
+      $$->right_type = 0;
+      $$->right_value = *$3;
       $$->comp = $2;
+
+      delete $1;
+      delete $3;
     }
-    | unary_op expression
+    | value comp_op value
     {
       $$ = new ConditionSqlNode;
-      $$->left_expr = new ValueExpr(Value((void*)nullptr));
-      $$->right_expr = $2;
+      $$->left_type = 0;
+      $$->left_value = *$1;
+      $$->right_type = 0;
+      $$->right_value = *$3;
+      $$->comp = $2;
+
+      delete $1;
+      delete $3;
+    }
+    | rel_attr comp_op rel_attr
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 1;
+      $$->left_attr = *$1;
+      $$->right_type = 1;
+      $$->right_attr = *$3;
+      $$->comp = $2;
+
+      delete $1;
+      delete $3;
+    }
+    | value comp_op rel_attr
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 0;
+      $$->left_value = *$1;
+      $$->right_type = 1;
+      $$->right_attr = *$3;
+      $$->comp = $2;
+
+      delete $1;
+      delete $3;
+    }
+    | rel_attr comp_op LBRACE select_stmt RBRACE
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 1;
+      $$->left_attr = *$1;
+      $$->right_type = 2;
+      $$->right_select = unique_ptr<ParsedSqlNode>($4);
+      $$->comp = $2;
+
+      delete $1;
+    }
+    | value comp_op LBRACE select_stmt RBRACE
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 0;
+      $$->left_value = *$1;
+      $$->right_type = 2;
+      $$->right_select = unique_ptr<ParsedSqlNode>($4);
+      $$->comp = $2;
+
+      delete $1;
+    }
+    | unary_op LBRACE select_stmt RBRACE
+    {
+      $$ = new ConditionSqlNode;
+      $$->right_type = 2;
+      $$->right_select = unique_ptr<ParsedSqlNode>($3);
+      $$->left_type = 0;
+      $$->left_value = Value((void*)nullptr);
       $$->comp = $1;
+    }
+    | rel_attr IS NULL_T
+    {
+      $$ = new ConditionSqlNode;
+      $$->right_type = 0;
+      $$->right_value = Value((void*)nullptr);
+      $$->left_type = 1;
+      $$->comp = IS_NULL;
+      $$->left_attr = *$1;
+
+      delete $1;
+    }
+    | rel_attr IS NOT NULL_T
+    {
+      $$ = new ConditionSqlNode;
+      $$->right_type = 0;
+      $$->right_value = Value((void*)nullptr);
+      $$->left_type = 1;
+      $$->comp = IS_NOT_NULL;
+      $$->left_attr = *$1;
+
+      delete $1;
+    }
+    | LBRACE select_stmt RBRACE comp_op LBRACE select_stmt RBRACE
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 2;
+      $$->left_select = unique_ptr<ParsedSqlNode>($2);
+      $$->right_type = 2;
+      $$->right_select = unique_ptr<ParsedSqlNode>($6);
+      $$->comp = $4;
+    }
+    | LBRACE select_stmt RBRACE comp_op value
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 2;
+      $$->left_select = unique_ptr<ParsedSqlNode>($2);
+      $$->right_type = 0;
+      $$->right_value = *$5;
+      $$->comp = $4;
+
+      delete $5;
+    }
+    | LBRACE select_stmt RBRACE comp_op rel_attr
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 2;
+      $$->left_select = unique_ptr<ParsedSqlNode>($2);
+      $$->right_type = 1;
+      $$->right_attr = *$5;
+      $$->comp = $4;
+
+      delete $5;
+    }
+    | rel_attr comp_op LBRACE value_list RBRACE
+    {
+      $$ = new ConditionSqlNode;
+      $$->left_type = 1;
+      $$->left_attr = *$1;
+      $$->right_type = 3;
+      $$->right_value_list.swap(*$4);
+      $$->comp = $2;
+
+      delete $1;
+      delete $4;
     }
     ;
 
@@ -947,8 +1001,6 @@ comp_op:
     | NE { $$ = NOT_EQUAL; }
     | IN { $$ = IN_OP; }
     | NOT IN { $$ = NOT_IN; }
-    | IS { $$ = IS_NULL; }
-    | IS NOT { $$ = IS_NOT_NULL; }
     ;
 
 unary_op:
@@ -968,42 +1020,14 @@ group_by:
     }
     ;
 
-having_node:
+having_list:
     /* empty */
     {
       $$ = nullptr;
     }
-    | HAVING having_list
+    | HAVING condition_list
     {
-      $$ = $2;
-    }
-    ;
-
-having_list:
-    having_unit
-    {
-      $$ = new HavingNode;
-      $$->having_list.emplace_back(move($1));
-    }
-    | having_unit OR having_list
-    {
-      $$ = $3;
-      $$->having_list.emplace_back(move($1));
-      $$->and_or = true;
-    }
-    | having_unit AND having_list
-    {
-      $$ = $3;
-      $$->having_list.emplace_back(move($1));
-    }
-    ;
-
-having_unit:
-    expression comp_op expression
-    {
-      unique_ptr<Expression> left($1);
-      unique_ptr<Expression> right($3);
-      $$ = new ComparisonExpr($2, std::move(left), std::move(right));
+      $$ =$2;
     }
     ;
 

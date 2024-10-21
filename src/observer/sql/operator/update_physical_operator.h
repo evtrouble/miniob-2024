@@ -41,10 +41,14 @@ public:
 
   Tuple *current_tuple() override { return nullptr; }
   RC init(vector<Value> &values);
+  // 查找待更新列的序号、偏移量、长度、类型
+  RC find_target_columns();
 
 private:
   Table             *table_ = nullptr;
   std::vector<const FieldMeta *> fields_;
+  std::vector<int> fields_id_;
+  std::vector<FieldMeta> fields_meta_;
   const std::vector<unique_ptr<Expression>> values_;
   Trx                *trx_   = nullptr;
   bool               ctl = false;

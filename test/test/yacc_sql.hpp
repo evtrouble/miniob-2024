@@ -83,47 +83,44 @@ extern int yydebug;
     STRING_T = 284,                /* STRING_T  */
     FLOAT_T = 285,                 /* FLOAT_T  */
     DATE_T = 286,                  /* DATE_T  */
-    VECTOR_T = 287,                /* VECTOR_T  */
-    TEXT_T = 288,                  /* TEXT_T  */
-    HELP = 289,                    /* HELP  */
-    EXIT = 290,                    /* EXIT  */
-    DOT = 291,                     /* DOT  */
-    INTO = 292,                    /* INTO  */
-    VALUES = 293,                  /* VALUES  */
-    FROM = 294,                    /* FROM  */
-    WHERE = 295,                   /* WHERE  */
-    INNER = 296,                   /* INNER  */
-    JOIN = 297,                    /* JOIN  */
-    AND = 298,                     /* AND  */
-    OR = 299,                      /* OR  */
-    SET = 300,                     /* SET  */
-    ON = 301,                      /* ON  */
-    AS = 302,                      /* AS  */
-    LOAD = 303,                    /* LOAD  */
-    DATA = 304,                    /* DATA  */
-    LIKE = 305,                    /* LIKE  */
-    NULL_T = 306,                  /* NULL_T  */
-    EXISTS = 307,                  /* EXISTS  */
-    IN = 308,                      /* IN  */
-    IS = 309,                      /* IS  */
-    NOT = 310,                     /* NOT  */
-    INFILE = 311,                  /* INFILE  */
-    EXPLAIN = 312,                 /* EXPLAIN  */
-    STORAGE = 313,                 /* STORAGE  */
-    FORMAT = 314,                  /* FORMAT  */
-    EQ = 315,                      /* EQ  */
-    LT = 316,                      /* LT  */
-    GT = 317,                      /* GT  */
-    LE = 318,                      /* LE  */
-    GE = 319,                      /* GE  */
-    NE = 320,                      /* NE  */
-    UNIQUE = 321,                  /* UNIQUE  */
-    NUMBER = 322,                  /* NUMBER  */
-    FLOAT = 323,                   /* FLOAT  */
-    ID = 324,                      /* ID  */
-    SSS = 325,                     /* SSS  */
-    DATE_VALUE = 326,              /* DATE_VALUE  */
-    UMINUS = 327                   /* UMINUS  */
+    TEXT_T = 287,                  /* TEXT_T  */
+    HELP = 288,                    /* HELP  */
+    EXIT = 289,                    /* EXIT  */
+    DOT = 290,                     /* DOT  */
+    INTO = 291,                    /* INTO  */
+    VALUES = 292,                  /* VALUES  */
+    FROM = 293,                    /* FROM  */
+    WHERE = 294,                   /* WHERE  */
+    INNER = 295,                   /* INNER  */
+    JOIN = 296,                    /* JOIN  */
+    AND = 297,                     /* AND  */
+    OR = 298,                      /* OR  */
+    SET = 299,                     /* SET  */
+    ON = 300,                      /* ON  */
+    LOAD = 301,                    /* LOAD  */
+    DATA = 302,                    /* DATA  */
+    LIKE = 303,                    /* LIKE  */
+    NULL_T = 304,                  /* NULL_T  */
+    EXISTS = 305,                  /* EXISTS  */
+    IN = 306,                      /* IN  */
+    IS = 307,                      /* IS  */
+    NOT = 308,                     /* NOT  */
+    INFILE = 309,                  /* INFILE  */
+    EXPLAIN = 310,                 /* EXPLAIN  */
+    STORAGE = 311,                 /* STORAGE  */
+    FORMAT = 312,                  /* FORMAT  */
+    EQ = 313,                      /* EQ  */
+    LT = 314,                      /* LT  */
+    GT = 315,                      /* GT  */
+    LE = 316,                      /* LE  */
+    GE = 317,                      /* GE  */
+    NE = 318,                      /* NE  */
+    NUMBER = 319,                  /* NUMBER  */
+    FLOAT = 320,                   /* FLOAT  */
+    ID = 321,                      /* ID  */
+    SSS = 322,                     /* SSS  */
+    DATE_VALUE = 323,              /* DATE_VALUE  */
+    UMINUS = 324                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -132,11 +129,10 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 135 "yacc_sql.y"
+#line 131 "yacc_sql.y"
 
   ParsedSqlNode *                            sql_node;
   ConditionSqlNode *                         condition;
-  HavingNode *                               having_list;
   Value *                                    value;
   enum CompOp                                comp;
   RelAttrSqlNode *                           rel_attr;
@@ -148,7 +144,7 @@ union YYSTYPE
   OrderByNode *                              order_by_unit;
   std::vector<Value> *                       value_list;
   std::vector<std::vector<Value>> *          values_list;
-  Conditions *                               condition_list;
+  std::vector<ConditionSqlNode> *            condition_list;
   std::vector<RelAttrSqlNode> *              rel_attr_list;
   std::vector<std::string> *                 relation_list;
   char *                                     string;
@@ -158,7 +154,7 @@ union YYSTYPE
   Joins *                                    join_list;
   Key_values *                               key_values;
 
-#line 162 "yacc_sql.hpp"
+#line 158 "yacc_sql.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

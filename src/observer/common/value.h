@@ -19,6 +19,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/type/attr_type.h"
 #include "common/type/data_type.h"
 
+static constexpr int MAX_TEXT_LENGTH = 65535;//设置TEXT数据的最大长度
 class Date;
 class ParsedSqlNode;
 
@@ -52,6 +53,7 @@ public:
   explicit Value(bool val);
   explicit Value(const char *s, int len = 0);
   explicit Value(const Date *s, int len = 0);
+  explicit Value(int64_t val);//添加int64_t的Value构造函数
 
   Value(const Value &other) noexcept;
   Value(Value &&other) noexcept;
@@ -162,6 +164,7 @@ public:
   void set_vector(const char *data);
   void set_vector(vector<float>* embedding);
   void set_null();
+  void set_long(int64_t val);
 
   string to_string() const;
 
@@ -181,6 +184,7 @@ public:
   float  get_float() const;
   string get_string() const;
   bool   get_boolean() const;
+  int64_t get_long() const;
 
 private:
   void set_int(int val);
@@ -203,6 +207,8 @@ private:
     bool    bool_value_;
     char   *pointer_value_;
     vector<float>   *vector_value_;
+    ParsedSqlNode   *select_value_;
+    int64_t long_value_;
   } value_ = {.int_value_ = 0};
 
   /// 是否申请并占有内存, 目前对于 CHARS 类型 own_data_ 为true, 其余类型 own_data_ 为false

@@ -76,8 +76,8 @@ QUOTE            [\'\"]
 {WHITE_SAPCE}                                        // ignore whitespace
 \n                                                   ;
 
-{DIGIT}+                                yylval->number=atoi(yytext); RETURN_TOKEN(NUMBER);
-{DIGIT}+{DOT}{DIGIT}+                   yylval->floats=(float)(atof(yytext)); RETURN_TOKEN(FLOAT);
+[\-]?{DIGIT}+                           yylval->number=atoi(yytext); RETURN_TOKEN(NUMBER);
+[\-]?{DIGIT}+{DOT}{DIGIT}+              yylval->floats=(float)(atof(yytext)); RETURN_TOKEN(FLOAT);
 ";"                                     RETURN_TOKEN(SEMICOLON);
 {DOT}                                   RETURN_TOKEN(DOT);
 EXIT                                    RETURN_TOKEN(EXIT);
@@ -98,7 +98,6 @@ INNER                                   RETURN_TOKEN(INNER);
 WHERE                                   RETURN_TOKEN(WHERE);
 AND                                     RETURN_TOKEN(AND);
 OR                                      RETURN_TOKEN(OR);
-AS                                      RETURN_TOKEN(AS);
 INSERT                                  RETURN_TOKEN(INSERT);
 INTO                                    RETURN_TOKEN(INTO);
 VALUES                                  RETURN_TOKEN(VALUES);
@@ -112,10 +111,9 @@ INT                                     RETURN_TOKEN(INT_T);
 CHAR                                    RETURN_TOKEN(STRING_T);
 FLOAT                                   RETURN_TOKEN(FLOAT_T);
 DATE                                    RETURN_TOKEN(DATE_T);
-VECTOR                                  RETURN_TOKEN(VECTOR_T);
-TEXT                                    RETURN_TOKEN(TEXT_T);
 LOAD                                    RETURN_TOKEN(LOAD);
 DATA                                    RETURN_TOKEN(DATA);
+TEXT                                    RETURN_TOKEN(TEXT_T);
 LIKE                                    RETURN_TOKEN(LIKE);
 EXISTS                                  RETURN_TOKEN(EXISTS);
 IS                                      RETURN_TOKEN(IS);
@@ -124,7 +122,6 @@ NOT                                     RETURN_TOKEN(NOT);
 NULL                                    RETURN_TOKEN(NULL_T);
 ASC                                     RETURN_TOKEN(ASC);
 DESC                                    RETURN_TOKEN(DESC);
-UNIQUE                                  RETURN_TOKEN(UNIQUE);
 INFILE                                  RETURN_TOKEN(INFILE);
 EXPLAIN                                 RETURN_TOKEN(EXPLAIN);
 ORDER                                   RETURN_TOKEN(ORDER);

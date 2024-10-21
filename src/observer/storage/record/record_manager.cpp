@@ -266,11 +266,27 @@ RC RecordPageHandler::cleanup()
   return RC::SUCCESS;
 }
 
+
+//插入记录操作
+/**
+ * @brief 插入一条记录到数据库中
+ *
+ * 该函数将一条记录的数据插入到数据库中，并生成相应的记录标识符（rid）。
+ * 插入操作成功后，rid 用于唯一标识该条记录。
+ *
+ * @param data   待插入记录的数据，通常为原始字节或结构体
+ * @param rid    输出参数，保存插入记录的记录标识符
+ *               插入成功后，rid 指向插入记录的位置
+ * 
+ * @author 徐沛秦
+ */
 RC RowRecordPageHandler::insert_record(const char *data, RID *rid)
 {
+  //只读模式检查
   ASSERT(rw_mode_ != ReadWriteMode::READ_ONLY, 
          "cannot insert record into page while the page is readonly");
 
+  //页满检查
   if (page_header_->record_num == page_header_->record_capacity) {
     LOG_WARN("Page is full, page_num %d:%d.", disk_buffer_pool_->file_desc(), frame_->page_num());
     return RC::RECORD_NOMEM;
