@@ -524,13 +524,22 @@ RC Table::read_text(int64_t offset, int64_t length, char *data) const
 
 RC Table::init_text_handler(const char *base_dir)
 {
+  RC rc = RC::SUCCESS;
   std::string text_file = table_text_file(base_dir, table_meta_.name());
   BufferPoolManager &bpm = db_->buffer_pool_manager();
-  RC rc = bpm.open_file(db_->log_handler(),text_file.c_str(), text_buffer_pool_);
-  if (rc != RC::SUCCESS) {
-    LOG_ERROR("Failed to open disk buffer pool for file:%s. rc=%d:%s", text_file.c_str(), rc, strrc(rc));
+  bool exist = false;
+  int fd = ::open(text_file.c_str(), O_RDONLY, 0600);
+  if (fd >= 0) exist = true;
+  close(fd);
+  if(exist){
+    RC rc = bpm.open_file(db_->log_handler(),text_file.c_str(), text_buffer_pool_);
+    if (rc != RC::SUCCESS) {
+      LOG_ERROR("Failed to open disk buffer pool for file:%s. rc=%d:%s", text_file.c_str(), rc, strrc(rc));
     return rc;
+    }
   }
+
+
   return rc;
 }
 
