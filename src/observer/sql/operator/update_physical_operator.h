@@ -47,8 +47,6 @@ public:
 private:
   Table             *table_ = nullptr;
   std::vector<const FieldMeta *> fields_;
-  std::vector<int> fields_id_;
-  std::vector<FieldMeta> fields_meta_;
   const std::vector<unique_ptr<Expression>> values_;
   Trx                *trx_   = nullptr;
   bool               ctl = false;

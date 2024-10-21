@@ -40,14 +40,8 @@ RC UpdatePhysicalOperator::open(Trx *trx)
     return rc;
   }
 
-  rc = find_target_columns();
-  if (rc != RC::SUCCESS) {
-    LOG_WARN("failed to find column info: %s", strrc(rc));
-    return rc;
-  }
   trx_ = trx;
 
-  vector<size_t> select_ids;
   Tuple *tuple = nullptr;
   ctl = true;
   vector<Value> values(values_.size());
@@ -85,45 +79,6 @@ RC UpdatePhysicalOperator::open(Trx *trx)
   child->close();
   return rc;
 }
-
-RC UpdatePhysicalOperator::find_target_columns()
-{
-  const int sys_field_num  = table_->table_meta().sys_field_num();
-  const int user_field_num = table_->table_meta().field_num() - sys_field_num;
-
-  for (size_t c_idx = 0; c_idx < fields_.size(); c_idx++) {
-    const FieldMeta* field_meta = fields_[c_idx];
-    std::string attr_name = field_meta->name();
-
-    // 先找到要更新的列，获取该列的 id、FieldMeta(offset、length、type)
-    for (int i = 0; i < user_field_num; ++i) {
-      const FieldMeta *field_meta = table_->table_meta().field(i + sys_field_num);
-      const char      *field_name = field_meta->name();
-      if (0 != strcmp(field_name, attr_name.c_str())) {
-        continue;
-      }
-
-      // 判断 类型是否符合要求
-      const AttrType value_type = values_[c_idx]->value_type();
-      if (AttrType::NULLS == value_type && field_meta->nullable()) {
-        // ok
-      } else if (value_type != field_meta->type()) {
-        if (AttrType::TEXTS == field_meta->type() && AttrType::CHARS == value_type) {
-        } else {
-          LOG_WARN("field type mismatch. table=%s, field=%s, field type=%d, value_type=%d",
-                  table_->name(), attr_name.c_str(), field_meta->type(), value_type);
-          return RC::SCHEMA_FIELD_TYPE_MISMATCH;
-        }
-      }
-      fields_id_.emplace_back(i + sys_field_num);
-      fields_meta_.emplace_back(*field_meta);
-      break;
-    }
-  }
-  
-  return RC::SUCCESS;
-}
-
 
 RC UpdatePhysicalOperator::next()
 {
