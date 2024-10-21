@@ -67,11 +67,13 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt,
       return RC::SCHEMA_FIELD_MISSING;
     }
     for (auto& value : update.values){
-      const AttrType value_type = value.attr_type();
-      if (AttrType::TEXTS == field_type && AttrType::CHARS == value_type){
-        if (MAX_TEXT_LENGTH < value.length()) {
-          LOG_WARN("Text length:%d, over max_length 65535", value.length());
-          return RC::INVALID_ARGUMENT;
+      if (ExprType::VALUE == value->type()){
+        const AttrType value_type = value->value_type();
+        if (AttrType::TEXTS == field_type && AttrType::CHARS == value_type){
+          if (MAX_TEXT_LENGTH < value->value_length()) {
+            LOG_WARN("Text length:%d, over max_length 65535", value->value_length());
+            return RC::INVALID_ARGUMENT;
+          }
         }
       }
     }

@@ -310,17 +310,21 @@ RC Table::update_record(const RID &rid, std::vector<const FieldMeta *> &fields, 
     }
 
     if (value.attr_type() != AttrType::NULLS && field->type() != value.attr_type()) {
-      Value real_value;
-      rc = Value::cast_to(value, field->type(), real_value);
-      if (OB_FAIL(rc)) {
-        LOG_WARN("failed to cast value. table name:%s,field name:%s,value:%s ",
+      if (AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()){
+        rc = set_value_to_record(record.data(), value, field);
+      }else{      
+        Value real_value;
+        rc = Value::cast_to(value, field->type(), real_value);
+        if (OB_FAIL(rc)) {
+          LOG_WARN("failed to cast value. table name:%s,field name:%s,value:%s ",
             table_meta_.name(), field->name(), value.to_string().c_str());
-        break;
+          break;
+        }
+        rc = set_value_to_record(record.data(), real_value, field);
       }
-      rc = set_value_to_record(record.data(), real_value, field);
     } else {
-      rc = set_value_to_record(record.data(), value, field);
-    }
+        rc = set_value_to_record(record.data(), value, field);
+      }
     if (rc != RC::SUCCESS) {
       LOG_ERROR("Update record failed. table name=%s, rc=%s", table_meta_.name(), strrc(rc));
       return rc;

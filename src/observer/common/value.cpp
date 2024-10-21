@@ -258,6 +258,8 @@ void Value::set_vector(vector<float>* values)
     own_data_ = true;
     value_.vector_value_ = values;
   }
+}
+
 void Value::set_long(int64_t val)
 {
   reset();
