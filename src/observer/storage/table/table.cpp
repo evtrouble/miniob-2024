@@ -406,9 +406,15 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
   }
 
   field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
+  
 
-  if (value.attr_type() != AttrType::NULLS)
-    memcpy(record_data + field->offset(), value.data(), copy_len);
+  if (value.attr_type() != AttrType::NULLS){
+    if(value.attr_type() == AttrType::VECTORS){
+      memcpy(record_data + field->offset(), ((vector<float>*)value.data())->data(), copy_len);
+    }
+    else memcpy(record_data + field->offset(), value.data(), copy_len);
+  }
+    
   return RC::SUCCESS;
 }
 

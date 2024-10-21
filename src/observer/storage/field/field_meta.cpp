@@ -42,7 +42,7 @@ RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int at
     return RC::INVALID_ARGUMENT;
   }
 
-  if (AttrType::UNDEFINED == attr_type || attr_offset < 0 || attr_len <= 1) {
+  if (AttrType::UNDEFINED == attr_type || attr_offset < 0 || attr_len <= 0) {
     LOG_WARN("Invalid argument. name=%s, attr_type=%d, attr_offset=%d, attr_len=%d",
               name, attr_type, attr_offset, attr_len);
     return RC::INVALID_ARGUMENT;
@@ -50,7 +50,10 @@ RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int at
 
   name_        = name;
   attr_type_   = attr_type;
-  attr_len_    = attr_len;
+
+  if(attr_type_ == AttrType::VECTORS)
+    attr_len_    = (attr_len << 2) + 1;
+  else attr_len_    = attr_len + 1;
   attr_offset_ = attr_offset;
   visible_     = visible;
   field_id_    = field_id;

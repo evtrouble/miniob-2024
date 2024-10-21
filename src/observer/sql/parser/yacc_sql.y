@@ -550,8 +550,9 @@ value:
       @$ = @1;
     }
     |SSS {
-      char *tmp = common::substr($1,1,strlen($1)-2);
-      $$ = new Value(tmp);
+      int len = strlen($1)-2;
+      char *tmp = common::substr($1,1,len);
+      $$ = new Value(tmp, len);
       free(tmp);
       free($1);
     }

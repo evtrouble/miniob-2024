@@ -52,7 +52,6 @@ public:
   explicit Value(bool val);
   explicit Value(const char *s, int len = 0);
   explicit Value(const Date *s, int len = 0);
-  explicit Value(vector<float>* values);
 
   Value(const Value &other) noexcept;
   Value(Value &&other) noexcept;
@@ -159,6 +158,9 @@ public:
   void set_data(const char *data, int length) { this->set_data(const_cast<char *>(data), length); }
   void set_value(const Value &value);
   void set_boolean(bool val);
+  void set_vector(const char *data, int length);
+  void set_vector(const char *data);
+  void set_vector(vector<float>* embedding);
   void set_null();
 
   string to_string() const;
@@ -187,7 +189,7 @@ private:
   void set_date(const char *s, int len = 10);
   void set_string_from_other(const Value &other);
   void set_date_from_other(const Value &other);
-  void set_vector(vector<float>* values);
+  void set_vector_from_other(const Value &other);
   bool check_date(const char *data);
 
 private:
