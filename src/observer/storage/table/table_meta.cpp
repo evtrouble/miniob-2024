@@ -81,7 +81,7 @@ RC TableMeta::init(int32_t table_id, const char *name, const std::vector<FieldMe
     // `i` is the col_id of fields[i]
     rc = fields_[i + trx_field_num].init(
       attr_info.name.c_str(), attr_info.type, field_offset, 
-       attr_info.type == AttrType::VECTORS? (attr_info.length << 2) + 1 : attr_info.length + 1, 
+       attr_info.type == AttrType::VECTORS? (attr_info.length * sizeof(float)) + 1 : attr_info.length + 1, 
        true /*visible*/, i, attr_info.nullable);
     if (OB_FAIL(rc)) {
       LOG_ERROR("Failed to init field meta. table name=%s, field name: %s", name, attr_info.name.c_str());

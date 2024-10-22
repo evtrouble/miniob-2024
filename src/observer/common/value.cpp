@@ -193,7 +193,7 @@ void Value::set_vector(const char *data)
   while(getline(ss, temp, ',')){
     value_.vector_value_->emplace_back(stof(temp));
   }
-  length_ = value_.vector_value_->size() << 2;
+  length_ = value_.vector_value_->size() * sizeof(float);
 }
 
 void Value::set_vector(const char *data, int len)
@@ -201,7 +201,7 @@ void Value::set_vector(const char *data, int len)
   reset();
   attr_type_        = AttrType::VECTORS;
   length_ = len;
-  len >>= 2;
+  len /= sizeof(float);
   value_.vector_value_ = new vector<float>(len);
   own_data_ = true;
  
@@ -291,7 +291,7 @@ void Value::set_vector(vector<float>&& embedding)
   reset();
   attr_type_ = AttrType::VECTORS;
   own_data_ = true;
-  length_ = embedding.size() << 2;
+  length_ = embedding.size() * sizeof(float);
   value_.vector_value_ = &embedding;
 }
 
@@ -305,7 +305,7 @@ void Value::set_vector(vector<float>* embedding)
   } else {
     own_data_ = true;
     value_.vector_value_ = new vector<float>(*embedding);
-    length_ = embedding->size() << 2;
+    length_ = embedding->size() *sizeof(float);
   }
 }
 
