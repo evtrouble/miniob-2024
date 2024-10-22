@@ -50,10 +50,7 @@ RC FieldMeta::init(const char *name, AttrType attr_type, int attr_offset, int at
 
   name_        = name;
   attr_type_   = attr_type;
-
-  if(attr_type_ == AttrType::VECTORS)
-    attr_len_    = (attr_len << 2) + 1;
-  else attr_len_    = attr_len + 1;
+  attr_len_    = attr_len;
   attr_offset_ = attr_offset;
   visible_     = visible;
   field_id_    = field_id;

@@ -170,7 +170,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 /** type 定义了各种解析后的结果输出的是什么类型。类型对应了 union 中的定义的成员变量名称 **/
 %type <number>              type
 %type <number>              date_type
-%type <boolean>             is_null
+%type <boolean>             nullable
 %type <condition>           condition
 %type <value>               value
 %type <number>              number
@@ -430,36 +430,36 @@ attr_def_list:
     ;
 
 attr_def:
-    ID type LBRACE number RBRACE is_null
+    ID type LBRACE number RBRACE nullable
     {
       $$ = new AttrInfoSqlNode;
       $$->type = (AttrType)$2;
       $$->name = $1;
       $$->length = $4;
-      $$->is_null = $6;
+      $$->nullable = $6;
       free($1);
     }
-    | ID type is_null
+    | ID type nullable
     {
       $$ = new AttrInfoSqlNode;
       $$->type = (AttrType)$2;
       $$->name = $1;
       $$->length = 4;
-      $$->is_null = $3;
+      $$->nullable = $3;
       free($1);
     }
-    | ID date_type is_null
+    | ID date_type nullable
     {
       $$ = new AttrInfoSqlNode;
       $$->type = (AttrType)$2;
       $$->name = $1;
       $$->length = 10;
-      $$->is_null = $3;
+      $$->nullable = $3;
       free($1);
     }
     ;
 
-is_null:
+nullable:
     /* empty */
     {$$ = false;}
     | NULL_T {$$ = true;}

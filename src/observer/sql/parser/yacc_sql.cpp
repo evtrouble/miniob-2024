@@ -246,7 +246,7 @@ enum yysymbol_kind_t
   YYSYMBOL_create_table_stmt = 93,         /* create_table_stmt  */
   YYSYMBOL_attr_def_list = 94,             /* attr_def_list  */
   YYSYMBOL_attr_def = 95,                  /* attr_def  */
-  YYSYMBOL_is_null = 96,                   /* is_null  */
+  YYSYMBOL_nullable = 96,                  /* nullable  */
   YYSYMBOL_number = 97,                    /* number  */
   YYSYMBOL_type = 98,                      /* type  */
   YYSYMBOL_date_type = 99,                 /* date_type  */
@@ -725,7 +725,7 @@ static const char *const yytname[] =
   "drop_table_stmt", "show_index_stmt", "show_tables_stmt",
   "desc_table_stmt", "create_index_stmt", "unique_option",
   "drop_index_stmt", "create_table_stmt", "attr_def_list", "attr_def",
-  "is_null", "number", "type", "date_type", "insert_stmt", "values_list",
+  "nullable", "number", "type", "date_type", "insert_stmt", "values_list",
   "value_list", "value", "storage_format", "delete_stmt", "update_stmt",
   "key_values", "assign_value", "select_stmt", "calc_stmt",
   "expression_list", "expression", "rel_attr", "relation", "rel_list",
@@ -2052,58 +2052,58 @@ yyreduce:
 #line 2053 "yacc_sql.cpp"
     break;
 
-  case 43: /* attr_def: ID type LBRACE number RBRACE is_null  */
+  case 43: /* attr_def: ID type LBRACE number RBRACE nullable  */
 #line 434 "yacc_sql.y"
     {
       (yyval.attr_info) = new AttrInfoSqlNode;
       (yyval.attr_info)->type = (AttrType)(yyvsp[-4].number);
       (yyval.attr_info)->name = (yyvsp[-5].string);
       (yyval.attr_info)->length = (yyvsp[-2].number);
-      (yyval.attr_info)->is_null = (yyvsp[0].boolean);
+      (yyval.attr_info)->nullable = (yyvsp[0].boolean);
       free((yyvsp[-5].string));
     }
 #line 2066 "yacc_sql.cpp"
     break;
 
-  case 44: /* attr_def: ID type is_null  */
+  case 44: /* attr_def: ID type nullable  */
 #line 443 "yacc_sql.y"
     {
       (yyval.attr_info) = new AttrInfoSqlNode;
       (yyval.attr_info)->type = (AttrType)(yyvsp[-1].number);
       (yyval.attr_info)->name = (yyvsp[-2].string);
       (yyval.attr_info)->length = 4;
-      (yyval.attr_info)->is_null = (yyvsp[0].boolean);
+      (yyval.attr_info)->nullable = (yyvsp[0].boolean);
       free((yyvsp[-2].string));
     }
 #line 2079 "yacc_sql.cpp"
     break;
 
-  case 45: /* attr_def: ID date_type is_null  */
+  case 45: /* attr_def: ID date_type nullable  */
 #line 452 "yacc_sql.y"
     {
       (yyval.attr_info) = new AttrInfoSqlNode;
       (yyval.attr_info)->type = (AttrType)(yyvsp[-1].number);
       (yyval.attr_info)->name = (yyvsp[-2].string);
       (yyval.attr_info)->length = 10;
-      (yyval.attr_info)->is_null = (yyvsp[0].boolean);
+      (yyval.attr_info)->nullable = (yyvsp[0].boolean);
       free((yyvsp[-2].string));
     }
 #line 2092 "yacc_sql.cpp"
     break;
 
-  case 46: /* is_null: %empty  */
+  case 46: /* nullable: %empty  */
 #line 464 "yacc_sql.y"
     {(yyval.boolean) = false;}
 #line 2098 "yacc_sql.cpp"
     break;
 
-  case 47: /* is_null: NULL_T  */
+  case 47: /* nullable: NULL_T  */
 #line 465 "yacc_sql.y"
              {(yyval.boolean) = true;}
 #line 2104 "yacc_sql.cpp"
     break;
 
-  case 48: /* is_null: NOT NULL_T  */
+  case 48: /* nullable: NOT NULL_T  */
 #line 466 "yacc_sql.y"
                  {(yyval.boolean) = false;}
 #line 2110 "yacc_sql.cpp"

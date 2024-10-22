@@ -584,6 +584,9 @@ AttrType ArithmeticExpr::value_type() const
     return left_->value_type();
   }
 
+  if(left_->value_type() == AttrType::VECTORS || right_->value_type() == AttrType::VECTORS)
+    return AttrType::VECTORS;
+
   if (left_->value_type() == AttrType::INTS && right_->value_type() == AttrType::INTS &&
       arithmetic_type_ != Type::DIV) {
     return AttrType::INTS;

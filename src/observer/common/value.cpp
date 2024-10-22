@@ -286,6 +286,15 @@ void Value::set_date(const char *s, int len)
   }
 }
 
+void Value::set_vector(vector<float>&& embedding)
+{
+  reset();
+  attr_type_ = AttrType::VECTORS;
+  own_data_ = true;
+  length_ = embedding.size() << 2;
+  value_.vector_value_ = &embedding;
+}
+
 void Value::set_vector(vector<float>* embedding)
 {
   reset();

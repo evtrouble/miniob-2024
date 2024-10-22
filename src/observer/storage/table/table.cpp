@@ -402,25 +402,7 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
   }
 
   const int normal_field_start_index = table_meta_.sys_field_num();
-  //TEXT字段检测
-  for (int i = 0; i < value_num; i++) {
-    const FieldMeta *field = table_meta_.field(i + normal_field_start_index);
-    const Value     &value = values[i];
-    if (AttrType::NULLS==value.attr_type() && field->nullable()) {
-      continue;
-    }
-    if (field->type() != value.attr_type()) {
-      if (AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()) {}
-      else {
-        LOG_ERROR("Invalid value type. table name =%s, field name=%s, type=%d, but given=%d",
-          table_meta_.name(),
-          field->name(),
-          field->type(),
-          value.attr_type());
-        return RC::SCHEMA_FIELD_TYPE_MISMATCH;
-      }
-    }
-  }
+  
   // 复制所有字段的值
   int   record_size = table_meta_.record_size();
   char *record_data = (char *)malloc(record_size);
@@ -473,23 +455,26 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
       copy_len = data_len + 1;
     }
   }
+  if (field->type() == AttrType::VECTORS) {
+    if (copy_len > data_len) {
+      copy_len = data_len;
+    }
+  }
 
   field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
     
-//TEXT数据类型处理，需要将value中的字符串插入到文件中，然后将offset、length写入record
-  if (AttrType::TEXTS == field->type()) {
-    int64_t position[2];
-    position[1] = value.length();
-    text_buffer_pool_->append_data(position[0], position[1], value.data());
-    memcpy(record_data + field->offset(), position, 2 * sizeof(int64_t));
-  }else{
-    field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
-    if(value.attr_type() != AttrType::NULLS)
-    {
-      if(value.attr_type() == AttrType::VECTORS)
-        memcpy(record_data + field->offset(), ((vector<float>*)value.data())->data(), copy_len);
-      else memcpy(record_data + field->offset(), value.data(), copy_len);
+  //TEXT数据类型处理，需要将value中的字符串插入到文件中，然后将offset、length写入record
+  if(value.attr_type() != AttrType::NULLS)
+  {
+    if (AttrType::TEXTS == field->type()) {
+      int64_t position[2];
+      position[1] = value.length();
+      text_buffer_pool_->append_data(position[0], position[1], value.data());
+      memcpy(record_data + field->offset(), position, 2 * sizeof(int64_t));
     }
+    else if(value.attr_type() == AttrType::VECTORS)
+        memcpy(record_data + field->offset(), ((vector<float>*)value.data())->data(), copy_len);
+    else memcpy(record_data + field->offset(), value.data(), copy_len);
   }
 
   return RC::SUCCESS;

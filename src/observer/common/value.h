@@ -163,6 +163,7 @@ public:
   void set_vector(const char *data, int length);
   void set_vector(const char *data);
   void set_vector(vector<float>* embedding);
+  void set_vector(vector<float>&& embedding);
   void set_null();
   void set_long(int64_t val);
 
