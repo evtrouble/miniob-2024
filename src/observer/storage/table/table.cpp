@@ -456,9 +456,7 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
     }
   }
   if (field->type() == AttrType::VECTORS) {
-    if (copy_len > data_len) {
-      copy_len = data_len;
-    }
+    if (copy_len != data_len) return RC::INVALID_ARGUMENT;
   }
 
   field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
