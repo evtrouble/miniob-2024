@@ -38,7 +38,7 @@ public:
 public:
   static RC create(Db *db, DeleteSqlNode &delete_sql, Stmt *&stmt, 
     unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
-    tables_t& table_map, int fa = -1);
+    tables_t& table_map, int fa);
 
 private:
   Table      *table_       = nullptr;

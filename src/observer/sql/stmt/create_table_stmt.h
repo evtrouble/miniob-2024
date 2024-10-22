@@ -30,8 +30,8 @@ class CreateTableStmt : public Stmt
 {
 public:
   CreateTableStmt(
-      const std::string &table_name, const std::vector<AttrInfoSqlNode> &attr_infos, StorageFormat storage_format)
-      : table_name_(table_name), attr_infos_(attr_infos), storage_format_(storage_format)
+      const std::string &table_name, const std::vector<AttrInfoSqlNode> &attr_infos, StorageFormat storage_format, Db *db, Stmt *stmt = nullptr)
+      : table_name_(table_name), attr_infos_(attr_infos), storage_format_(storage_format), db_(db), select_stmt_(stmt)
   {}
   virtual ~CreateTableStmt() = default;
 
@@ -40,13 +40,18 @@ public:
   const std::string                  &table_name() const { return table_name_; }
   const std::vector<AttrInfoSqlNode> &attr_infos() const { return attr_infos_; }
   const StorageFormat                 storage_format() const { return storage_format_; }
+  const unique_ptr<Stmt>             &select_stmt() const { return select_stmt_; }
+  Db                                 *db() { return db_; }
 
-  static RC            create(Db *db, const CreateTableSqlNode &create_table, SelectSqlNode &select_sql, Stmt *&stmt);
+  static RC            create(Db *db, const CreateTableSqlNode &create_table, SelectSqlNode &select_sql, Stmt *&stmt, 
+    unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+    tables_t& table_map, int fa);
   static StorageFormat get_storage_format(const char *format_str);
 
 private:
   std::string                  table_name_;
   std::vector<AttrInfoSqlNode> attr_infos_;
   StorageFormat                storage_format_;
-  //SqlResult                    *select_stmt_ = nullptr;
+  Db                          *db_;
+  unique_ptr<Stmt>             select_stmt_;
 };

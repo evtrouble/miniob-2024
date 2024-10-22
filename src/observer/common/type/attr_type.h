@@ -10,8 +10,6 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
-//static int ATTR_TYPE_LENGTH[] = {-1, 4, 4, 4, 4, 1, 10, 0};
-
 /**
  * @brief 属性的类型
  * @details AttrType 枚举列出了属性的各种数据类型。
@@ -28,7 +26,6 @@ enum class AttrType
   TEXTS,     ///< TEXT类型，最大长度为65535字节，当作字符串类型处理（CHARS）
   LONGS,     ///< int64 类型
   NULLS,     ///< null
-  SELECT,    ///< 子查询
   MAXTYPE,   ///< 请在 UNDEFINED 与 MAXTYPE 之间增加新类型
 };
 

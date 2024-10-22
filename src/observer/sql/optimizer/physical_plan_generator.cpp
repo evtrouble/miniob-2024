@@ -47,6 +47,8 @@ See the Mulan PSL v2 for more details. */
 #include "sql/optimizer/physical_plan_generator.h"
 #include "sql/operator/update_logical_operator.h"
 #include "sql/operator/update_physical_operator.h"
+#include "sql/operator/create_table_logical_operator.h"
+#include "sql/operator/create_table_physical_operator.h"
 
 using namespace std;
 
@@ -97,6 +99,10 @@ RC PhysicalPlanGenerator::create(LogicalOperator &logical_operator, unique_ptr<P
 
     case LogicalOperatorType::ORDER_BY: {
       return create_plan(static_cast<OrderByLogicalOperator &>(logical_operator), oper);
+    } break;
+
+    case LogicalOperatorType::CREATE_TABLE: {
+      return create_plan(static_cast<CreateTableLogicalOperator &>(logical_operator), oper);
     } break;
 
     default: {
@@ -426,6 +432,29 @@ RC PhysicalPlanGenerator::create_plan(OrderByLogicalOperator &logical_oper, std:
 
   oper = std::move(order_by_oper);
   return rc;
+}
+
+RC PhysicalPlanGenerator::create_plan(CreateTableLogicalOperator &logical_oper, std::unique_ptr<PhysicalOperator> &oper)
+{
+  RC rc = RC::SUCCESS;
+  oper = unique_ptr<PhysicalOperator>(new CreateTablePhysicalOperator(
+      logical_oper.db(), std::move(logical_oper.table_name()), 
+      std::move(logical_oper.attr_infos()), logical_oper.storage_format()));
+
+  // create_table_select
+  unique_ptr<PhysicalOperator> select_oper;
+  vector<unique_ptr<LogicalOperator>> &child_opers = logical_oper.children();
+  if (!child_opers.empty()) {
+    LogicalOperator *child_oper = child_opers[0].get();
+    rc = create(*child_oper, select_oper);
+    if (RC::SUCCESS != rc) {
+      LOG_WARN("failed to create child operator for create_table_select, rc=%s", strrc(rc));
+      return rc;
+    }
+    oper->add_child(std::move(select_oper));
+  }
+
+  return RC::SUCCESS;
 }
 
 RC PhysicalPlanGenerator::create_vec_plan(TableGetLogicalOperator &table_get_oper, unique_ptr<PhysicalOperator> &oper)

@@ -78,7 +78,7 @@ RC Stmt::create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt,
     }
 
     case SCF_CREATE_TABLE: {
-      return CreateTableStmt::create(db, sql_node.create_table, sql_node.selection, stmt);
+      return CreateTableStmt::create(db, sql_node.create_table, sql_node.selection, stmt, depends, select_exprs, table_map, fa);
     }
 
     case SCF_DROP_TABLE: {

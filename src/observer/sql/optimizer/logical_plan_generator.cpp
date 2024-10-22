@@ -28,6 +28,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/group_by_logical_operator.h"
 #include "sql/operator/order_by_logical_operator.h"
 #include "sql/operator/update_logical_operator.h"
+#include "sql/operator/create_table_logical_operator.h"
 
 #include "sql/stmt/calc_stmt.h"
 #include "sql/stmt/delete_stmt.h"
@@ -36,6 +37,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/stmt/insert_stmt.h"
 #include "sql/stmt/select_stmt.h"
 #include "sql/stmt/update_stmt.h"
+#include "sql/stmt/create_table_stmt.h"
 #include "sql/stmt/stmt.h"
 
 #include "sql/expr/expression_iterator.h"
@@ -47,6 +49,12 @@ RC LogicalPlanGenerator::create(Stmt *stmt, unique_ptr<LogicalOperator> &logical
 {
   RC rc = RC::SUCCESS;
   switch (stmt->type()) {
+    case StmtType::CREATE_TABLE: {
+      CreateTableStmt *create_table_stmt = static_cast<CreateTableStmt *>(stmt);
+
+      rc = create_plan(create_table_stmt, logical_operator);
+    } break;
+
     case StmtType::CALC: {
       CalcStmt *calc_stmt = static_cast<CalcStmt *>(stmt);
 
@@ -93,6 +101,31 @@ RC LogicalPlanGenerator::create_plan(CalcStmt *calc_stmt, std::unique_ptr<Logica
 {
   logical_operator.reset(new CalcLogicalOperator(std::move(calc_stmt->expressions())));
   return RC::SUCCESS;
+}
+
+RC LogicalPlanGenerator::create_plan(CreateTableStmt *create_table_stmt, std::unique_ptr<LogicalOperator> &logical_operator)
+{
+  RC rc = RC::SUCCESS;
+  std::unique_ptr<LogicalOperator> select_oper;
+  Stmt *create_select_stmt =  create_table_stmt->select_stmt().get();
+  if(create_select_stmt == nullptr)return RC::UNIMPLEMENTED;
+  if (nullptr != create_select_stmt) {
+    SelectStmt *select_stmt = static_cast<SelectStmt*>(create_select_stmt);
+    rc = create_plan(select_stmt, select_oper);
+    if (RC::SUCCESS != rc) {
+      LOG_WARN("failed to create sub select logical plan, r=%s", strrc(rc));
+      return rc;
+    }
+  }
+
+  auto& table_name = create_table_stmt->table_name();
+  auto& attr_infos = create_table_stmt->attr_infos();
+  logical_operator = std::unique_ptr<LogicalOperator>(new CreateTableLogicalOperator(
+      create_table_stmt->db(), move(table_name), move(attr_infos), create_table_stmt->storage_format())); 
+  if (select_oper) {
+    logical_operator->add_child(std::move(select_oper));
+  }
+  return rc;
 }
 
 RC LogicalPlanGenerator::create_plan(SelectStmt *select_stmt, unique_ptr<LogicalOperator> &logical_operator)

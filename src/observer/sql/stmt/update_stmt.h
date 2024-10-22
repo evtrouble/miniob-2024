@@ -40,7 +40,7 @@ public:
 public:
   static RC create(Db *db, UpdateSqlNode &update_sql, Stmt *&stmt,
     unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
-    tables_t& table_map, int fa = -1);
+    tables_t& table_map, int fa);
 
 public:
   Table *table() const { return table_; }
