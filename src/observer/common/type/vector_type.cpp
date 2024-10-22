@@ -8,11 +8,27 @@ EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
 MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
 See the Mulan PSL v2 for more details. */
 
+#include <cmath>
+
 #include "common/lang/comparator.h"
 #include "common/lang/sstream.h"
 #include "common/log/log.h"
 #include "common/type/vector_type.h"
 #include "common/value.h"
+
+int VectorType::compare(const Value &left, const Value &right) const
+{
+    ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
+    vector<float>* left_vector = (vector<float>*)left.data();
+    vector<float>* right_vector = (vector<float>*)right.data();
+    ASSERT(left_vector->size() == right_vector->size(), "invalid type");
+    
+    for(size_t id = 0; id < left_vector->size(); id++){
+        if(left_vector->at(id) - right_vector->at(id) > EPSILON)return 1;
+        if(left_vector->at(id) - right_vector->at(id) < -EPSILON)return -1;
+    }
+    return 0;
+}
 
 RC VectorType::add(const Value &left, const Value &right, Value &result) const 
 {
@@ -51,7 +67,7 @@ RC VectorType::multiply(const Value &left, const Value &right, Value &result) co
     vector<float>* right_vector = (vector<float>*)right.data();
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
     
-    float ans = 0;
+    double ans = 0;
     for(size_t id = 0; id < left_vector->size(); id++){
         ans += left_vector->at(id) * right_vector->at(id);
     }
@@ -73,4 +89,46 @@ RC VectorType::to_string(const Value &val, string &result) const
     temp.set_float(val_vector->at(id));
     result += temp.to_string() + "]";
     return RC::SUCCESS;
+}
+
+RC VectorType::l2_distance(const Value &left, const Value &right, Value &result) const
+{
+    ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
+    vector<float>* left_vector = (vector<float>*)left.data();
+    vector<float>* right_vector = (vector<float>*)right.data();
+    ASSERT(left_vector->size() == right_vector->size(), "invalid type");
+
+    double ans = 0;
+    double temp;
+    for(size_t id = 0; id < left_vector->size(); id++){
+        temp = left_vector->at(id) - right_vector->at(id);
+        ans += temp * temp;
+    }
+    result.set_float(sqrt(ans));
+    return RC::SUCCESS;
+}
+
+RC VectorType::cosine_distance(const Value &left, const Value &right, Value &result) const
+{
+    ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
+    vector<float>* left_vector = (vector<float>*)left.data();
+    vector<float>* right_vector = (vector<float>*)right.data();
+    ASSERT(left_vector->size() == right_vector->size(), "invalid type");
+
+    double a2 = 0, b2 = 0, ab = 0;
+    double a, b;
+    for(size_t id = 0; id < left_vector->size(); id++){
+        a = left_vector->at(id);
+        b = right_vector->at(id);
+        a2 += a * a;
+        b2 += b * b;
+        ab += a * b;
+    }
+    result.set_float(1 - ab / (sqrt(a2) * sqrt(b2)));
+    return RC::SUCCESS;
+}
+
+RC VectorType::inner_product(const Value &left, const Value &right, Value &result) const
+{
+    return multiply(left, right, result);
 }

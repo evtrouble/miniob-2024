@@ -22,11 +22,15 @@ public:
   VectorType() : DataType(AttrType::VECTORS) {}
   virtual ~VectorType() {}
 
-  int compare(const Value &left, const Value &right) const override { return INT32_MAX; }
+  int compare(const Value &left, const Value &right) const override;
 
   RC add(const Value &left, const Value &right, Value &result) const override;
   RC subtract(const Value &left, const Value &right, Value &result) const override;
   RC multiply(const Value &left, const Value &right, Value &result) const;
+
+  RC l2_distance(const Value &left, const Value &right, Value &result) const;
+  RC cosine_distance(const Value &left, const Value &right, Value &result) const;
+  RC inner_product(const Value &left, const Value &right, Value &result) const;
 
   RC to_string(const Value &val, string &result) const override;
 };
