@@ -177,6 +177,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <string>              relation
 %type <comp>                comp_op
 %type <boolean>             unique_option
+%type <boolean>             as_option
 %type <comp>                unary_op
 %type <rel_attr>            rel_attr
 %type <attr_infos>          attr_def_list
@@ -385,7 +386,7 @@ create_table_stmt:    /*create table 语句的语法解析树*/
         free($8);
       }
     }
-    | CREATE TABLE ID LBRACE attr_def attr_def_list RBRACE AS select_stmt
+    | CREATE TABLE ID LBRACE attr_def attr_def_list RBRACE as_option select_stmt
     {
       $$ = $9;
       $$->flag = SCF_CREATE_TABLE;
@@ -403,7 +404,7 @@ create_table_stmt:    /*create table 语句的语法解析树*/
       std::reverse(create_table.attr_infos.begin(), create_table.attr_infos.end());
       delete $5;
     }
-    | CREATE TABLE ID AS select_stmt
+    | CREATE TABLE ID as_option select_stmt
     {
       $$ = $5;
       $$->flag = SCF_CREATE_TABLE;
@@ -412,6 +413,15 @@ create_table_stmt:    /*create table 语句的语法解析树*/
       free($3);
     }
     ;
+
+as_option:
+    /* empty */
+    {
+      $$ = false;
+    }
+    | AS { $$ = true; }
+    ;
+
 attr_def_list:
     /* empty */
     {
