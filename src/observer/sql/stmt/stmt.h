@@ -43,6 +43,7 @@ using tables_t = std::unordered_map<std::string, std::pair<Table *, size_t>>;
   DEFINE_ENUM_ITEM(UPDATE)       \
   DEFINE_ENUM_ITEM(DELETE)       \
   DEFINE_ENUM_ITEM(CREATE_TABLE) \
+  DEFINE_ENUM_ITEM(CREATE_VIEW)  \
   DEFINE_ENUM_ITEM(DROP_TABLE)   \
   DEFINE_ENUM_ITEM(CREATE_INDEX) \
   DEFINE_ENUM_ITEM(DROP_INDEX)   \

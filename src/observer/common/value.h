@@ -187,6 +187,8 @@ public:
   bool   get_boolean() const;
   int64_t get_long() const;
 
+  static constexpr int ATTR_TYPE_LENGTH[] = {-1, 4, 4, 4, 4, 1, 10, 4, 8, 0};
+
 private:
   void set_int(int val);
   void set_float(float val);

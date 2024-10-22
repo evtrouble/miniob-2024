@@ -278,6 +278,13 @@ struct ErrorSqlNode
   int         column;
 };
 
+
+struct CreateViewSqlNode
+{
+  std::string view_name;
+  std::vector<std::string> col_names;
+};
+
 /**
  * @brief 表示一个SQL语句的类型
  * @ingroup SQLParser
@@ -292,6 +299,7 @@ enum SqlCommandFlag
   SCF_DELETE,
   SCF_CREATE_TABLE,
   SCF_DROP_TABLE,
+  SCF_CREATE_VIEW,
   SCF_CREATE_INDEX,
   SCF_DROP_INDEX,
   SCF_SYNC,
@@ -323,6 +331,7 @@ public:
   DeleteSqlNode       deletion;
   UpdateSqlNode       update;
   CreateTableSqlNode  create_table;
+  CreateViewSqlNode   create_view;
   DropTableSqlNode    drop_table;
   CreateIndexSqlNode  create_index;
   ShowIndexSqlNode    show_index;

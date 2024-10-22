@@ -1,3 +1,9 @@
+#include "sql/stmt/create_view_stmt.h"
+#include "sql/stmt/select_stmt.h"
+#include "storage/db/db.h"
+#include "storage/field/field.h"
+#include "event/sql_debug.h"
+
 /* Copyright (c) 2021 OceanBase and/or its affiliates. All rights reserved.
 miniob is licensed under Mulan PSL v2.
 You can use this software according to the terms and conditions of the Mulan PSL v2.
@@ -19,22 +25,12 @@ See the Mulan PSL v2 for more details. */
 #include "sql/stmt/select_stmt.h"
 #include "sql/expr/expression.h"
 
-RC CreateTableStmt::create(Db *db, const CreateTableSqlNode &create_table, SelectSqlNode &select_sql, Stmt *&stmt, 
-    unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view, 
+    Stmt *&stmt, SelectSqlNode &select_sql, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
     tables_t& table_map, int fa)
 {
-  StorageFormat storage_format = StorageFormat::UNKNOWN_FORMAT;
-  if (create_table.storage_format.length() == 0) {
-    storage_format = StorageFormat::ROW_FORMAT;
-  } else {
-    storage_format = get_storage_format(create_table.storage_format.c_str());
-  }
-  if (storage_format == StorageFormat::UNKNOWN_FORMAT) {
-    return RC::INVALID_ARGUMENT;
-  }
-
-  // create table select
-  if (0 != select_sql.expressions.size()) {
+    // create view
+    if (0 == select_sql.expressions.size())return RC::INVALID_ARGUMENT;
     Stmt *select_stmt = nullptr;
     std::vector<AttrInfoSqlNode> attr_infos;
 
@@ -44,6 +40,9 @@ RC CreateTableStmt::create(Db *db, const CreateTableSqlNode &create_table, Selec
       LOG_WARN("failed to create select_stmt when create_table_select, rc=%s", strrc(rc));
       return rc;
     }
+    depends->clear();
+    select_exprs->clear();
+
     for (std::unique_ptr<Expression> &attr_expr : static_cast<SelectStmt*>(select_stmt)->query_expressions()) {
       AttrInfoSqlNode attr_info;
       if (0 != attr_expr->alias().length()) {
@@ -87,41 +86,12 @@ RC CreateTableStmt::create(Db *db, const CreateTableSqlNode &create_table, Selec
       attr_infos.emplace_back(attr_info);
     }
 
-    if (0 != create_table.attr_infos.size()) {
-      if (attr_infos.size() != create_table.attr_infos.size()) {
-        delete stmt;
-        LOG_ERROR("field size mismatch with output column size of select_stmt");
-        return RC::INVALID_ARGUMENT;
-      }
-      for (size_t i = 0; i < attr_infos.size(); i++) {
-        if (attr_infos[i].type != create_table.attr_infos[i].type) {
-          LOG_ERROR("create_table info mismatch with sub_query");
-          delete stmt;
-          return RC::INVALID_ARGUMENT;
+    if (!create_view.col_names.empty()) {
+        for (size_t i = 0; i < create_view.col_names.size(); i++) {
+            attr_infos[i].name = create_view.col_names[i];
         }
-      }
-      // 指定了列属性、带select
-      stmt = new CreateTableStmt(create_table.relation_name, create_table.attr_infos, storage_format, db, select_stmt);
-    } else {
-      // 未指定列属性、带select
-      stmt = new CreateTableStmt(create_table.relation_name, attr_infos, storage_format, db, select_stmt);
     }
-  } else {
-    // 指定了列属性、不带select
-    stmt = new CreateTableStmt(create_table.relation_name, create_table.attr_infos, storage_format, db);
-  }
-  sql_debug("create table statement: table name %s", create_table.relation_name.c_str());
-  return RC::SUCCESS;
-}
 
-StorageFormat CreateTableStmt::get_storage_format(const char *format_str) {
-  StorageFormat format = StorageFormat::UNKNOWN_FORMAT;
-  if (0 == strcasecmp(format_str, "ROW")) {
-    format = StorageFormat::ROW_FORMAT;
-  } else if (0 == strcasecmp(format_str, "PAX")) {
-    format = StorageFormat::PAX_FORMAT;
-  } else {
-    format = StorageFormat::UNKNOWN_FORMAT;
-  }
-  return format;
+  sql_debug("create table statement: table name %s", create_view.view_name.c_str());
+  return RC::SUCCESS;
 }

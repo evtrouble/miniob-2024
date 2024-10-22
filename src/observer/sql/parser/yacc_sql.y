@@ -75,6 +75,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         ASC
         DESC
         TABLE
+        VIEW
         TABLES
         INDEX
         CALC
@@ -175,6 +176,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <value>               value
 %type <number>              number
 %type <string>              relation
+%type <relation_list>       col_list
 %type <comp>                comp_op
 %type <boolean>             unique_option
 %type <boolean>             as_option
@@ -211,6 +213,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <sql_node>            drop_table_stmt
 %type <sql_node>            show_index_stmt
 %type <sql_node>            show_tables_stmt
+%type <sql_node>            create_view_stmt
 %type <sql_node>            desc_table_stmt
 %type <sql_node>            create_index_stmt
 %type <sql_node>            drop_index_stmt
@@ -253,6 +256,7 @@ command_wrapper:
   | create_table_stmt
   | drop_table_stmt
   | show_index_stmt
+  | create_view_stmt
   | show_tables_stmt
   | desc_table_stmt
   | create_index_stmt
@@ -364,6 +368,49 @@ drop_index_stmt:      /*drop index 语句的语法解析树*/
       free($5);
     }
     ;
+
+create_view_stmt:    /*create view 语句的语法解析树*/
+    CREATE VIEW ID AS select_stmt
+    {
+      $$ = $5;
+      $$->flag = SCF_CREATE_VIEW;
+      $$->create_view.view_name = $3;
+      free($3);
+    }
+    | CREATE VIEW ID LBRACE ID col_list RBRACE AS select_stmt
+    {
+      $$ = $9;
+      $$->flag = SCF_CREATE_VIEW;
+      $$->create_view.view_name = $3;
+
+      std::vector<std::string> &col_names = $$->create_view.col_names;
+      if (nullptr != $6) {
+        col_names.swap(*$6);
+        delete $6;
+      }
+      col_names.emplace_back($5);
+      std::reverse(col_names.begin(), col_names.end());
+      free($3);
+    }
+    ;
+
+col_list:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | COMMA ID col_list
+    {
+      if ($3 != nullptr) {
+        $$ = $3;
+      } else {
+        $$ = new std::vector<std::string>;
+      }
+      $$->emplace_back($2);
+      free($2);
+    }
+    ;
+
 create_table_stmt:    /*create table 语句的语法解析树*/
     CREATE TABLE ID LBRACE attr_def attr_def_list RBRACE storage_format
     {

@@ -32,12 +32,12 @@ RC SqlResult::open()
   Trx *trx = session_->current_trx();
   trx->start_if_need();
 
-  if(select_exprs_ != nullptr){
-    for(auto& select_expr : *select_exprs_){
+  if(analyzer_.select_exprs_ != nullptr){
+    for(auto& select_expr : *analyzer_.select_exprs_){
       select_expr->set_trx(trx);
     }
 
-    rc = pretreatment();
+    rc = analyzer_.pretreatment();
     if(rc != RC::SUCCESS)return rc;
   }
 
@@ -95,62 +95,10 @@ void SqlResult::set_operator(std::unique_ptr<PhysicalOperator> oper)
 
 void SqlResult::set_depends(unique_ptr<vector<vector<uint32_t>>> depends)
 {
-  depends_ = std::move(depends); 
+  analyzer_.depends_ = std::move(depends); 
 }
 
 void SqlResult::set_exprs(unique_ptr<vector<SelectExpr*>> select_exprs)
 {
-  select_exprs_ = std::move(select_exprs); 
-}
-
-void SqlResult::targan(int u = 0)
-{
-    cnt++;
-    dfn[u] = low[u] = cnt;
-    instack[u] = true;
-    st.push(u);
-    for (size_t i = 0; i < depends_->at(u).size(); i++)
-    {
-        int v = depends_->at(u)[i];
-        if (dfn[v] == 0)
-        {
-          targan(v);
-          low[u] = std::min(low[u], low[v]);
-        }
-        else if (instack[v])low[u] = std::min(low[u], dfn[v]);
-    }
-    if (dfn[u] == low[u])
-    {
-        int temp = -1;
-        scc.push_back(INT32_MAX);
-        auto id = scc.size() - 1;
-        do{
-            temp = st.top();
-            st.pop();
-            instack[temp] = false;
-            scc[id] = std::min(scc[id], temp);
-        } while (temp != u);
-    }
-}
-
-RC SqlResult::pretreatment()
-{
-  if(depends_->size() == 0 || depends_->size() == 1)return RC::SUCCESS;
-  if(scc.size() == 0){
-    auto size = depends_->size();
-    dfn.resize(size);
-    instack.resize(size);
-    low.resize(size);
-
-    targan();
-    std::sort(scc.begin(), scc.end());
-  }
-
-  RC rc = RC::SUCCESS;
-
-  for(int id = scc.size() - 1; id; id--){
-    rc = select_exprs_->at(scc[id] - 1)->pretreatment();
-    if(rc != RC::SUCCESS)return rc;
-  }
-  return rc;
+  analyzer_.select_exprs_ = std::move(select_exprs); 
 }
