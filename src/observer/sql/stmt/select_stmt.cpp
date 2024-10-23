@@ -17,7 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "sql/stmt/filter_stmt.h"
 #include "storage/db/db.h"
-#include "storage/table/table.h"
+#include "storage/table/base_table.h"
 #include "sql/parser/expression_binder.h"
 
 using namespace std;
@@ -44,7 +44,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   BinderContext binder_context(table_alias_map);
 
   // collect tables in `from` statement
-  vector<Table *>                tables;
+  vector<BaseTable *>                tables;
   auto size = depends->size();
  
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
@@ -55,7 +55,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
       return RC::INVALID_ARGUMENT;
     }
 
-    Table *table = db->find_table(table_name);
+    BaseTable *table = db->find_table(table_name);
     if (nullptr == table) {
       LOG_WARN("no such table. db=%s, table_name=%s", db->name(), table_name);
       return RC::SCHEMA_TABLE_NOT_EXIST;
@@ -115,7 +115,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     }
   }
 
-  Table *default_table = nullptr;
+  BaseTable *default_table = nullptr;
   if (tables.size() == 1) {
     default_table = tables[0];
   }

@@ -25,10 +25,10 @@ class Field
 {
 public:
   Field() = default;
-  Field(const Table *table, const FieldMeta *field) : table_(table), field_(field) {}
+  Field(const BaseTable *table, const FieldMeta *field) : table_(table), field_(field) {}
   Field(const Field &) = default;
 
-  const Table     *table() const { return table_; }
+  const BaseTable     *table() const { return table_; }
   const FieldMeta *meta() const { return field_; }
 
   AttrType attr_type() const { return field_->type(); }
@@ -45,6 +45,6 @@ public:
   const char *get_data(const Record &record);
 
 private:
-  const Table     *table_ = nullptr;
+  const BaseTable     *table_ = nullptr;
   const FieldMeta *field_ = nullptr;
 };

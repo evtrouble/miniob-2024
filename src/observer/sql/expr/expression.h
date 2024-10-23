@@ -521,7 +521,7 @@ private:
 class SelectExpr : public Expression
 {
 public:
-  using tables_t = std::unordered_map<std::string, std::pair<Table*, size_t>>;
+  using tables_t = std::unordered_map<std::string, std::pair<BaseTable*, size_t>>;
 
   SelectExpr() = default;
   SelectExpr(ParsedSqlNode* sql_node);

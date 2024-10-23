@@ -23,8 +23,9 @@ class Db;
 class FieldMeta;
 class Table;
 class SelectExpr;
+class BaseTable;
 
-using tables_t = std::unordered_map<std::string, std::pair<Table *, size_t>>;
+using tables_t = std::unordered_map<std::string, std::pair<BaseTable *, size_t>>;
 
 /**
  * @brief Statement SQL语句解析后通过Resolver转换成Stmt

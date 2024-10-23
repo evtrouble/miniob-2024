@@ -40,11 +40,11 @@ public:
   const bool and_or() const { return and_or_; }
 
 public:
-  static RC create(Db *db, Table *default_table, tables_t& table_map, Conditions& conditions, 
+  static RC create(Db *db, BaseTable *default_table, tables_t& table_map, Conditions& conditions, 
     FilterStmt *&stmt, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
     int fa);
 
-  static RC get_table_and_field(Db *db, Table *default_table, tables_t& table_map, Table*& table, const FieldMeta*& field, 
+  static RC get_table_and_field(Db *db, BaseTable *default_table, tables_t& table_map, BaseTable*& table, const FieldMeta*& field, 
     UnboundFieldExpr& expr, size_t *min_depend);
 
 private:

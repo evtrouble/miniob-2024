@@ -22,10 +22,10 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 using namespace common;
 
-Table *BinderContext::find_table(const char *table_name) const
+BaseTable *BinderContext::find_table(const char *table_name) const
 {
   if(table_alias_map_.count(table_name))table_name = table_alias_map_.at(table_name).c_str();
-  auto pred = [table_name](Table *table) { return 0 == strcasecmp(table_name, table->name()); };
+  auto pred = [table_name](BaseTable *table) { return 0 == strcasecmp(table_name, table->name()); };
   auto iter = ranges::find_if(query_tables_, pred);
   if (iter == query_tables_.end()) {
     return nullptr;
@@ -34,7 +34,7 @@ Table *BinderContext::find_table(const char *table_name) const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-static void wildcard_fields(Table *table, vector<unique_ptr<Expression>> &expressions)
+static void wildcard_fields(BaseTable *table, vector<unique_ptr<Expression>> &expressions)
 {
   const TableMeta &table_meta = table->table_meta();
   const int        field_num  = table_meta.field_num();
@@ -122,7 +122,7 @@ RC ExpressionBinder::bind_star_expression(
 
     tables_to_wildcard.push_back(table);
   } else {
-    const vector<Table *> &all_tables = context_.query_tables();
+    const vector<BaseTable *> &all_tables = context_.query_tables();
     tables_to_wildcard.insert(tables_to_wildcard.end(), all_tables.begin(), all_tables.end());
   }
 
@@ -145,7 +145,7 @@ RC ExpressionBinder::bind_unbound_field_expression(
   const char *table_name = unbound_field_expr->table_name();
   const char *field_name = unbound_field_expr->field_name();
 
-  Table *table = nullptr;
+  BaseTable *table = nullptr;
   if (is_blank(table_name)) {
     if (context_.query_tables().size() != 1) {
       LOG_INFO("cannot determine table for field: %s", field_name);

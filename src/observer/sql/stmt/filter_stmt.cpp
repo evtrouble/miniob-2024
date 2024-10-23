@@ -20,7 +20,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 
-RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, Conditions& conditions, 
+RC FilterStmt::create(Db *db, BaseTable *default_table, tables_t& table_map, Conditions& conditions, 
     FilterStmt *&stmt, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
     int fa)
 {
@@ -43,7 +43,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, Conditi
       case ExprType::UNBOUND_FIELD:{
         auto unbound_field_expr = static_cast<UnboundFieldExpr *>(expr.get());
 
-        Table *table;
+        BaseTable *table;
         const FieldMeta *field_meta;
 
         RC rc = get_table_and_field(db, default_table, table_map, table, field_meta, 
@@ -89,7 +89,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, Conditi
   return rc;
 }
 
-RC FilterStmt::get_table_and_field(Db *db, Table *default_table, tables_t& table_map, Table*& table, const FieldMeta*& field, 
+RC FilterStmt::get_table_and_field(Db *db, BaseTable *default_table, tables_t& table_map, BaseTable*& table, const FieldMeta*& field, 
     UnboundFieldExpr& expr, size_t *min_depend)
 {
   table = nullptr;

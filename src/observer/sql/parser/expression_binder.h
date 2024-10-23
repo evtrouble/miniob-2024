@@ -25,14 +25,14 @@ public:
     : table_alias_map_(table_alias_map){}
   virtual ~BinderContext() = default;
 
-  void add_table(Table *table) { query_tables_.push_back(table); }
+  void add_table(BaseTable *table) { query_tables_.push_back(table); }
 
-  Table *find_table(const char *table_name) const;
+  BaseTable *find_table(const char *table_name) const;
 
-  const std::vector<Table *> &query_tables() const { return query_tables_; }
+  const std::vector<BaseTable *> &query_tables() const { return query_tables_; }
 
 private:
-  std::vector<Table *> query_tables_;
+  std::vector<BaseTable *> query_tables_;
   std::unordered_map<std::string, std::string>& table_alias_map_;
 };
 

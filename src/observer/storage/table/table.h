@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include "storage/table/base_table.h"
 #include "storage/table/table_meta.h"
 #include "common/types.h"
 #include "common/lang/span.h"
@@ -37,11 +38,11 @@ class Db;
  * @brief 表
  *
  */
-class Table
+class Table : public BaseTable
 {
 public:
   Table() = default;
-  ~Table();
+  virtual ~Table();
 
   /**
    * 创建一个表

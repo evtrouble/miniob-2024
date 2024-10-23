@@ -19,6 +19,7 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/stmt/stmt.h"
 #include "storage/field/field.h"
+#include "sql/executor/sql_result.h"
 
 class Db;
 
@@ -31,16 +32,19 @@ class CreateViewStmt : public Stmt
 {
 public:
   CreateViewStmt(
-      const std::string &view_name, const std::vector<AttrInfoSqlNode> &attr_infos, Stmt *stmt = nullptr)
-      : view_name_(view_name), attr_infos_(attr_infos)//, select_sql_(select_sql)
-  {}
+      const std::string&& view_name, std::vector<AttrInfoSqlNode>&& attr_infos,
+      std::vector<Field>&& map_fields, SelectSqlNode& select_sql)
+      : view_name_(move(view_name)), attr_infos_(move(attr_infos)), map_fields_(move(map_fields))
+  { std::swap(select_sql_, select_sql); }
   virtual ~CreateViewStmt() = default;
 
   StmtType type() const override { return StmtType::CREATE_VIEW; }
 
   const std::string                  &view_name() const { return view_name_; }
   const std::vector<AttrInfoSqlNode> &attr_infos() const { return attr_infos_; }
-  //const unique_ptr<Stmt>             &select_stmt() const { return select_stmt_; }
+  std::vector<Field>           &map_fields() { return map_fields_; }
+  SelectSqlNode                &select_sql() { return select_sql_; }
+  SelectAnalyzer               &analyzer() { return analyzer_; }
 
   static RC create(Db *db, const CreateViewSqlNode &create_view, 
     Stmt *&stmt, SelectSqlNode &select_sql, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
@@ -48,8 +52,8 @@ public:
 
 private:
   std::string view_name_;
-  bool allow_write_ = false;                // 是否允许对视图进行写操作
   std::vector<AttrInfoSqlNode> attr_infos_; // 视图列信息
   std::vector<Field> map_fields_;           // col映射到的原始列，里面有table、fieldMeta
-  SelectSqlNode select_sql_;     // SelectStmt里存的是指针，不便于落盘管理
+  SelectSqlNode select_sql_; 
+  SelectAnalyzer  analyzer_; 
 };

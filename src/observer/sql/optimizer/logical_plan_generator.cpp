@@ -135,8 +135,8 @@ RC LogicalPlanGenerator::create_plan(SelectStmt *select_stmt, unique_ptr<Logical
   unique_ptr<LogicalOperator> table_oper(nullptr);
   last_oper = &table_oper;
 
-  const std::vector<Table *> &tables = select_stmt->tables();
-  for (Table *table : tables) {
+  const std::vector<BaseTable *> &tables = select_stmt->tables();
+  for (BaseTable *table : tables) {
 
     unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, ReadWriteMode::READ_ONLY));
     if (table_oper == nullptr) {

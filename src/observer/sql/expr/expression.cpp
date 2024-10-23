@@ -1017,8 +1017,9 @@ RC SelectExpr::pretreatment()
   RC rc = RC::SUCCESS;
   Tuple *tuple = nullptr;
   physical_operator_->open(trx_);
-  if(values_ == nullptr)
-    values_ = make_unique<vector<vector<Value>>>();
+  
+  values_.reset();
+  values_ = make_unique<vector<vector<Value>>>();
 
   Value value;
   while (RC::SUCCESS == (rc = next_tuple(tuple))) {

@@ -40,11 +40,12 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
       LOG_WARN("failed to create select_stmt when create_table_select, rc=%s", strrc(rc));
       return rc;
     }
-    depends->clear();
-    select_exprs->clear();
+
+    std::vector<Field> map_fields;
 
     for (std::unique_ptr<Expression> &attr_expr : static_cast<SelectStmt*>(select_stmt)->query_expressions()) {
       AttrInfoSqlNode attr_info;
+      Field map_field;
       if (0 != attr_expr->alias().length()) {
         size_t pos = attr_expr->alias().find('.');
         if (std::string::npos == pos) {
@@ -62,6 +63,7 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
         FieldMeta field = *(field_expr->field().meta());
         attr_info.length = field.len();
         attr_info.nullable = field.nullable();
+        map_field = field_expr->field();
       } else {
         if (ExprType::VALUE == attr_expr->type()) {
           ValueExpr *value_expr = dynamic_cast<ValueExpr*>(attr_expr.get());
@@ -84,6 +86,7 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
         attr_info.nullable = nullable;
       }
       attr_infos.emplace_back(attr_info);
+      map_fields.emplace_back(map_field);
     }
 
     if (!create_view.col_names.empty()) {
@@ -91,6 +94,12 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
             attr_infos[i].name = create_view.col_names[i];
         }
     }
+
+  CreateViewStmt *temp = new CreateViewStmt(std::move(create_view.view_name), 
+                            std::move(attr_infos), std::move(map_fields), select_sql);
+  temp->analyzer_.depends_.swap(depends);
+  temp->analyzer_.select_exprs_.swap(select_exprs);
+  stmt = temp;
 
   sql_debug("create table statement: table name %s", create_view.view_name.c_str());
   return RC::SUCCESS;
