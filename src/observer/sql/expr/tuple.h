@@ -24,6 +24,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/parser/parse.h"
 #include "common/value.h"
 #include "storage/record/record.h"
+#include "common/lang/bitmap.h"
 
 class Table;
 
@@ -143,13 +144,14 @@ public:
         return rc;
       }
 
-      if(this_value.attr_type() == AttrType::NULLS){
-        if(other_value.attr_type() == AttrType::NULLS)continue;
-        else{
+      if (this_value.attr_type() == AttrType::NULLS) {
+        if (other_value.attr_type() == AttrType::NULLS)
+          continue;
+        else {
           result = 1;
           return rc;
         }
-      }else if(other_value.attr_type() == AttrType::NULLS){
+      } else if (other_value.attr_type() == AttrType::NULLS) {
         result = 1;
         return rc;
       }
@@ -219,7 +221,10 @@ public:
     FieldExpr       *field_expr = speces_[index];
     const FieldMeta *field_meta = field_expr->field().meta();
 
-    if(field_meta->is_field_null(this->record_->data()))cell.set_null();
+    common::Bitmap map(this->record_->data(), index + 1);
+
+    if (map.get_bit(index))
+      cell.set_null();
     else {
       if (AttrType::TEXTS == field_meta->type()) {
         cell.set_type(AttrType::CHARS);

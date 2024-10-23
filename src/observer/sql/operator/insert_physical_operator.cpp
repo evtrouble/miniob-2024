@@ -60,5 +60,6 @@ RC InsertPhysicalOperator::insert_table(Trx *trx)
 RC InsertPhysicalOperator::insert_view(Trx *trx)
 {
   View *view = static_cast<View*>(base_table_);
+  if(!view->allow_write())return RC::INVALID_ARGUMENT;
   return RC::SUCCESS;
 }

@@ -52,11 +52,13 @@ public:
       auto                 oper    = new StringListPhysicalOperator;
       std::vector<Index *> indexes = table->indexes();
       for (size_t i = 0; i < indexes.size(); i++) {
-        oper->append({table->name(),                        // Table
-            indexes[i]->index_meta().unique() ? "0" : "1",  // Non_unique
-            indexes[i]->index_meta().name(),                // Key_name
-            "1",                                            // Seq_in_index
-            indexes[i]->index_meta().field()});             // Column_name
+        for (size_t j = 1; j < indexes[i]->index_meta().field().size(); j++) {
+          oper->append({table->name(),                        // Table
+              indexes[i]->index_meta().unique() ? "0" : "1",  // Non_unique
+              indexes[i]->index_meta().name(),                // Key_name
+              "1",                                            // Seq_in_index
+              indexes[i]->index_meta().field().at(j)});       // Column_name
+        }
       }
       sql_result->set_operator(std::unique_ptr<PhysicalOperator>(oper));
     } else {
