@@ -30,6 +30,7 @@ class LogHandler;
 class BufferPoolManager;
 class TrxKit;
 class BaseTable;
+class SelectStmt;
 
 /**
  * @brief 一个DB实例负责管理一批表
@@ -74,7 +75,7 @@ public:
    * @param storage_format 视图的存储格式
    */
   RC create_view(const char *view_name, span<const AttrInfoSqlNode> attributes, 
-                std::vector<Field> &map_fields, SelectSqlNode &select_sql,
+                std::vector<Field> &map_fields, unique_ptr<Stmt> &select_stmt,
                 SelectAnalyzer &analyzer);
 
   /**

@@ -444,7 +444,7 @@ BufferPoolManager &Db::buffer_pool_manager() { return *buffer_pool_manager_; }
 TrxKit            &Db::trx_kit() { return *trx_kit_; }
 
 RC Db::create_view(const char *view_name, span<const AttrInfoSqlNode> attributes, 
-                std::vector<Field> &map_fields, SelectSqlNode &select_sql,
+                std::vector<Field> &map_fields, unique_ptr<Stmt> &select_stmt,
                 SelectAnalyzer &analyzer)
 {
   RC rc = RC::SUCCESS;
@@ -457,7 +457,7 @@ RC Db::create_view(const char *view_name, span<const AttrInfoSqlNode> attributes
   View *view = new View();
   int32_t table_id = next_table_id_++;
   std::string view_file_path = view_meta_file(path_.c_str(), view_name);
-  rc = view->create(this, table_id, view_file_path.c_str(), view_name, path_.c_str(), attributes, map_fields, select_sql, analyzer);
+  rc = view->create(table_id, view_file_path.c_str(), view_name, path_.c_str(), attributes, map_fields, select_stmt, analyzer);
   if (rc != RC::SUCCESS) {
     LOG_ERROR("Failed to create table %s.", view_name);
     delete view;

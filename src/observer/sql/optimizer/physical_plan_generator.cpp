@@ -37,6 +37,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/project_vec_physical_operator.h"
 #include "sql/operator/table_get_logical_operator.h"
 #include "sql/operator/table_scan_physical_operator.h"
+#include "sql/operator/view_scan_physical_operator.h"
 #include "sql/operator/group_by_logical_operator.h"
 #include "sql/operator/group_by_physical_operator.h"
 #include "sql/operator/order_by_logical_operator.h"
@@ -49,6 +50,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/update_physical_operator.h"
 #include "sql/operator/create_table_logical_operator.h"
 #include "sql/operator/create_table_physical_operator.h"
+#include "storage/table/view.h"
 
 using namespace std;
 
@@ -143,7 +145,17 @@ RC PhysicalPlanGenerator::create_plan(TableGetLogicalOperator &table_get_oper, u
 {
   vector<unique_ptr<Expression>> &predicates = table_get_oper.predicates();
   // 看看是否有可以用于索引查找的表达式
-  Table *table = table_get_oper.table();
+  BaseTable *base_table = table_get_oper.table();
+
+  if(base_table->is_view()){
+    auto view_scan_oper = new ViewScanPhysicalOperator(static_cast<View*>(base_table), table_get_oper.read_write_mode());
+    view_scan_oper->set_predicates(std::move(predicates));
+    oper = unique_ptr<PhysicalOperator>(view_scan_oper);
+    LOG_TRACE("use view scan");
+    return RC::SUCCESS;
+  }
+
+  Table *table = static_cast<Table*>(base_table);
 
   Index     *index      = nullptr;
   ValueExpr *value_expr = nullptr;
@@ -460,7 +472,11 @@ RC PhysicalPlanGenerator::create_plan(CreateTableLogicalOperator &logical_oper, 
 RC PhysicalPlanGenerator::create_vec_plan(TableGetLogicalOperator &table_get_oper, unique_ptr<PhysicalOperator> &oper)
 {
   vector<unique_ptr<Expression>> &predicates = table_get_oper.predicates();
-  Table *table = table_get_oper.table();
+  BaseTable *base_table = table_get_oper.table();
+
+  if(base_table->is_view())return RC::INVALID_ARGUMENT;
+  Table *table = static_cast<Table*>(base_table);
+  
   TableScanVecPhysicalOperator *table_scan_oper = new TableScanVecPhysicalOperator(table, table_get_oper.read_write_mode());
   table_scan_oper->set_predicates(std::move(predicates));
   oper = unique_ptr<PhysicalOperator>(table_scan_oper);

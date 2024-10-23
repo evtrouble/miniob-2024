@@ -32,7 +32,7 @@ RC CreateViewExecutor::execute(SQLStageEvent *sql_event)
     CreateViewStmt *create_view_stmt = static_cast<CreateViewStmt*>(stmt);
 
     rc = session->get_current_db()->create_view(create_view_stmt->view_name().c_str(), 
-              create_view_stmt->attr_infos(), create_view_stmt->map_fields(), create_view_stmt->select_sql(), 
+              create_view_stmt->attr_infos(), create_view_stmt->map_fields(), create_view_stmt->select_stmt(), 
               create_view_stmt->analyzer());
     if (RC::SUCCESS != rc) {
       LOG_WARN("failed to create view %s, rc=%s", create_view_stmt->view_name().c_str(), strrc(rc));

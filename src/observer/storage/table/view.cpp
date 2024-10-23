@@ -12,13 +12,13 @@
 #include "event/sql_debug.h"
 #include "storage/trx/trx.h"
 
-RC View::create(Db *db, int32_t table_id, 
+RC View::create(int32_t table_id, 
             const char *path,       // .view文件路径、名称
             const char *name,       // view_name
             const char *base_dir,   // db/sys
-            const std::vector<AttrInfoSqlNode> &attr_infos, 
+            span<const AttrInfoSqlNode> attr_infos, 
             std::vector<Field> &map_fields, 
-            SelectSqlNode &select_sql, SelectAnalyzer &analyzer)
+            unique_ptr<Stmt> &select_stmt, SelectAnalyzer &analyzer)
 {
   RC rc = RC::SUCCESS;
   if (table_id < 0) {
@@ -36,12 +36,12 @@ RC View::create(Db *db, int32_t table_id,
   
   LOG_INFO("Begin to create view %s:%s", base_dir, name);
   set_view_type();
-  map_fields_ = map_fields;
-  std::swap(select_sql_, select_sql);
+
+  std::swap(select_stmt_, select_stmt);
   std::swap(analyzer_, analyzer);
   map_fields_.swap(map_fields);
 
-  const vector<FieldMeta> *trx_fields = db->trx_kit().trx_fields();
+  const vector<FieldMeta> *trx_fields = db_->trx_kit().trx_fields();
   if ((rc = table_meta_.init(table_id, name, trx_fields, attr_infos.size(), attr_infos.data())) != RC::SUCCESS) {
     LOG_ERROR("Failed to init table meta. name:%s, ret:%d", name, rc);
     return rc;  // delete table file
@@ -70,40 +70,6 @@ RC View::create(Db *db, int32_t table_id,
 //   }
 //   table_meta_.serialize(fs);
 //   fs.close();
-
-  return rc;
-}
-
-RC View::open()
-{
-  RC rc = RC::SUCCESS;
-
-  // ParsedSqlResult parsed_sql_result;
-  // parse(sql.c_str(), &parsed_sql_result);
-  // if (parsed_sql_result.sql_nodes().empty()) {
-  //   return RC::INTERNAL;
-  // }
-
-  return rc;
-}
-
-RC View::drop()
-{
-  RC rc = RC::SUCCESS;
-
-  return rc;
-}
-
-RC View::serialize(std::fstream &fs)
-{
-  RC rc = RC::SUCCESS;
-
-  return rc;
-}
-
-RC View::deserialize()
-{
-  RC rc = RC::SUCCESS;
 
   return rc;
 }

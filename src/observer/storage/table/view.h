@@ -5,12 +5,12 @@
 #include "storage/table/base_table.h"
 #include "storage/table/table_meta.h"
 #include "sql/executor/sql_result.h"
+#include "sql/stmt/stmt.h"
 
 class Db;
 class Field;
 class FieldMeta;
 class TableMeta;
-class SelectStmt;
 
 class View : public BaseTable
 {
@@ -18,16 +18,13 @@ public:
   View() = default;
   virtual ~View() = default;
 
-  RC create(Db *db, int32_t table_id, 
+  RC create(int32_t table_id, 
             const char *path,       // .view文件路径、名称
             const char *name,       // view_name
             const char *base_dir,   // db/sys
-            const std::vector<AttrInfoSqlNode> &attr_infos, 
+            span<const AttrInfoSqlNode> attributes, 
             std::vector<Field> &map_fields, 
-            SelectSqlNode &select_sql, SelectAnalyzer &analyzer);
-  RC open();
-  RC drop();
-  void set_db(Db *db) { db_ = db; }
+            unique_ptr<Stmt> &select_stmt, SelectAnalyzer &analyzer);
 
 public:
   virtual int32_t table_id() const { return table_meta_.table_id(); }
@@ -36,18 +33,15 @@ public:
   
   Db *db() const { return db_; }
   const std::vector<Field> &map_fields() const { return map_fields_; }
-  SelectSqlNode select_sql() const { return select_sql_; }
+  unique_ptr<Stmt> &select_stmt() { return select_stmt_; }
 
-private:
-  int get_serialize_size();
-  RC serialize(std::fstream &fs);
-  RC deserialize();
+  void set_db(Db *db) { db_ = db; }
 
 private:
   Db *db_;
   std::string base_dir_;
   TableMeta   table_meta_;
   std::vector<Field> map_fields_;       // view列映射的原始表中的列，可写view中所有col映射的都是Field，只读view不需要用到这个映射
-  SelectSqlNode select_sql_;
+  unique_ptr<Stmt> select_stmt_;
   SelectAnalyzer  analyzer_;
 };

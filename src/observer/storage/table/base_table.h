@@ -18,6 +18,7 @@ class BaseTable
 {
 public:
   BaseTable() = default;
+  virtual ~BaseTable() = default;
 
   virtual int32_t table_id() const = 0;
   virtual const char *name() const = 0;

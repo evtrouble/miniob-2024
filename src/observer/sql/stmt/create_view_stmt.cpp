@@ -96,7 +96,7 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
     }
 
   CreateViewStmt *temp = new CreateViewStmt(std::move(create_view.view_name), 
-                            std::move(attr_infos), std::move(map_fields), select_sql);
+                            std::move(attr_infos), std::move(map_fields), select_stmt);
   temp->analyzer_.depends_.swap(depends);
   temp->analyzer_.select_exprs_.swap(select_exprs);
   stmt = temp;
