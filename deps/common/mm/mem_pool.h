@@ -309,7 +309,8 @@ string MemPoolSimple<T>::to_string()
 class MemPoolItem
 {
 public:
-  using item_unique_ptr = unique_ptr<void, function<void(void *const)>>;
+  // using item_unique_ptr = unique_ptr<void, function<void(void *const)>>;
+  using item_unique_ptr = std::unique_ptr<void, std::function<void(void *const)>>;
 
 public:
   MemPoolItem(const char *tag) : name(tag)

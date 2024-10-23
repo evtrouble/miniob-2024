@@ -35,20 +35,22 @@ class IndexMeta
 public:
   IndexMeta() = default;
 
-  RC init(const char *name, bool unique, const FieldMeta &field);
+  RC init(const char *name, bool unique, const std::vector<const FieldMeta *> &fields);
 
 public:
-  const char *name() const;
-  const char *field() const;
-  const bool  unique() const;
-  void        desc(ostream &os) const;
+  const char                     *name() const;
+  const std::vector<std::string> &field() const;
+  const bool                      unique() const;
+  void                            desc(ostream &os) const;
 
 public:
   void      to_json(Json::Value &json_value) const;
   static RC from_json(const TableMeta &table, const Json::Value &json_value, IndexMeta &index);
+  // 新增的封装方法：返回field_的字符串形式
+  std::string field_to_string() const;
 
 protected:
-  bool   unique_;  // unique index or not
-  string name_;    // index's name
-  string field_;   // field's name
+  bool                     unique_;  // unique index or not
+  string                   name_;    // index's name
+  std::vector<std::string> field_;   // fields's name
 };
