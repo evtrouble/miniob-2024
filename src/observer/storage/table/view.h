@@ -33,10 +33,13 @@ public:
   
   Db *db() const { return db_; }
   const std::vector<Field> &map_fields() const { return map_fields_; }
-  unique_ptr<Stmt> &select_stmt() { return select_stmt_; }
+  unique_ptr<PhysicalOperator> &child() { return physical_oper_; }
   SelectAnalyzer   &analyzer() { return analyzer_; }
 
   void set_db(Db *db) { db_ = db; }
+  Field* find_field(const char *name);
+
+  RC init();
 
 private:
   Db *db_;
@@ -44,5 +47,6 @@ private:
   TableMeta   table_meta_;
   std::vector<Field> map_fields_;       // view列映射的原始表中的列，可写view中所有col映射的都是Field，只读view不需要用到这个映射
   unique_ptr<Stmt> select_stmt_;
+  unique_ptr<PhysicalOperator> physical_oper_;
   SelectAnalyzer  analyzer_;
 };

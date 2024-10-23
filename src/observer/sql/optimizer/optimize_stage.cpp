@@ -34,7 +34,7 @@ RC OptimizeStage::handle_request(SQLStageEvent *sql_event)
   unique_ptr<LogicalOperator> logical_operator;
 
   RC rc = RC::SUCCESS;
-  auto& select_exprs = *sql_event->select_exprs();
+  auto& select_exprs = sql_event->select_exprs();
   for(int id = select_exprs.size() - 1; id >= 0; id--){
     rc = select_exprs[id]->logical_generate();
   }
@@ -68,7 +68,7 @@ RC OptimizeStage::handle_request(SQLStageEvent *sql_event)
     LOG_WARN("failed to generate physical plan. rc=%s", strrc(rc));
     return rc;
   }
-  for(auto& select_expr : *sql_event->select_exprs()){
+  for(auto& select_expr : select_exprs){
     rc = select_expr->physical_generate();
   }
   if (rc != RC::SUCCESS) return rc;

@@ -11,6 +11,8 @@
 #include "storage/field/field_meta.h"
 #include "event/sql_debug.h"
 #include "storage/trx/trx.h"
+#include "sql/optimizer/logical_plan_generator.h"
+#include "sql/optimizer/physical_plan_generator.h"
 
 RC View::create(int32_t table_id, 
             const char *path,       // .view文件路径、名称
@@ -72,4 +74,46 @@ RC View::create(int32_t table_id,
 //   fs.close();
 
   return rc;
+}
+
+Field* View::find_field(const char *name)
+{
+  int id = table_meta_.field_id(name);
+  if(id < table_meta_.sys_field_num())return nullptr;
+  return &map_fields_[id - table_meta_.sys_field_num()];
+}
+
+RC View::init()
+{
+  if(physical_oper_ != nullptr)return RC::SUCCESS;
+
+  RC rc = RC::SUCCESS;
+  LogicalPlanGenerator logical_plan_generator;
+  for(int id = analyzer_.select_exprs_.size() - 1; id >= 0; id--){
+    rc = analyzer_.select_exprs_[id]->logical_generate();
+  }
+  if (rc != RC::SUCCESS) return rc;
+
+  std::unique_ptr<LogicalOperator> logical_oper;
+  rc = logical_plan_generator.create(select_stmt_.get(), logical_oper);
+  if (RC::SUCCESS != rc) {
+    LOG_WARN("failed to create select_logical_oper when view_scan open, rc=%s", strrc(rc));
+    return rc;
+  }
+
+  PhysicalPlanGenerator physical_plan_generator;
+  rc = physical_plan_generator.create(*logical_oper, physical_oper_);
+  if (RC::SUCCESS != rc) {
+    LOG_WARN("failed to create select_physical_oper when view_scan open, rc=%s", strrc(rc));
+    return rc;
+  }
+  for(auto& select_expr : analyzer_.select_exprs_){
+    rc = select_expr->physical_generate();
+  }
+  if (RC::SUCCESS != rc) {
+    LOG_WARN("failed to create select_physical_oper when view_scan open, rc=%s", strrc(rc));
+    return rc;
+  }
+
+  return RC::SUCCESS;
 }

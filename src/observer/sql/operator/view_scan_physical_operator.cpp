@@ -15,8 +15,6 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/view_scan_physical_operator.h"
 #include "event/sql_debug.h"
 #include "storage/table/view.h"
-#include "sql/optimizer/logical_plan_generator.h"
-#include "sql/optimizer/physical_plan_generator.h"
 
 using namespace std;
 
@@ -25,39 +23,17 @@ RC ViewScanPhysicalOperator::open(Trx *trx)
   RC rc = RC::SUCCESS;
   LOG_INFO("open view scan operator");
 
-  auto& analyzer = view_->analyzer();//->select_exprs();
-  if(physical_oper_ == nullptr){
-    LogicalPlanGenerator logical_plan_generator;
-    for(int id = analyzer.select_exprs_.size() - 1; id >= 0; id--){
-      rc = analyzer.select_exprs_[id]->logical_generate();
-    }
-    if (rc != RC::SUCCESS) return rc;
-    std::unique_ptr<LogicalOperator> logical_oper;
-    rc = logical_plan_generator.create(view_->select_stmt().get(), logical_oper);
-    if (RC::SUCCESS != rc) {
-      LOG_WARN("failed to create select_logical_oper when view_scan open, rc=%s", strrc(rc));
-      return rc;
-    }
-
-    PhysicalPlanGenerator physical_plan_generator;
-    rc = physical_plan_generator.create(*logical_oper, physical_oper_);
-    if (RC::SUCCESS != rc) {
-      LOG_WARN("failed to create select_physical_oper when view_scan open, rc=%s", strrc(rc));
-      return rc;
-    }
-    for(auto& select_expr : analyzer.select_exprs_){
-      rc = select_expr->physical_generate();
-    }
-    if (RC::SUCCESS != rc) {
-      LOG_WARN("failed to create select_physical_oper when view_scan open, rc=%s", strrc(rc));
-      return rc;
-    }
+  auto& analyzer = view_->analyzer();
+  rc = view_->init();
+  if (RC::SUCCESS != rc) {
+    LOG_WARN("failed to create select_physical_oper when view_scan open, rc=%s", strrc(rc));
+    return rc;
   }
 
   rc = analyzer.pretreatment();
   if(OB_FAIL(rc))return rc;
 
-  rc = physical_oper_->open(trx);
+  rc = view_->child()->open(trx);
   if (RC::SUCCESS != rc) {
     LOG_WARN("failed to open select_physical_oper when view_scan open, rc=%s", strrc(rc));
     return rc;
@@ -72,11 +48,12 @@ RC ViewScanPhysicalOperator::next()
   RC rc = RC::SUCCESS;
 
   bool filter_result = false;
-  while (OB_SUCC(rc = physical_oper_->next())) {
-    tuple_ = physical_oper_->current_tuple();
+  std::unique_ptr<PhysicalOperator> &child = view_->child();
+  while (OB_SUCC(rc = child->next())) {
+    tuple_ = child->current_tuple();
     if (nullptr == tuple_) {
       LOG_WARN("failed to get current record: %s", strrc(rc));
-      physical_oper_->close();
+      child->close();
       return rc;
     }
     
@@ -103,11 +80,12 @@ RC ViewScanPhysicalOperator::next(Tuple *upper_tuple)
   join_tuple.set_left(upper_tuple);
 
   bool filter_result = false;
-  while (OB_SUCC(rc = physical_oper_->next(upper_tuple))) {
-    tuple_ = physical_oper_->current_tuple();
+  std::unique_ptr<PhysicalOperator> &child = view_->child();
+  while (OB_SUCC(rc = child->next(upper_tuple))) {
+    tuple_ = child->current_tuple();
     if (nullptr == tuple_) {
       LOG_WARN("failed to get current record: %s", strrc(rc));
-      physical_oper_->close();
+      child->close();
       return rc;
     }
 
@@ -129,7 +107,12 @@ RC ViewScanPhysicalOperator::next(Tuple *upper_tuple)
   return rc;
 }
 
-RC ViewScanPhysicalOperator::close() { LOG_INFO("close table scan operator"); return RC::SUCCESS; }
+RC ViewScanPhysicalOperator::close() 
+{ 
+  LOG_INFO("close view scan operator"); 
+  view_->child()->close();
+  return RC::SUCCESS;
+}
 
 Tuple *ViewScanPhysicalOperator::current_tuple()
 {

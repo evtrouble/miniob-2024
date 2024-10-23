@@ -18,6 +18,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/string.h"
 #include "sql/parser/expression_binder.h"
 #include "sql/expr/expression_iterator.h"
+#include "storage/table/view.h"
 
 using namespace std;
 using namespace common;
@@ -38,6 +39,16 @@ static void wildcard_fields(BaseTable *table, vector<unique_ptr<Expression>> &ex
 {
   const TableMeta &table_meta = table->table_meta();
   const int        field_num  = table_meta.field_num();
+  if(table->is_view()){
+    View *view = static_cast<View*>(table);
+    for(auto& field : view->map_fields())
+    {
+      FieldExpr *field_expr = new FieldExpr(field);
+      field_expr->set_name(field.field_name());
+      expressions.emplace_back(field_expr);
+    }
+    return;
+  }
   for (int i = table_meta.sys_field_num(); i < field_num; i++) {
     Field      field(table, table_meta.field(i));
     FieldExpr *field_expr = new FieldExpr(field);
@@ -164,6 +175,20 @@ RC ExpressionBinder::bind_unbound_field_expression(
   if (0 == strcmp(field_name, "*")) {
     wildcard_fields(table, bound_expressions);
   } else {
+    if(table->is_view()){
+      View *view = static_cast<View*>(table);
+      Field* field = view->find_field(field_name);
+      if (nullptr == field) {
+        LOG_INFO("no such field in view: %s.%s", table_name, field_name);
+        return RC::SCHEMA_FIELD_MISSING;
+      }
+      FieldExpr *field_expr = new FieldExpr(*field);
+      field_expr->set_name(field->field_name());
+      field_expr->set_alias(expr->alias());
+      bound_expressions.emplace_back(field_expr);
+      return RC::SUCCESS;
+    }
+
     const FieldMeta *field_meta = table->table_meta().field(field_name);
     if (nullptr == field_meta) {
       LOG_INFO("no such field in table: %s.%s", table_name, field_name);

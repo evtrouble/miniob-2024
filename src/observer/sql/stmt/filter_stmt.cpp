@@ -19,6 +19,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/rc.h"
 #include "storage/db/db.h"
 #include "storage/table/table.h"
+#include "storage/table/view.h"
 
 RC FilterStmt::create(Db *db, BaseTable *default_table, tables_t& table_map, Conditions& conditions, 
     FilterStmt *&stmt, vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
@@ -49,6 +50,20 @@ RC FilterStmt::create(Db *db, BaseTable *default_table, tables_t& table_map, Con
         RC rc = get_table_and_field(db, default_table, table_map, table, field_meta, 
             *unbound_field_expr, &min_depend);
         if(rc != RC::SUCCESS)return rc;
+
+        if(table->is_view()){
+          View *view = static_cast<View*>(table);
+          Field* field = view->find_field(unbound_field_expr->field_name());
+          if (nullptr == field) {
+            LOG_INFO("no such field in view: %s.%s", unbound_field_expr->table_name(), unbound_field_expr->field_name());
+            return RC::SCHEMA_FIELD_MISSING;
+          }
+          FieldExpr *field_expr = new FieldExpr(*field);
+          field_expr->set_name(field->field_name());
+          field_expr->set_alias(expr->alias());
+          expr.reset(field_expr);
+          return RC::SUCCESS;
+        }
 
         Field      field(table, field_meta);
         FieldExpr *field_expr = new FieldExpr(field);
