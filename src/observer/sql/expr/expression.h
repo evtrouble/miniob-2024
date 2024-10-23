@@ -551,7 +551,7 @@ public:
 
   RC logical_generate();
   RC physical_generate();
-  RC create_stmt(Db *db, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  RC create_stmt(Db *db, vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
     tables_t& table_map, int fa);
 
   RC next_tuple(Tuple *&tuple, Tuple *upper_tuple = nullptr) const;

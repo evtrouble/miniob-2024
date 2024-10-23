@@ -41,7 +41,7 @@ public:
 
 public:
   static RC create(Db *db, BaseTable *default_table, tables_t& table_map, Conditions& conditions, 
-    FilterStmt *&stmt, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+    FilterStmt *&stmt, vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
     int fa);
 
   static RC get_table_and_field(Db *db, BaseTable *default_table, tables_t& table_map, BaseTable*& table, const FieldMeta*& field, 

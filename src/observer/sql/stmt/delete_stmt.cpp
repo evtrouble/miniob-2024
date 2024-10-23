@@ -29,7 +29,7 @@ DeleteStmt::~DeleteStmt()
 }
 
 RC DeleteStmt::create(Db *db, DeleteSqlNode &delete_sql, Stmt *&stmt, 
-  unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
   tables_t& table_map, int fa)
 {
   const char *table_name = delete_sql.relation_name.c_str();
@@ -45,14 +45,14 @@ RC DeleteStmt::create(Db *db, DeleteSqlNode &delete_sql, Stmt *&stmt,
     return RC::SCHEMA_TABLE_NOT_EXIST;
   }
 
-  auto size = depends->size();
+  auto size = depends.size();
 
   if(!table_map.count(table_name)){
     auto temp = std::make_pair(table, size);
     table_map.insert({table_name, temp});
   }
 
-  depends->push_back(vector<uint32_t>());
+  depends.push_back(vector<uint32_t>());
 
   FilterStmt *filter_stmt = nullptr;
   RC          rc          = FilterStmt::create(

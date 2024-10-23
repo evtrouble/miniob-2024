@@ -32,7 +32,7 @@ SelectStmt::~SelectStmt()
 }
 
 RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt, 
-  unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
   tables_t& table_map, int fa)
 {
   if (nullptr == db) {
@@ -45,7 +45,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
 
   // collect tables in `from` statement
   vector<BaseTable *>                tables;
-  auto size = depends->size();
+  auto size = depends.size();
  
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
     const char *table_name = select_sql.relations[i].c_str();
@@ -120,9 +120,9 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     default_table = tables[0];
   }
 
-  depends->emplace_back(vector<uint32_t>());
+  depends.emplace_back(vector<uint32_t>());
   if(fa >= 0){
-    depends->at(fa).emplace_back(size);
+    depends.at(fa).emplace_back(size);
   }
 
   // create filter statement in `where` statement

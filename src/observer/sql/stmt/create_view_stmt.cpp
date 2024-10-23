@@ -26,7 +26,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/expr/expression.h"
 
 RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view, 
-    Stmt *&stmt, SelectSqlNode &select_sql, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+    Stmt *&stmt, SelectSqlNode &select_sql, vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
     tables_t& table_map, int fa)
 {
     // create view

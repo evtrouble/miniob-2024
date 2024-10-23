@@ -30,8 +30,8 @@ struct SelectAnalyzer
   vector<int>                       low;
   int                               cnt = 0;
   vector<int>                       scc;
-  unique_ptr<vector<SelectExpr*>> select_exprs_;           ///< 子查询表达式
-  unique_ptr<vector<vector<uint32_t>>> depends_;         ///< 依赖关系
+  vector<SelectExpr*> select_exprs_;           ///< 子查询表达式
+  vector<vector<uint32_t>> depends_;         ///< 依赖关系
 
   void targan(int u = 0)
   {
@@ -39,9 +39,9 @@ struct SelectAnalyzer
     dfn[u] = low[u] = cnt;
     instack[u] = true;
     st.push(u);
-    for (size_t i = 0; i < depends_->at(u).size(); i++)
+    for (size_t i = 0; i < depends_.at(u).size(); i++)
     {
-        int v = depends_->at(u)[i];
+        int v = depends_.at(u)[i];
         if (dfn[v] == 0)
         {
           targan(v);
@@ -65,9 +65,9 @@ struct SelectAnalyzer
 
   RC pretreatment()
   {
-    if(depends_->size() == 0 || depends_->size() == 1)return RC::SUCCESS;
+    if(depends_.size() == 0 || depends_.size() == 1)return RC::SUCCESS;
     if(scc.size() == 0){
-      auto size = depends_->size();
+      auto size = depends_.size();
       dfn.resize(size);
       instack.resize(size);
       low.resize(size);
@@ -79,7 +79,7 @@ struct SelectAnalyzer
     RC rc = RC::SUCCESS;
 
     for(int id = scc.size() - 1; id; id--){
-      rc = select_exprs_->at(scc[id] - 1)->pretreatment();
+      rc = select_exprs_.at(scc[id] - 1)->pretreatment();
       if(rc != RC::SUCCESS)return rc;
     }
     return rc;
@@ -104,8 +104,8 @@ public:
   void set_state_string(const std::string &state_string) { state_string_ = state_string; }
 
   void set_operator(std::unique_ptr<PhysicalOperator> oper);
-  void set_depends(unique_ptr<vector<vector<uint32_t>>> depends);
-  void set_exprs(unique_ptr<vector<SelectExpr*>> select_exprs);
+  void set_depends(vector<vector<uint32_t>>&& depends);
+  void set_exprs(vector<SelectExpr*>&& select_exprs);
 
   bool               has_operator() const { return operator_ != nullptr; }
   const TupleSchema &tuple_schema() const { return tuple_schema_; }

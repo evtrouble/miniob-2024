@@ -52,7 +52,7 @@ private:
   View                                    *view_ = nullptr;
   Trx                                     *trx_   = nullptr;
   ReadWriteMode                            mode_  = ReadWriteMode::READ_WRITE;
-  Record                                   current_record_;
-  RowTuple                                 tuple_;
+  Tuple                                   *tuple_;
+  unique_ptr<PhysicalOperator>             physical_oper_;
   std::vector<std::unique_ptr<Expression>> predicates_;  // TODO chang predicate to table tuple filter
 };

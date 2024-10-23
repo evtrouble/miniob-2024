@@ -32,7 +32,7 @@ UpdateStmt::~UpdateStmt()
 }
 
 RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt, 
-  unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
   tables_t& table_map, int fa)
 {
   const char *table_name = update.relation_name.c_str();
@@ -58,7 +58,7 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt,
 
   std::vector<const FieldMeta *> fields;
 
-  auto size = depends->size();
+  auto size = depends.size();
   for(auto& attribute_name : update.attribute_names){
     field = table_meta.field(attribute_name.c_str());
     
@@ -87,7 +87,7 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt,
     table_map.insert({table_name, temp});
   }
 
-  depends->emplace_back(vector<uint32_t>());
+  depends.emplace_back(vector<uint32_t>());
 
   FilterStmt *filter_stmt = nullptr;
   RC          rc          = FilterStmt::create(
@@ -100,7 +100,7 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt,
   for(auto& value : update.values){
     if(value->type() == ExprType::SELECT){
       SelectExpr* expr = static_cast<SelectExpr*>(value.get());
-      select_exprs->emplace_back(expr);
+      select_exprs.emplace_back(expr);
       rc = expr->create_stmt(db, depends, select_exprs, table_map, size);
       if(rc != RC::SUCCESS)return rc;
     }

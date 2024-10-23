@@ -20,7 +20,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/expr/expression.h"
 
 RC CreateTableStmt::create(Db *db, const CreateTableSqlNode &create_table, SelectSqlNode &select_sql, Stmt *&stmt, 
-    unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+    vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
     tables_t& table_map, int fa)
 {
   StorageFormat storage_format = StorageFormat::UNKNOWN_FORMAT;

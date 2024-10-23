@@ -46,8 +46,8 @@ RC ResolveStage::handle_request(SQLStageEvent *sql_event)
 
   ParsedSqlNode *sql_node = sql_event->sql_node().get();
   Stmt          *stmt     = nullptr;
-  auto depends = make_unique<vector<vector<uint32_t>>>();
-  auto select_exprs = make_unique<vector<SelectExpr*>>();
+  vector<vector<uint32_t>> depends;
+  vector<SelectExpr*> select_exprs;
   tables_t table_map;
   rc = Stmt::create_stmt(db, *sql_node, stmt, depends, select_exprs, table_map);
   if (rc != RC::SUCCESS && rc != RC::UNIMPLEMENTED) {

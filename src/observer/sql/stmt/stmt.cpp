@@ -51,7 +51,7 @@ bool stmt_type_ddl(StmtType type)
   }
 }
 RC Stmt::create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt, 
-  unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
   tables_t& table_map, int fa)
 {
   stmt = nullptr;

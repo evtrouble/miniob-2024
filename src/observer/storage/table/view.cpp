@@ -42,7 +42,7 @@ RC View::create(int32_t table_id,
   map_fields_.swap(map_fields);
 
   const vector<FieldMeta> *trx_fields = db_->trx_kit().trx_fields();
-  if ((rc = table_meta_.init(table_id, name, trx_fields, attr_infos.size(), attr_infos.data())) != RC::SUCCESS) {
+  if ((rc = table_meta_.init(table_id, name, trx_fields, attr_infos)) != RC::SUCCESS) {
     LOG_ERROR("Failed to init table meta. name:%s, ret:%d", name, rc);
     return rc;  // delete table file
   }

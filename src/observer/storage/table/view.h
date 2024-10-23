@@ -34,6 +34,7 @@ public:
   Db *db() const { return db_; }
   const std::vector<Field> &map_fields() const { return map_fields_; }
   unique_ptr<Stmt> &select_stmt() { return select_stmt_; }
+  SelectAnalyzer   &analyzer() { return analyzer_; }
 
   void set_db(Db *db) { db_ = db; }
 
