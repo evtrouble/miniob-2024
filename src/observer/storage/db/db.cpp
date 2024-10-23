@@ -445,7 +445,7 @@ TrxKit            &Db::trx_kit() { return *trx_kit_; }
 
 RC Db::create_view(const char *view_name, span<const AttrInfoSqlNode> attributes, 
                 std::vector<Field> &map_fields, unique_ptr<Stmt> &select_stmt,
-                SelectAnalyzer &analyzer)
+                SelectAnalyzer &analyzer, bool allow_write)
 {
   RC rc = RC::SUCCESS;
   // check table_name
@@ -458,7 +458,8 @@ RC Db::create_view(const char *view_name, span<const AttrInfoSqlNode> attributes
   int32_t table_id = next_table_id_++;
   std::string view_file_path = view_meta_file(path_.c_str(), view_name);
   view->set_db(this);
-  rc = view->create(table_id, view_file_path.c_str(), view_name, path_.c_str(), attributes, map_fields, select_stmt, analyzer);
+  rc = view->create(table_id, view_file_path.c_str(), view_name, path_.c_str(), attributes, 
+    map_fields, select_stmt, analyzer, allow_write);
   if (rc != RC::SUCCESS) {
     LOG_ERROR("Failed to create table %s.", view_name);
     delete view;

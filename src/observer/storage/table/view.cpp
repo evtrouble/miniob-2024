@@ -20,7 +20,7 @@ RC View::create(int32_t table_id,
             const char *base_dir,   // db/sys
             span<const AttrInfoSqlNode> attr_infos, 
             std::vector<Field> &map_fields, 
-            unique_ptr<Stmt> &select_stmt, SelectAnalyzer &analyzer)
+            unique_ptr<Stmt> &select_stmt, SelectAnalyzer &analyzer, bool allow_write)
 {
   RC rc = RC::SUCCESS;
   if (table_id < 0) {
@@ -38,6 +38,7 @@ RC View::create(int32_t table_id,
   
   LOG_INFO("Begin to create view %s:%s", base_dir, name);
   set_view_type();
+  allow_write_ = allow_write;
 
   std::swap(select_stmt_, select_stmt);
   std::swap(analyzer_, analyzer);

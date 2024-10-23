@@ -76,7 +76,7 @@ public:
    */
   RC create_view(const char *view_name, span<const AttrInfoSqlNode> attributes, 
                 std::vector<Field> &map_fields, unique_ptr<Stmt> &select_stmt,
-                SelectAnalyzer &analyzer);
+                SelectAnalyzer &analyzer, bool allow_write);
 
   /**
    * @brief 删除一个表

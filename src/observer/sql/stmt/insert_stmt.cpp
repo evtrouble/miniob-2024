@@ -17,7 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 
-InsertStmt::InsertStmt(Table *table, const vector<vector<Value>>&& values_set)
+InsertStmt::InsertStmt(BaseTable *table, const vector<vector<Value>>&& values_set)
     : table_(table), values_set_(std::move(values_set))
 {}
 
@@ -31,7 +31,7 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
   }
 
   // check whether the table exists
-  Table *table = db->find_table(table_name);
+  BaseTable *table = db->find_base_table(table_name);
   if (nullptr == table) {
     LOG_WARN("no such table. db=%s, table_name=%s", db->name(), table_name);
     return RC::SCHEMA_TABLE_NOT_EXIST;
@@ -62,8 +62,6 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
       }
     }
   }
-
-
 
   // everything alright
   stmt = new InsertStmt(table, std::move(inserts.values));

@@ -24,7 +24,7 @@ public:
             const char *base_dir,   // db/sys
             span<const AttrInfoSqlNode> attributes, 
             std::vector<Field> &map_fields, 
-            unique_ptr<Stmt> &select_stmt, SelectAnalyzer &analyzer);
+            unique_ptr<Stmt> &select_stmt, SelectAnalyzer &analyzer, bool allow_write);
 
 public:
   virtual int32_t table_id() const { return table_meta_.table_id(); }
@@ -35,6 +35,7 @@ public:
   const std::vector<Field> &map_fields() const { return map_fields_; }
   unique_ptr<PhysicalOperator> &child() { return physical_oper_; }
   SelectAnalyzer   &analyzer() { return analyzer_; }
+  bool              allow_write() const { return allow_write_; }
 
   void set_db(Db *db) { db_ = db; }
   Field* find_field(const char *name);
@@ -49,4 +50,5 @@ private:
   unique_ptr<Stmt> select_stmt_;
   unique_ptr<PhysicalOperator> physical_oper_;
   SelectAnalyzer  analyzer_;
+  bool            allow_write_ = false;
 };
