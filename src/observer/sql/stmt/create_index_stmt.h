@@ -38,7 +38,7 @@ public:
   StmtType type() const override { return StmtType::CREATE_INDEX; }
 
   Table                                *table() const { return table_; }
-  const std::vector<const FieldMeta *> &field_meta() const { return field_meta_; }
+  std::vector<const FieldMeta *>       &field_meta() { return field_meta_; }
   const std::string                    &index_name() const { return index_name_; }
   bool                                  unique() { return unique_; }
 

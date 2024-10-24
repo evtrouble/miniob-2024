@@ -183,11 +183,11 @@ const IndexMeta *TableMeta::find_index_by_fields(std::vector<const char *> field
   const IndexMeta *ret = nullptr;
   for (const IndexMeta &index : indexes_) {
     auto &index_fields = index.fields();
-    int cnt = 0;
+    size_t cnt = 0;
     for (auto &field : index_fields) {
       bool found = false;
       for (auto f : fields)
-        if (strcmp(field->name(), f) == 0) {
+        if (strcmp(field.name(), f) == 0) {
           found = true;
         }
       if (found)

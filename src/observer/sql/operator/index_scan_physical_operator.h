@@ -46,7 +46,7 @@ public:
 private:
   // 与TableScanPhysicalOperator代码相同，可以优化
   RC filter(RowTuple &tuple, bool &result);
-  static RC make_data(const std::vector<Value> &values, std::vector<const FieldMeta*> &meta, Table *table,
+  static RC make_data(const std::vector<Value> &values, const std::vector<FieldMeta> &meta, Table *table,
                       std::vector<char> &out);
 
 private:

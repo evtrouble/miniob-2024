@@ -22,10 +22,10 @@ IndexScanPhysicalOperator::IndexScanPhysicalOperator(Table *table, Index *index,
     : table_(table), index_(index), mode_(mode), left_inclusive_(left_inclusive),
       right_inclusive_(right_inclusive) 
 {
-  std::vector<const FieldMeta*> fields = index_->index_meta().fields();
+  const std::vector<FieldMeta>& fields = index_->index_meta().fields();
   size_ = 0;
   for (auto &field : fields) {
-    size_ += field->len();
+    size_ += field.len();
   }
 
   left_value_.resize(size_);
@@ -154,22 +154,22 @@ std::string IndexScanPhysicalOperator::param() const
   return std::string(index_->index_meta().name()) + " ON " + table_->name();
 }
 
-RC IndexScanPhysicalOperator::make_data(const std::vector<Value> &values, std::vector<const FieldMeta*> &meta, Table *table,
+RC IndexScanPhysicalOperator::make_data(const std::vector<Value> &values, const std::vector<FieldMeta> &meta, Table *table,
                                         std::vector<char> &out) {
   std::vector<char> ret;
   int size = 0;
   for (auto &field : meta) {
-    size += field->len();
+    size += field.len();
   }
   ret.resize(size);
   char *beg = ret.data();
-  beg += meta[0]->len();
+  beg += meta[0].len();
   for (size_t i = 0; i < values.size() && i + 1 < meta.size(); i++) {
     Value &value = const_cast<Value &>(values[i]);
     Value result;
-    Value::cast_to(value, meta[i + 1]->type(), result);
-    memcpy(beg, result.data(), meta[i + 1]->len());
-    beg += meta[i + 1]->len();
+    Value::cast_to(value, meta[i + 1].type(), result);
+    memcpy(beg, result.data(), meta[i + 1].len());
+    beg += meta[i + 1].len();
   }
   out.swap(ret);
   return RC::SUCCESS;

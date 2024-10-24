@@ -33,9 +33,9 @@ RC IndexMeta::init(const char *name, bool unique, std::vector<const FieldMeta *>
   }
   unique_ = unique;
   name_   = name;
-  fields_ = move(fields);
-  for (const FieldMeta *field : fields_) {
+  for (const FieldMeta *field : fields) {
     field_.emplace_back(field->name());
+    fields_.emplace_back(*field);
   }
   return RC::SUCCESS;
 }

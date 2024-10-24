@@ -212,7 +212,7 @@ RC PhysicalPlanGenerator::create_plan(TableGetLogicalOperator &table_get_oper, u
     for (auto &field : index_meta.fields()) {
       bool found = false;
       for (auto &[f, value] : field_values) {
-        if (strcmp(f.field_name(), field->name()) == 0) {
+        if (strcmp(f.field_name(), field.name()) == 0) {
           found = true;
           values.push_back(value);
           break;

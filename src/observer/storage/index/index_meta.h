@@ -40,7 +40,7 @@ public:
 public:
   const char                     *name() const;
   const std::vector<std::string> &field() const;
-  const std::vector<const FieldMeta*> &fields() const { return fields_; }
+  const std::vector<FieldMeta> &fields() const { return fields_; }
   const bool                      unique() const;
   void                            desc(ostream &os) const;
 
@@ -54,5 +54,5 @@ protected:
   bool                     unique_;  // unique index or not
   string                   name_;    // index's name
   std::vector<std::string> field_;   // fields's name
-  std::vector<const FieldMeta*> fields_;
+  std::vector<FieldMeta> fields_;
 };
