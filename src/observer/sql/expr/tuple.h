@@ -101,7 +101,7 @@ public:
   {
     std::string str;
     const int   cell_num = this->cell_num();
-    for (int i = 0; i < cell_num - 1; i++) {
+    for (int i = 1; i < cell_num - 1; i++) {
       Value cell;
       cell_at(i, cell);
       str += cell.to_string();

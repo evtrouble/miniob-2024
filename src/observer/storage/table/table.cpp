@@ -349,9 +349,9 @@ RC Table::update_record(const Record &record)
     ASSERT(RC::SUCCESS == rc,
            "failed to update entry from index. table name=%s, index name=%s, rid=%s, rc=%s",
            name(), index->index_meta().name(), record.rid().to_string().c_str(), strrc(rc));
+    if(rc != RC::SUCCESS)return rc;
   }
-  rc = record_handler_->update_record(record.data(), record.rid());
-  return rc;
+  return record_handler_->update_record(record.data(), record.rid());
 }
 
 RC Table::visit_record(const RID &rid, function<bool(Record &)> visitor)

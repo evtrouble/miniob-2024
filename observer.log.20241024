@@ -6757,3 +6757,690 @@ Finish dump configuration
 [2024-10-24 15:08:45.882285 pid:116715 tid:7fc5ae01b7c0 ctx:0 INFO: ~Db@db.cpp:48] >> Db has been closed: sys
 [2024-10-24 15:08:45.889564 pid:116715 tid:7fc5ae01b7c0 ctx:0 INFO: cleanup@mem_pool.h:217] >> Successfully do cleanup, this->name:BufPool.
 [2024-10-24 15:08:45.889734 pid:116715 tid:7fc5ae01b7c0 ctx:0 INFO: cleanup_util@init.cpp:229] >> Shutdown Cleanly!
+[2024-10-24 15:19:54.736420 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: init@init.cpp:200] >> Output configuration 
+Begin dump configuration
+[]
+
+[LOG]
+LOG_CONSOLE_LEVEL=1
+LOG_FILE_LEVEL=5
+LOG_FILE_NAME=observer.log
+
+Finish dump configuration 
+
+[2024-10-24 15:19:54.740889 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:128, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.741567 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:256, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.742202 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:384, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.742753 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:512, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.743357 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:640, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.743960 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:768, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.744539 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:896, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.745090 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1024, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.745669 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1152, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.746193 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1280, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.746662 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1408, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.747129 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1536, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.747643 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1664, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.748107 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1792, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.748676 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1920, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.749251 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2048, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.749968 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2176, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.750639 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2304, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.751147 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2432, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.751880 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2560, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.751946 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: init@mem_pool.h:191] >> Extend one pool, this->size:2560, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:19:54.751974 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: BufferPoolManager@disk_buffer_pool.cpp:807] >> buffer pool manager init with memory size 20971520, page num: 2560, pool num: 20
+[2024-10-24 15:19:54.752247 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: load_pages@double_write_buffer.cpp:290] >> double write buffer load pages done. page num=0
+[2024-10-24 15:19:54.752407 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: init_meta@db.cpp:350] >> Db meta file not exist. db=sys, file=miniob/db/sys/sys.db
+[2024-10-24 15:19:54.753312 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: open_all_tables@db.cpp:257] >> All table have been opened. num=0
+[2024-10-24 15:19:54.760108 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: recover@db.cpp:314] >> db recover begin. check_point_lsn=0
+[2024-10-24 15:19:54.760269 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: recover@db.cpp:341] >> Successfully recover db. db=sys checkpoint_lsn=0
+[2024-10-24 15:19:54.760355 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: set_current_db@session.cpp:56] >> change db to sys
+[2024-10-24 15:19:54.760420 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: init@default_handler.cpp:69] >> Default handler init with miniob success
+[2024-10-24 15:19:54.760475 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: init@init.cpp:215] >> Successfully init utility
+[2024-10-24 15:19:55.576886 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:85] >> CREATE
+[2024-10-24 15:19:55.577169 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:87] >> TABLE
+[2024-10-24 15:19:55.577238 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:19:55.577268 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:138] >> LBRACE
+[2024-10-24 15:19:55.577289 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:19:55.577306 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:112] >> INT_T
+[2024-10-24 15:19:55.577363 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:141] >> COMMA
+[2024-10-24 15:19:55.577409 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:19:55.577433 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:112] >> INT_T
+[2024-10-24 15:19:55.577451 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:141] >> COMMA
+[2024-10-24 15:19:55.577473 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:19:55.577490 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:112] >> INT_T
+[2024-10-24 15:19:55.577509 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:141] >> COMMA
+[2024-10-24 15:19:55.577531 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:19:55.577553 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:112] >> INT_T
+[2024-10-24 15:19:55.577569 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:139] >> RBRACE
+[2024-10-24 15:19:55.577629 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:81] >> SEMICOLON
+[2024-10-24 15:19:55.577785 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: sql_debug@sql_debug.cpp:51] >> sql debug info: [create table statement: table name unique_table2]
+[2024-10-24 15:19:55.578008 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: create@table.cpp:74] >> Begin to create table miniob/db/sys:unique_table2
+[2024-10-24 15:19:55.578196 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: init@field_meta.cpp:64] >> Init a field with name=__null
+[2024-10-24 15:19:55.578276 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: init@field_meta.cpp:64] >> Init a field with name=id1
+[2024-10-24 15:19:55.578299 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: init@field_meta.cpp:64] >> Init a field with name=id2
+[2024-10-24 15:19:55.578315 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: init@field_meta.cpp:64] >> Init a field with name=col1
+[2024-10-24 15:19:55.578333 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: init@field_meta.cpp:64] >> Init a field with name=col2
+[2024-10-24 15:19:55.578350 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: init@table_meta.cpp:114] >> Sussessfully initialized table meta. table id=0, name=unique_table2
+[2024-10-24 15:19:55.579272 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: create_file@disk_buffer_pool.cpp:870] >> Successfully create miniob/db/sys/unique_table2.data.
+[2024-10-24 15:19:55.579456 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: open_file@disk_buffer_pool.cpp:237] >> Successfully open buffer pool file miniob/db/sys/unique_table2.data.
+[2024-10-24 15:19:55.579615 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f8ae47fb808, page num 0
+[2024-10-24 15:19:55.579675 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: load_page@disk_buffer_pool.cpp:792] >> Load page miniob/db/sys/unique_table2.data:0, file_desc:5, frame=frame id:buffer_pool_id:1,page_num:0, dirty=0, pin=1, lsn=0
+[2024-10-24 15:19:55.579835 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: open_file@disk_buffer_pool.cpp:275] >> Successfully open miniob/db/sys/unique_table2.data. file_desc=5, hdr_frame=0x7f8ae47fb808, file header=pageCount:1, allocatedCount:1
+[2024-10-24 15:19:55.579926 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: open_file@disk_buffer_pool.cpp:898] >> insert buffer pool into fd buffer pools. fd=5, bp=0x60e0000012a0, lbt=0x7f8ae82d6c0e 0x558dc7f56c34 0x558dc7b984e8 0x558dc7c11d45 0x558dc7c1ba90 0x558dc7bbb96d 0x558dc7cbbb39 0x558dc7cb47d7 0x558dc7a8333b 0x558dc7a7b56e 0x558dc7a7c09b 0x558dc7a704cb 0x558dc7a4ed1f 0x7f8ae7d08d90 0x7f8ae7d08e40 0x558dc7a55565
+[2024-10-24 15:19:55.580280 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: init_free_pages@record_manager.cpp:554] >> record file handler init free pages done. free page num=0, rc=SUCCESS
+[2024-10-24 15:19:55.580340 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: init@record_manager.cpp:513] >> open record file handle done. rc=SUCCESS
+[2024-10-24 15:19:55.580385 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: create@table.cpp:155] >> Successfully create table miniob/db/sys:unique_table2
+[2024-10-24 15:19:55.580431 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: create_table@db.cpp:161] >> Create table success. table name=unique_table2, table_id:0
+[2024-10-24 15:19:55.580541 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:1,page_num:0,lsn=0, dwb size:1
+[2024-10-24 15:19:55.580831 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:19:55.580911 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: sync@table.cpp:808] >> Sync table over. table=unique_table2
+[2024-10-24 15:19:55.580925 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: sync@db.cpp:284] >> Successfully sync table db:sys, table:unique_table2.
+[2024-10-24 15:19:55.588455 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:1,page_num:0,lsn=0
+[2024-10-24 15:19:55.588725 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:1, page_num:0, lsn=0, check_sum=-1373569955
+[2024-10-24 15:19:55.588820 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: sync@db.cpp:289] >> double write buffer flush pages ret=SUCCESS
+[2024-10-24 15:19:55.589098 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: flush_meta@db.cpp:422] >> Successfully write db meta file. db=sys, file=miniob/db/sys/sys.db.tmp, check_point_lsn=0
+[2024-10-24 15:19:55.589156 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: sync@db.cpp:308] >> Successfully sync db. db=sys
+[2024-10-24 15:19:55.589185 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: execute@command_executor.cpp:110] >> sync db after ddl. rc=0
+[2024-10-24 15:19:55.589296 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: handle_event@sql_task_handler.cpp:46] >> write result return SUCCESS
+[2024-10-24 15:20:44.029533 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:85] >> CREATE
+[2024-10-24 15:20:44.029713 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:128] >> UNIQUE
+[2024-10-24 15:20:44.029747 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:90] >> INDEX
+[2024-10-24 15:20:44.029774 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:20:44.029811 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:91] >> ON
+[2024-10-24 15:20:44.029835 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:20:44.029855 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:138] >> LBRACE
+[2024-10-24 15:20:44.029875 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:20:44.029890 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:139] >> RBRACE
+[2024-10-24 15:20:44.029947 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:81] >> SEMICOLON
+[2024-10-24 15:20:44.030344 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: create_file@disk_buffer_pool.cpp:870] >> Successfully create miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:20:44.030399 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: open_file@disk_buffer_pool.cpp:237] >> Successfully open buffer pool file miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:20:44.030444 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f8ae47fd870, page num 0
+[2024-10-24 15:20:44.030479 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: load_page@disk_buffer_pool.cpp:792] >> Load page miniob/db/sys/unique_table2-index_id.index:0, file_desc:7, frame=frame id:buffer_pool_id:2,page_num:0, dirty=0, pin=1, lsn=0
+[2024-10-24 15:20:44.030540 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: open_file@disk_buffer_pool.cpp:275] >> Successfully open miniob/db/sys/unique_table2-index_id.index. file_desc=7, hdr_frame=0x7f8ae47fd870, file header=pageCount:1, allocatedCount:1
+[2024-10-24 15:20:44.030586 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: open_file@disk_buffer_pool.cpp:898] >> insert buffer pool into fd buffer pools. fd=7, bp=0x60e0000017e0, lbt=0x7f8ae82d6c0e 0x558dc7f56c34 0x558dc7b984e8 0x558dc7edaa06 0x558dc7de54d1 0x558dc7c27d63 0x558dc7cb3897 0x558dc7a8333b 0x558dc7a7b56e 0x558dc7a7c09b 0x558dc7a704cb 0x558dc7a4ed1f 0x7f8ae7d08d90 0x7f8ae7d08e40 0x558dc7a55565
+[2024-10-24 15:20:44.030650 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: create@bplus_tree.cpp:882] >> Successfully open index file miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:20:44.030719 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f8ae47ff8d8, page num 1
+[2024-10-24 15:20:44.030756 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: allocate_page@disk_buffer_pool.cpp:407] >> allocate new page. file=miniob/db/sys/unique_table2-index_id.index, pageNum=1, pin=1
+[2024-10-24 15:20:44.030832 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:1,lsn=0, dwb size:1
+[2024-10-24 15:20:44.030880 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=7, frame=frame id:buffer_pool_id:2,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:20:44.031072 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: extend@mem_pool.cpp:96] >> Extend one pool, this->size:128, item_size:13, item_num_per_pool:128, this->name:miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:20:44.031118 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: init@mem_pool.cpp:42] >> Extend one pool, this->size:128, item_size:13, item_num_per_pool:128, this->name:miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:20:44.031238 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: add_page@double_write_buffer.cpp:105] >> [cache hit]add page into double write buffer. buffer_pool_id:2,page_num:1,lsn=0, dwb size=1
+[2024-10-24 15:20:44.031283 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=7, frame=frame id:buffer_pool_id:2,page_num:1, dirty=0, pin=2, lsn=0
+[2024-10-24 15:20:44.031414 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:0,lsn=0, dwb size:2
+[2024-10-24 15:20:44.031528 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=7, frame=frame id:buffer_pool_id:2,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:20:44.031585 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: create@bplus_tree.cpp:958] >> Successfully create index
+[2024-10-24 15:20:44.031632 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: create@bplus_tree_index.cpp:42] >> Successfully create index, file_name:miniob/db/sys/unique_table2-index_id.index, index:index_id, field:__null, id1
+[2024-10-24 15:20:44.031716 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: create_index@table.cpp:656] >> inserted all records into new index. table=unique_table2, index=index_id
+[2024-10-24 15:20:44.032455 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: create_index@table.cpp:697] >> Successfully added a new index (index_id) on the table (unique_table2)
+[2024-10-24 15:20:44.032599 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: add_page@double_write_buffer.cpp:105] >> [cache hit]add page into double write buffer. buffer_pool_id:2,page_num:1,lsn=0, dwb size=2
+[2024-10-24 15:20:44.032670 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=7, frame=frame id:buffer_pool_id:2,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:20:44.032799 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: add_page@double_write_buffer.cpp:105] >> [cache hit]add page into double write buffer. buffer_pool_id:2,page_num:0,lsn=0, dwb size=2
+[2024-10-24 15:20:44.032839 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=7, frame=frame id:buffer_pool_id:2,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:20:44.032933 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:1,page_num:0,lsn=0, dwb size:3
+[2024-10-24 15:20:44.033057 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:20:44.033113 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: sync@table.cpp:808] >> Sync table over. table=unique_table2
+[2024-10-24 15:20:44.033136 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: sync@db.cpp:284] >> Successfully sync table db:sys, table:unique_table2.
+[2024-10-24 15:20:44.038488 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:1,page_num:0,lsn=0
+[2024-10-24 15:20:44.038633 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:1, page_num:0, lsn=0, check_sum=-1373569955
+[2024-10-24 15:20:44.038666 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:0,lsn=0
+[2024-10-24 15:20:44.038702 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:0, lsn=0, check_sum=573637179
+[2024-10-24 15:20:44.038720 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:1,lsn=0
+[2024-10-24 15:20:44.038752 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:1, lsn=0, check_sum=318761649
+[2024-10-24 15:20:44.038772 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: sync@db.cpp:289] >> double write buffer flush pages ret=SUCCESS
+[2024-10-24 15:20:44.038956 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: flush_meta@db.cpp:422] >> Successfully write db meta file. db=sys, file=miniob/db/sys/sys.db.tmp, check_point_lsn=0
+[2024-10-24 15:20:44.038986 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: sync@db.cpp:308] >> Successfully sync db. db=sys
+[2024-10-24 15:20:44.038999 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: execute@command_executor.cpp:110] >> sync db after ddl. rc=0
+[2024-10-24 15:20:44.039077 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: handle_event@sql_task_handler.cpp:46] >> write result return SUCCESS
+[2024-10-24 15:20:55.528965 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:103] >> INSERT
+[2024-10-24 15:20:55.529135 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:104] >> INTO
+[2024-10-24 15:20:55.529160 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:20:55.529174 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:105] >> VALUES
+[2024-10-24 15:20:55.529186 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:138] >> LBRACE
+[2024-10-24 15:20:55.529198 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:79] >> NUMBER
+[2024-10-24 15:20:55.529239 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:141] >> COMMA
+[2024-10-24 15:20:55.529252 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:79] >> NUMBER
+[2024-10-24 15:20:55.529263 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:141] >> COMMA
+[2024-10-24 15:20:55.529273 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:79] >> NUMBER
+[2024-10-24 15:20:55.529284 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:141] >> COMMA
+[2024-10-24 15:20:55.529294 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:79] >> NUMBER
+[2024-10-24 15:20:55.529305 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:139] >> RBRACE
+[2024-10-24 15:20:55.529427 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:81] >> SEMICOLON
+[2024-10-24 15:20:55.529572 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: generate_physical_plan@optimize_stage.cpp:96] >> use tuple iterator
+[2024-10-24 15:20:55.529611 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: open@insert_physical_operator.cpp:29] >> open insert operator
+[2024-10-24 15:20:55.529687 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f8ae4801940, page num 1
+[2024-10-24 15:20:55.529705 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: allocate_page@disk_buffer_pool.cpp:407] >> allocate new page. file=miniob/db/sys/unique_table2.data, pageNum=1, pin=1
+[2024-10-24 15:20:55.529790 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:1,page_num:1,lsn=0, dwb size:1
+[2024-10-24 15:20:55.529905 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:20:55.530010 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:20:55.530128 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f8ae48039a8, page num 2
+[2024-10-24 15:20:55.530179 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: allocate_page@disk_buffer_pool.cpp:407] >> allocate new page. file=miniob/db/sys/unique_table2-index_id.index, pageNum=2, pin=1
+[2024-10-24 15:20:55.530254 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:2,lsn=0, dwb size:2
+[2024-10-24 15:20:55.530299 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=7, frame=frame id:buffer_pool_id:2,page_num:2, dirty=0, pin=1, lsn=0
+[2024-10-24 15:20:55.530482 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: update_root_page_num_locked@bplus_tree.cpp:1535] >> set root page to 2
+[2024-10-24 15:20:55.530636 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: close@insert_physical_operator.cpp:36] >> close insert operator
+[2024-10-24 15:20:55.530738 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: handle_event@sql_task_handler.cpp:46] >> write result return SUCCESS
+[2024-10-24 15:21:10.709393 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:107] >> UPDATE
+[2024-10-24 15:21:10.709563 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:21:10.709597 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:108] >> SET
+[2024-10-24 15:21:10.709620 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:21:10.709634 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:142] >> EQ
+[2024-10-24 15:21:10.709647 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:79] >> NUMBER
+[2024-10-24 15:21:10.709669 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:141] >> COMMA
+[2024-10-24 15:21:10.709682 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:21:10.709692 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:142] >> EQ
+[2024-10-24 15:21:10.709701 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:79] >> NUMBER
+[2024-10-24 15:21:10.709713 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:161] >> Unknown character [ï]
+[2024-10-24 15:21:10.709900 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: generate_physical_plan@optimize_stage.cpp:96] >> use tuple iterator
+[2024-10-24 15:21:10.709959 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: create_plan@physical_plan_generator.cpp:235] >> use table scan
+[2024-10-24 15:21:10.710008 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: open@update_physical_operator.cpp:30] >> open update operator
+[2024-10-24 15:21:10.710027 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: open@table_scan_physical_operator.cpp:23] >> open table scan operator
+[2024-10-24 15:21:10.710083 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:21:10.710108 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: next@table_scan_physical_operator.cpp:38] >> got a record. rid=PageNum:1, SlotNum:0
+[2024-10-24 15:21:10.710310 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: sql_debug@sql_debug.cpp:51] >> sql debug info: [get a tuple: , 1, 1, 1, 1]
+[2024-10-24 15:21:10.710365 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:21:10.710428 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: xlatch@latch_memo.cpp:100] >> lock root success
+[2024-10-24 15:21:10.710465 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: release_item@latch_memo.cpp:116] >> release root lock
+[2024-10-24 15:21:10.710505 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: insert_entry_into_leaf_node@bplus_tree.cpp:1341] >> entry exists
+[2024-10-24 15:21:10.710518 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: insert_entry@bplus_tree.cpp:1623] >> Failed to insert into leaf of index, rid:PageNum:1, SlotNum:0. rc=RECORD_DUPLICATE_KEY
+[2024-10-24 15:21:10.710568 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:21:10.710603 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: close@table_scan_physical_operator.cpp:87] >> close table scan operator
+[2024-10-24 15:21:10.710634 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: close@update_physical_operator.cpp:90] >> close update operator
+[2024-10-24 15:21:10.710723 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: handle_event@sql_task_handler.cpp:46] >> write result return SUCCESS
+[2024-10-24 15:21:21.902408 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:94] >> SELECT
+[2024-10-24 15:21:21.902577 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:96] >> FROM
+[2024-10-24 15:21:21.902708 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:21:21.902734 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: yylex@lex_sql.l:81] >> SEMICOLON
+[2024-10-24 15:21:21.903074 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: generate_physical_plan@optimize_stage.cpp:96] >> use tuple iterator
+[2024-10-24 15:21:21.903164 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: create_plan@physical_plan_generator.cpp:235] >> use table scan
+[2024-10-24 15:21:21.903208 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: create_plan@physical_plan_generator.cpp:288] >> create a project physical operator
+[2024-10-24 15:21:21.903266 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: open@table_scan_physical_operator.cpp:23] >> open table scan operator
+[2024-10-24 15:21:21.903337 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:21:21.903382 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 TRACE: next@table_scan_physical_operator.cpp:38] >> got a record. rid=PageNum:1, SlotNum:0
+[2024-10-24 15:21:21.903529 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 DEBUG: sql_debug@sql_debug.cpp:51] >> sql debug info: [get a tuple: , 1, 3, 1, 1]
+[2024-10-24 15:21:21.903644 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: close@table_scan_physical_operator.cpp:87] >> close table scan operator
+[2024-10-24 15:21:21.903720 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: close@project_physical_operator.cpp:82] >> close project operator
+[2024-10-24 15:21:21.903823 pid:120078 tid:7f8ae7ca87c0 ctx:60300001f990 INFO: handle_event@sql_task_handler.cpp:46] >> write result return SUCCESS
+[2024-10-24 15:24:12.872362 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: main@main.cpp:200] >> Server stopped
+[2024-10-24 15:24:12.872706 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:1,lsn=0, dwb size:3
+[2024-10-24 15:24:12.872820 pid:120078 tid:7f8ae7ca87c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=7, frame=frame id:buffer_pool_id:2,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:24:12.873012 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:105] >> [cache hit]add page into double write buffer. buffer_pool_id:2,page_num:2,lsn=0, dwb size=3
+[2024-10-24 15:24:12.873089 pid:120078 tid:7f8ae7ca87c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=7, frame=frame id:buffer_pool_id:2,page_num:2, dirty=0, pin=1, lsn=0
+[2024-10-24 15:24:12.873207 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:0,lsn=0, dwb size:4
+[2024-10-24 15:24:12.873258 pid:120078 tid:7f8ae7ca87c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=7, frame=frame id:buffer_pool_id:2,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:24:12.873336 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:105] >> [cache hit]add page into double write buffer. buffer_pool_id:1,page_num:1,lsn=0, dwb size=4
+[2024-10-24 15:24:12.873360 pid:120078 tid:7f8ae7ca87c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:24:12.873478 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:1,page_num:0,lsn=0, dwb size:5
+[2024-10-24 15:24:12.873535 pid:120078 tid:7f8ae7ca87c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:24:12.873557 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: sync@table.cpp:808] >> Sync table over. table=unique_table2
+[2024-10-24 15:24:12.873585 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: sync@db.cpp:284] >> Successfully sync table db:sys, table:unique_table2.
+[2024-10-24 15:24:12.888904 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:1,page_num:0,lsn=0
+[2024-10-24 15:24:12.889139 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:1, page_num:0, lsn=0, check_sum=-1805445553
+[2024-10-24 15:24:12.889195 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:0,lsn=0
+[2024-10-24 15:24:12.889230 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:0, lsn=0, check_sum=397732625
+[2024-10-24 15:24:12.889261 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:1,lsn=0
+[2024-10-24 15:24:12.889288 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:1, lsn=0, check_sum=1597829643
+[2024-10-24 15:24:12.889316 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:2,lsn=0
+[2024-10-24 15:24:12.889386 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:2, lsn=0, check_sum=1727708336
+[2024-10-24 15:24:12.889416 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:1,page_num:1,lsn=0
+[2024-10-24 15:24:12.889454 pid:120078 tid:7f8ae7ca87c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:1, page_num:1, lsn=0, check_sum=975686363
+[2024-10-24 15:24:12.889488 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: sync@db.cpp:289] >> double write buffer flush pages ret=SUCCESS
+[2024-10-24 15:24:12.889762 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: flush_meta@db.cpp:422] >> Successfully write db meta file. db=sys, file=miniob/db/sys/sys.db.tmp, check_point_lsn=0
+[2024-10-24 15:24:12.889791 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: sync@db.cpp:308] >> Successfully sync db. db=sys
+[2024-10-24 15:24:12.889853 pid:120078 tid:7f8ae7ca87c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f8ae4801940, page 1 frame_id=buffer_pool_id:1,page_num:1
+[2024-10-24 15:24:12.889913 pid:120078 tid:7f8ae7ca87c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f8ae47fb808, page 0 frame_id=buffer_pool_id:1,page_num:0
+[2024-10-24 15:24:12.889939 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: clear_pages@double_write_buffer.cpp:213] >> clear pages in double write buffer. file name=miniob/db/sys/unique_table2.data, page count=0
+[2024-10-24 15:24:12.889963 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: close_file@disk_buffer_pool.cpp:308] >> Successfully close file 5:miniob/db/sys/unique_table2.data.
+[2024-10-24 15:24:12.889981 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: ~DiskBufferPool@disk_buffer_pool.cpp:227] >> disk buffer pool exit
+[2024-10-24 15:24:12.890008 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: close@bplus_tree_index.cpp:106] >> Begin to close index, index:index_id, field:__null, id1
+[2024-10-24 15:24:12.890035 pid:120078 tid:7f8ae7ca87c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f8ae47ff8d8, page 1 frame_id=buffer_pool_id:2,page_num:1
+[2024-10-24 15:24:12.890077 pid:120078 tid:7f8ae7ca87c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f8ae48039a8, page 2 frame_id=buffer_pool_id:2,page_num:2
+[2024-10-24 15:24:12.890100 pid:120078 tid:7f8ae7ca87c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f8ae47fd870, page 0 frame_id=buffer_pool_id:2,page_num:0
+[2024-10-24 15:24:12.890134 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: clear_pages@double_write_buffer.cpp:213] >> clear pages in double write buffer. file name=miniob/db/sys/unique_table2-index_id.index, page count=0
+[2024-10-24 15:24:12.890167 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: close_file@disk_buffer_pool.cpp:308] >> Successfully close file 7:miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:24:12.890183 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: close@bplus_tree_index.cpp:110] >> Successfully close index.
+[2024-10-24 15:24:12.890247 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: cleanup@mem_pool.cpp:67] >> Successfully do cleanup, this->name:miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:24:12.890287 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: ~Table@table.cpp:59] >> Table has been closed: unique_table2
+[2024-10-24 15:24:12.890318 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: ~Db@db.cpp:48] >> Db has been closed: sys
+[2024-10-24 15:24:12.890336 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: ~DiskBufferPool@disk_buffer_pool.cpp:227] >> disk buffer pool exit
+[2024-10-24 15:24:12.903657 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: cleanup@mem_pool.h:217] >> Successfully do cleanup, this->name:BufPool.
+[2024-10-24 15:24:12.903908 pid:120078 tid:7f8ae7ca87c0 ctx:0 INFO: cleanup_util@init.cpp:229] >> Shutdown Cleanly!
+[2024-10-24 15:24:50.199466 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@init.cpp:200] >> Output configuration 
+Begin dump configuration
+[]
+
+[LOG]
+LOG_CONSOLE_LEVEL=1
+LOG_FILE_LEVEL=5
+LOG_FILE_NAME=observer.log
+
+Finish dump configuration 
+
+[2024-10-24 15:24:50.199927 pid:123479 tid:7f2c16c437c0 ctx:0 WARN: create_db@default_handler.cpp:93] >> Db already exists: sys
+[2024-10-24 15:24:50.200659 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:128, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.201199 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:256, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.201804 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:384, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.202349 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:512, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.203194 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:640, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.204093 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:768, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.205454 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:896, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.206181 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1024, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.206809 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1152, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.207412 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1280, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.207990 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1408, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.208579 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1536, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.209149 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1664, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.209724 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1792, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.210297 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1920, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.211053 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2048, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.211719 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2176, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.212353 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2304, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.212936 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2432, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.213597 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2560, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.213675 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@mem_pool.h:191] >> Extend one pool, this->size:2560, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:24:50.213700 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: BufferPoolManager@disk_buffer_pool.cpp:807] >> buffer pool manager init with memory size 20971520, page num: 2560, pool num: 20
+[2024-10-24 15:24:50.214157 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: load_pages@double_write_buffer.cpp:290] >> double write buffer load pages done. page num=5
+[2024-10-24 15:24:50.214326 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init_meta@db.cpp:377] >> Successfully read db meta file. db=sys, file=miniob/db/sys/sys.db, check_point_lsn=0
+[2024-10-24 15:24:50.215443 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=__null
+[2024-10-24 15:24:50.215502 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=id1
+[2024-10-24 15:24:50.215519 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=id2
+[2024-10-24 15:24:50.215530 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=col1
+[2024-10-24 15:24:50.215540 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=col2
+[2024-10-24 15:24:50.215790 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:237] >> Successfully open buffer pool file miniob/db/sys/unique_table2.data.
+[2024-10-24 15:24:50.215880 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f2c136fb808, page num 0
+[2024-10-24 15:24:50.215909 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=1, page_num:0, lsn:0
+[2024-10-24 15:24:50.215928 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:275] >> Successfully open miniob/db/sys/unique_table2.data. file_desc=5, hdr_frame=0x7f2c136fb808, file header=pageCount:2, allocatedCount:2
+[2024-10-24 15:24:50.216023 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: open_file@disk_buffer_pool.cpp:898] >> insert buffer pool into fd buffer pools. fd=5, bp=0x60e000000ac0, lbt=0x7f2c17271c0e 0x55f0fd545554 0x55f0fd186588 0x55f0fd1ffde5 0x55f0fd20e14b 0x55f0fd1ab568 0x55f0fd1b30c8 0x55f0fd1c3a93 0x55f0fd1c5feb 0x55f0fd04d46c 0x55f0fd05310d 0x55f0fd03cd76 0x7f2c16ca3d90 0x7f2c16ca3e40 0x55f0fd043605
+[2024-10-24 15:24:50.216254 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f2c136fd870, page num 1
+[2024-10-24 15:24:50.216285 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=1, page_num:1, lsn:0
+[2024-10-24 15:24:50.216312 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:24:50.216361 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init_free_pages@record_manager.cpp:554] >> record file handler init free pages done. free page num=1, rc=SUCCESS
+[2024-10-24 15:24:50.216397 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@record_manager.cpp:513] >> open record file handle done. rc=SUCCESS
+[2024-10-24 15:24:50.216585 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:237] >> Successfully open buffer pool file miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:24:50.216672 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f2c136ff8d8, page num 0
+[2024-10-24 15:24:50.216722 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=2, page_num:0, lsn:0
+[2024-10-24 15:24:50.216750 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:275] >> Successfully open miniob/db/sys/unique_table2-index_id.index. file_desc=6, hdr_frame=0x7f2c136ff8d8, file header=pageCount:3, allocatedCount:3
+[2024-10-24 15:24:50.216812 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: open_file@disk_buffer_pool.cpp:898] >> insert buffer pool into fd buffer pools. fd=6, bp=0x60e000000d60, lbt=0x7f2c17271c0e 0x55f0fd545554 0x55f0fd186588 0x55f0fd4d1d14 0x55f0fd3d5738 0x55f0fd20fc8b 0x55f0fd1ab568 0x55f0fd1b30c8 0x55f0fd1c3a93 0x55f0fd1c5feb 0x55f0fd04d46c 0x55f0fd05310d 0x55f0fd03cd76 0x7f2c16ca3d90 0x7f2c16ca3e40 0x55f0fd043605
+[2024-10-24 15:24:50.216887 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f2c13701940, page num 1
+[2024-10-24 15:24:50.216910 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=2, page_num:1, lsn:0
+[2024-10-24 15:24:50.217108 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: extend@mem_pool.cpp:96] >> Extend one pool, this->size:128, item_size:13, item_num_per_pool:128, this->name:b+tree.
+[2024-10-24 15:24:50.217155 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@mem_pool.cpp:42] >> Extend one pool, this->size:128, item_size:13, item_num_per_pool:128, this->name:b+tree.
+[2024-10-24 15:24:50.217212 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: open@bplus_tree.cpp:1022] >> Successfully open index
+[2024-10-24 15:24:50.217228 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: open@bplus_tree.cpp:979] >> open b+tree success. filename=miniob/db/sys/unique_table2-index_id.index
+[2024-10-24 15:24:50.217246 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: open@bplus_tree_index.cpp:98] >> Successfully open index, file_name:miniob/db/sys/unique_table2-index_id.index, index:index_id, field:__null, id1
+[2024-10-24 15:24:50.217319 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: open_all_tables@db.cpp:254] >> Open table: unique_table2, file: unique_table2.table
+[2024-10-24 15:24:50.217337 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: open_all_tables@db.cpp:257] >> All table have been opened. num=1
+[2024-10-24 15:24:50.331800 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:1,page_num:0,lsn=0
+[2024-10-24 15:24:50.332100 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:2,page_num:0,lsn=0
+[2024-10-24 15:24:50.332142 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:2,page_num:1,lsn=0
+[2024-10-24 15:24:50.332170 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:2,page_num:2,lsn=0
+[2024-10-24 15:24:50.332195 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:1,page_num:1,lsn=0
+[2024-10-24 15:24:50.332234 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: recover@db.cpp:314] >> db recover begin. check_point_lsn=0
+[2024-10-24 15:24:50.332272 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: recover@db.cpp:341] >> Successfully recover db. db=sys checkpoint_lsn=0
+[2024-10-24 15:24:50.332366 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: set_current_db@session.cpp:56] >> change db to sys
+[2024-10-24 15:24:50.332385 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@default_handler.cpp:69] >> Default handler init with miniob success
+[2024-10-24 15:24:50.332433 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: init@init.cpp:215] >> Successfully init utility
+[2024-10-24 15:24:52.277926 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:94] >> SELECT
+[2024-10-24 15:24:52.278113 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:96] >> FROM
+[2024-10-24 15:24:52.278155 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:24:52.278171 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:81] >> SEMICOLON
+[2024-10-24 15:24:52.278470 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 INFO: generate_physical_plan@optimize_stage.cpp:96] >> use tuple iterator
+[2024-10-24 15:24:52.278552 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 TRACE: create_plan@physical_plan_generator.cpp:235] >> use table scan
+[2024-10-24 15:24:52.278595 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 TRACE: create_plan@physical_plan_generator.cpp:288] >> create a project physical operator
+[2024-10-24 15:24:52.278680 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 INFO: open@table_scan_physical_operator.cpp:23] >> open table scan operator
+[2024-10-24 15:24:52.278767 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:24:52.278813 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 TRACE: next@table_scan_physical_operator.cpp:38] >> got a record. rid=PageNum:1, SlotNum:0
+[2024-10-24 15:24:52.279055 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 DEBUG: sql_debug@sql_debug.cpp:51] >> sql debug info: [get a tuple: , 1, 3, 1, 1]
+[2024-10-24 15:24:52.279135 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 INFO: close@table_scan_physical_operator.cpp:87] >> close table scan operator
+[2024-10-24 15:24:52.279159 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 INFO: close@project_physical_operator.cpp:82] >> close project operator
+[2024-10-24 15:24:52.279234 pid:123479 tid:7f2c16c437c0 ctx:6030000216d0 INFO: handle_event@sql_task_handler.cpp:46] >> write result return SUCCESS
+[2024-10-24 15:27:47.063762 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: main@main.cpp:200] >> Server stopped
+[2024-10-24 15:27:47.064028 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:1,lsn=0, dwb size:1
+[2024-10-24 15:27:47.064104 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=6, frame=frame id:buffer_pool_id:2,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:27:47.064240 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:0,lsn=0, dwb size:2
+[2024-10-24 15:27:47.064321 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=6, frame=frame id:buffer_pool_id:2,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:27:47.064433 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:1,page_num:1,lsn=0, dwb size:3
+[2024-10-24 15:27:47.064483 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:27:47.064639 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:1,page_num:0,lsn=0, dwb size:4
+[2024-10-24 15:27:47.064713 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:27:47.064753 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: sync@table.cpp:808] >> Sync table over. table=unique_table2
+[2024-10-24 15:27:47.064772 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: sync@db.cpp:284] >> Successfully sync table db:sys, table:unique_table2.
+[2024-10-24 15:27:47.070960 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:1,page_num:0,lsn=0
+[2024-10-24 15:27:47.071097 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:1, page_num:0, lsn=0, check_sum=-1805445553
+[2024-10-24 15:27:47.071145 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:1,page_num:1,lsn=0
+[2024-10-24 15:27:47.071166 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:1, page_num:1, lsn=0, check_sum=975686363
+[2024-10-24 15:27:47.071185 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:0,lsn=0
+[2024-10-24 15:27:47.071207 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:0, lsn=0, check_sum=397732625
+[2024-10-24 15:27:47.071225 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:1,lsn=0
+[2024-10-24 15:27:47.071243 pid:123479 tid:7f2c16c437c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:1, lsn=0, check_sum=1597829643
+[2024-10-24 15:27:47.071262 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: sync@db.cpp:289] >> double write buffer flush pages ret=SUCCESS
+[2024-10-24 15:27:47.071502 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: flush_meta@db.cpp:422] >> Successfully write db meta file. db=sys, file=miniob/db/sys/sys.db.tmp, check_point_lsn=0
+[2024-10-24 15:27:47.071531 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: sync@db.cpp:308] >> Successfully sync db. db=sys
+[2024-10-24 15:27:47.071588 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f2c136fd870, page 1 frame_id=buffer_pool_id:1,page_num:1
+[2024-10-24 15:27:47.071668 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f2c136fb808, page 0 frame_id=buffer_pool_id:1,page_num:0
+[2024-10-24 15:27:47.071702 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: clear_pages@double_write_buffer.cpp:213] >> clear pages in double write buffer. file name=miniob/db/sys/unique_table2.data, page count=0
+[2024-10-24 15:27:47.071725 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: close_file@disk_buffer_pool.cpp:308] >> Successfully close file 5:miniob/db/sys/unique_table2.data.
+[2024-10-24 15:27:47.071759 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: ~DiskBufferPool@disk_buffer_pool.cpp:227] >> disk buffer pool exit
+[2024-10-24 15:27:47.071797 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: close@bplus_tree_index.cpp:106] >> Begin to close index, index:index_id, field:__null, id1
+[2024-10-24 15:27:47.071833 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f2c13701940, page 1 frame_id=buffer_pool_id:2,page_num:1
+[2024-10-24 15:27:47.071914 pid:123479 tid:7f2c16c437c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f2c136ff8d8, page 0 frame_id=buffer_pool_id:2,page_num:0
+[2024-10-24 15:27:47.071941 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: clear_pages@double_write_buffer.cpp:213] >> clear pages in double write buffer. file name=miniob/db/sys/unique_table2-index_id.index, page count=0
+[2024-10-24 15:27:47.071960 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: close_file@disk_buffer_pool.cpp:308] >> Successfully close file 6:miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:27:47.071976 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: close@bplus_tree_index.cpp:110] >> Successfully close index.
+[2024-10-24 15:27:47.072028 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: cleanup@mem_pool.cpp:67] >> Successfully do cleanup, this->name:b+tree.
+[2024-10-24 15:27:47.072067 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: ~Table@table.cpp:59] >> Table has been closed: unique_table2
+[2024-10-24 15:27:47.072108 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: ~Db@db.cpp:48] >> Db has been closed: sys
+[2024-10-24 15:27:47.072126 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: ~DiskBufferPool@disk_buffer_pool.cpp:227] >> disk buffer pool exit
+[2024-10-24 15:27:47.081218 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: cleanup@mem_pool.h:217] >> Successfully do cleanup, this->name:BufPool.
+[2024-10-24 15:27:47.081418 pid:123479 tid:7f2c16c437c0 ctx:0 INFO: cleanup_util@init.cpp:229] >> Shutdown Cleanly!
+[2024-10-24 15:34:15.958075 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@init.cpp:200] >> Output configuration 
+Begin dump configuration
+[]
+
+[LOG]
+LOG_CONSOLE_LEVEL=1
+LOG_FILE_LEVEL=5
+LOG_FILE_NAME=observer.log
+
+Finish dump configuration 
+
+[2024-10-24 15:34:15.958968 pid:132165 tid:7f3019dc57c0 ctx:0 WARN: create_db@default_handler.cpp:93] >> Db already exists: sys
+[2024-10-24 15:34:15.959774 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:128, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.960513 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:256, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.961271 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:384, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.962046 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:512, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.962824 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:640, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.963578 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:768, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.964279 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:896, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.964922 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1024, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.965565 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1152, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.966477 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1280, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.967174 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1408, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.967864 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1536, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.968549 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1664, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.969239 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1792, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.969939 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1920, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.970613 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2048, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.971377 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2176, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.971982 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2304, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.972556 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2432, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.973180 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2560, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.973225 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@mem_pool.h:191] >> Extend one pool, this->size:2560, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:34:15.973242 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: BufferPoolManager@disk_buffer_pool.cpp:807] >> buffer pool manager init with memory size 20971520, page num: 2560, pool num: 20
+[2024-10-24 15:34:15.973598 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: load_pages@double_write_buffer.cpp:290] >> double write buffer load pages done. page num=4
+[2024-10-24 15:34:15.973810 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init_meta@db.cpp:377] >> Successfully read db meta file. db=sys, file=miniob/db/sys/sys.db, check_point_lsn=0
+[2024-10-24 15:34:15.975118 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=__null
+[2024-10-24 15:34:15.975194 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=id1
+[2024-10-24 15:34:15.975218 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=id2
+[2024-10-24 15:34:15.975234 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=col1
+[2024-10-24 15:34:15.975248 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=col2
+[2024-10-24 15:34:15.975570 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:237] >> Successfully open buffer pool file miniob/db/sys/unique_table2.data.
+[2024-10-24 15:34:15.975692 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f30168fb808, page num 0
+[2024-10-24 15:34:15.975734 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=1, page_num:0, lsn:0
+[2024-10-24 15:34:15.975769 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:275] >> Successfully open miniob/db/sys/unique_table2.data. file_desc=5, hdr_frame=0x7f30168fb808, file header=pageCount:2, allocatedCount:2
+[2024-10-24 15:34:15.975868 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: open_file@disk_buffer_pool.cpp:898] >> insert buffer pool into fd buffer pools. fd=5, bp=0x60e000000ac0, lbt=0x7f301a3f3c0e 0x564deb991534 0x564deb5d2588 0x564deb64bde5 0x564deb65a14b 0x564deb5f7568 0x564deb5ff0c8 0x564deb60fa93 0x564deb611feb 0x564deb49945c 0x564deb49f0fd 0x564deb488d66 0x7f3019e25d90 0x7f3019e25e40 0x564deb48f5f5
+[2024-10-24 15:34:15.976228 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f30168fd870, page num 1
+[2024-10-24 15:34:15.976269 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=1, page_num:1, lsn:0
+[2024-10-24 15:34:15.976307 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:34:15.976359 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init_free_pages@record_manager.cpp:554] >> record file handler init free pages done. free page num=1, rc=SUCCESS
+[2024-10-24 15:34:15.976390 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@record_manager.cpp:513] >> open record file handle done. rc=SUCCESS
+[2024-10-24 15:34:15.976544 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:237] >> Successfully open buffer pool file miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:34:15.976625 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f30168ff8d8, page num 0
+[2024-10-24 15:34:15.976657 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=2, page_num:0, lsn:0
+[2024-10-24 15:34:15.976679 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:275] >> Successfully open miniob/db/sys/unique_table2-index_id.index. file_desc=6, hdr_frame=0x7f30168ff8d8, file header=pageCount:3, allocatedCount:3
+[2024-10-24 15:34:15.976757 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: open_file@disk_buffer_pool.cpp:898] >> insert buffer pool into fd buffer pools. fd=6, bp=0x60e000000d60, lbt=0x7f301a3f3c0e 0x564deb991534 0x564deb5d2588 0x564deb91dcf4 0x564deb821718 0x564deb65bc8b 0x564deb5f7568 0x564deb5ff0c8 0x564deb60fa93 0x564deb611feb 0x564deb49945c 0x564deb49f0fd 0x564deb488d66 0x7f3019e25d90 0x7f3019e25e40 0x564deb48f5f5
+[2024-10-24 15:34:15.976830 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f3016901940, page num 1
+[2024-10-24 15:34:15.976875 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=2, page_num:1, lsn:0
+[2024-10-24 15:34:15.977068 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: extend@mem_pool.cpp:96] >> Extend one pool, this->size:128, item_size:13, item_num_per_pool:128, this->name:b+tree.
+[2024-10-24 15:34:15.977116 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@mem_pool.cpp:42] >> Extend one pool, this->size:128, item_size:13, item_num_per_pool:128, this->name:b+tree.
+[2024-10-24 15:34:15.977196 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: open@bplus_tree.cpp:1022] >> Successfully open index
+[2024-10-24 15:34:15.977221 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: open@bplus_tree.cpp:979] >> open b+tree success. filename=miniob/db/sys/unique_table2-index_id.index
+[2024-10-24 15:34:15.977239 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: open@bplus_tree_index.cpp:98] >> Successfully open index, file_name:miniob/db/sys/unique_table2-index_id.index, index:index_id, field:__null, id1
+[2024-10-24 15:34:15.977327 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: open_all_tables@db.cpp:254] >> Open table: unique_table2, file: unique_table2.table
+[2024-10-24 15:34:15.977357 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: open_all_tables@db.cpp:257] >> All table have been opened. num=1
+[2024-10-24 15:34:16.115520 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:1,page_num:0,lsn=0
+[2024-10-24 15:34:16.115803 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:1,page_num:1,lsn=0
+[2024-10-24 15:34:16.115841 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:2,page_num:0,lsn=0
+[2024-10-24 15:34:16.115872 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:2,page_num:1,lsn=0
+[2024-10-24 15:34:16.115915 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: recover@db.cpp:314] >> db recover begin. check_point_lsn=0
+[2024-10-24 15:34:16.115968 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: recover@db.cpp:341] >> Successfully recover db. db=sys checkpoint_lsn=0
+[2024-10-24 15:34:16.116043 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: set_current_db@session.cpp:56] >> change db to sys
+[2024-10-24 15:34:16.116067 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@default_handler.cpp:69] >> Default handler init with miniob success
+[2024-10-24 15:34:16.116107 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: init@init.cpp:215] >> Successfully init utility
+[2024-10-24 15:34:21.711938 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:94] >> SELECT
+[2024-10-24 15:34:21.712109 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:96] >> FROM
+[2024-10-24 15:34:21.712163 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:34:21.712185 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:81] >> SEMICOLON
+[2024-10-24 15:34:21.712587 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: generate_physical_plan@optimize_stage.cpp:96] >> use tuple iterator
+[2024-10-24 15:34:21.712681 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: create_plan@physical_plan_generator.cpp:235] >> use table scan
+[2024-10-24 15:34:21.712739 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: create_plan@physical_plan_generator.cpp:288] >> create a project physical operator
+[2024-10-24 15:34:21.712793 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: open@table_scan_physical_operator.cpp:23] >> open table scan operator
+[2024-10-24 15:34:21.712873 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:34:21.712902 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: next@table_scan_physical_operator.cpp:38] >> got a record. rid=PageNum:1, SlotNum:0
+[2024-10-24 15:34:21.713121 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: sql_debug@sql_debug.cpp:51] >> sql debug info: [get a tuple: 1, 3, 1, 1]
+[2024-10-24 15:34:21.713211 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: close@table_scan_physical_operator.cpp:87] >> close table scan operator
+[2024-10-24 15:34:21.713238 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: close@project_physical_operator.cpp:82] >> close project operator
+[2024-10-24 15:34:21.713319 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: handle_event@sql_task_handler.cpp:46] >> write result return SUCCESS
+[2024-10-24 15:34:34.867367 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:107] >> UPDATE
+[2024-10-24 15:34:34.867580 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:34:34.867607 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:108] >> SET
+[2024-10-24 15:34:34.867624 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:34:34.867639 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:142] >> EQ
+[2024-10-24 15:34:34.867658 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:79] >> NUMBER
+[2024-10-24 15:34:34.867709 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:141] >> COMMA
+[2024-10-24 15:34:34.867731 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:34:34.867746 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:142] >> EQ
+[2024-10-24 15:34:34.867760 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:79] >> NUMBER
+[2024-10-24 15:34:34.867776 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: yylex@lex_sql.l:161] >> Unknown character [ï]
+[2024-10-24 15:34:34.867986 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: generate_physical_plan@optimize_stage.cpp:96] >> use tuple iterator
+[2024-10-24 15:34:34.868062 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: create_plan@physical_plan_generator.cpp:235] >> use table scan
+[2024-10-24 15:34:34.868122 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: open@update_physical_operator.cpp:30] >> open update operator
+[2024-10-24 15:34:34.868155 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: open@table_scan_physical_operator.cpp:23] >> open table scan operator
+[2024-10-24 15:34:34.868229 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:34:34.868256 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: next@table_scan_physical_operator.cpp:38] >> got a record. rid=PageNum:1, SlotNum:0
+[2024-10-24 15:34:34.868478 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: sql_debug@sql_debug.cpp:51] >> sql debug info: [get a tuple: 1, 3, 1, 1]
+[2024-10-24 15:34:34.868520 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:34:34.868613 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: xlatch@latch_memo.cpp:100] >> lock root success
+[2024-10-24 15:34:34.868662 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f30169039a8, page num 2
+[2024-10-24 15:34:34.868712 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: load_page@disk_buffer_pool.cpp:792] >> Load page miniob/db/sys/unique_table2-index_id.index:2, file_desc:6, frame=frame id:buffer_pool_id:2,page_num:2, dirty=0, pin=1, lsn=0
+[2024-10-24 15:34:34.868839 pid:132165 tid:7f3019dc57c0 ctx:603000021670 DEBUG: release_item@latch_memo.cpp:116] >> release root lock
+[2024-10-24 15:34:34.868908 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: insert_entry_into_leaf_node@bplus_tree.cpp:1341] >> entry exists
+[2024-10-24 15:34:34.868926 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: insert_entry@bplus_tree.cpp:1623] >> Failed to insert into leaf of index, rid:PageNum:1, SlotNum:0. rc=RECORD_DUPLICATE_KEY
+[2024-10-24 15:34:34.869029 pid:132165 tid:7f3019dc57c0 ctx:603000021670 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:34:34.869076 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: close@table_scan_physical_operator.cpp:87] >> close table scan operator
+[2024-10-24 15:34:34.869110 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: close@update_physical_operator.cpp:90] >> close update operator
+[2024-10-24 15:34:34.869228 pid:132165 tid:7f3019dc57c0 ctx:603000021670 INFO: handle_event@sql_task_handler.cpp:46] >> write result return SUCCESS
+[2024-10-24 15:37:14.503742 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: main@main.cpp:200] >> Server stopped
+[2024-10-24 15:37:14.503998 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:2,lsn=0, dwb size:1
+[2024-10-24 15:37:14.504071 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=6, frame=frame id:buffer_pool_id:2,page_num:2, dirty=0, pin=1, lsn=0
+[2024-10-24 15:37:14.504217 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:1,lsn=0, dwb size:2
+[2024-10-24 15:37:14.504270 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=6, frame=frame id:buffer_pool_id:2,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:37:14.504359 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:0,lsn=0, dwb size:3
+[2024-10-24 15:37:14.504402 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=6, frame=frame id:buffer_pool_id:2,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:37:14.504512 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:1,page_num:1,lsn=0, dwb size:4
+[2024-10-24 15:37:14.504560 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:37:14.504689 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:1,page_num:0,lsn=0, dwb size:5
+[2024-10-24 15:37:14.504839 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:37:14.504899 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: sync@table.cpp:808] >> Sync table over. table=unique_table2
+[2024-10-24 15:37:14.504925 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: sync@db.cpp:284] >> Successfully sync table db:sys, table:unique_table2.
+[2024-10-24 15:37:14.664132 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:1,page_num:0,lsn=0
+[2024-10-24 15:37:14.664332 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:1, page_num:0, lsn=0, check_sum=-1805445553
+[2024-10-24 15:37:14.664391 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:0,lsn=0
+[2024-10-24 15:37:14.664429 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:0, lsn=0, check_sum=397732625
+[2024-10-24 15:37:14.664451 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:1,lsn=0
+[2024-10-24 15:37:14.664469 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:1, lsn=0, check_sum=1597829643
+[2024-10-24 15:37:14.664489 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:1,page_num:1,lsn=0
+[2024-10-24 15:37:14.664520 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:1, page_num:1, lsn=0, check_sum=975686363
+[2024-10-24 15:37:14.664552 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:2,lsn=0
+[2024-10-24 15:37:14.664583 pid:132165 tid:7f3019dc57c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:2, lsn=0, check_sum=1727708336
+[2024-10-24 15:37:14.664624 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: sync@db.cpp:289] >> double write buffer flush pages ret=SUCCESS
+[2024-10-24 15:37:14.664945 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: flush_meta@db.cpp:422] >> Successfully write db meta file. db=sys, file=miniob/db/sys/sys.db.tmp, check_point_lsn=0
+[2024-10-24 15:37:14.664976 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: sync@db.cpp:308] >> Successfully sync db. db=sys
+[2024-10-24 15:37:14.665046 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f30168fd870, page 1 frame_id=buffer_pool_id:1,page_num:1
+[2024-10-24 15:37:14.665153 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f30168fb808, page 0 frame_id=buffer_pool_id:1,page_num:0
+[2024-10-24 15:37:14.665185 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: clear_pages@double_write_buffer.cpp:213] >> clear pages in double write buffer. file name=miniob/db/sys/unique_table2.data, page count=0
+[2024-10-24 15:37:14.665207 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: close_file@disk_buffer_pool.cpp:308] >> Successfully close file 5:miniob/db/sys/unique_table2.data.
+[2024-10-24 15:37:14.665227 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: ~DiskBufferPool@disk_buffer_pool.cpp:227] >> disk buffer pool exit
+[2024-10-24 15:37:14.665254 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: close@bplus_tree_index.cpp:106] >> Begin to close index, index:index_id, field:__null, id1
+[2024-10-24 15:37:14.665280 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f30169039a8, page 2 frame_id=buffer_pool_id:2,page_num:2
+[2024-10-24 15:37:14.665324 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f3016901940, page 1 frame_id=buffer_pool_id:2,page_num:1
+[2024-10-24 15:37:14.665339 pid:132165 tid:7f3019dc57c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f30168ff8d8, page 0 frame_id=buffer_pool_id:2,page_num:0
+[2024-10-24 15:37:14.665358 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: clear_pages@double_write_buffer.cpp:213] >> clear pages in double write buffer. file name=miniob/db/sys/unique_table2-index_id.index, page count=0
+[2024-10-24 15:37:14.665381 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: close_file@disk_buffer_pool.cpp:308] >> Successfully close file 6:miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:37:14.665404 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: close@bplus_tree_index.cpp:110] >> Successfully close index.
+[2024-10-24 15:37:14.665467 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: cleanup@mem_pool.cpp:67] >> Successfully do cleanup, this->name:b+tree.
+[2024-10-24 15:37:14.665537 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: ~Table@table.cpp:59] >> Table has been closed: unique_table2
+[2024-10-24 15:37:14.665595 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: ~Db@db.cpp:48] >> Db has been closed: sys
+[2024-10-24 15:37:14.665622 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: ~DiskBufferPool@disk_buffer_pool.cpp:227] >> disk buffer pool exit
+[2024-10-24 15:37:14.673497 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: cleanup@mem_pool.h:217] >> Successfully do cleanup, this->name:BufPool.
+[2024-10-24 15:37:14.673633 pid:132165 tid:7f3019dc57c0 ctx:0 INFO: cleanup_util@init.cpp:229] >> Shutdown Cleanly!
+[2024-10-24 15:37:34.426878 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@init.cpp:200] >> Output configuration 
+Begin dump configuration
+[]
+
+[LOG]
+LOG_CONSOLE_LEVEL=1
+LOG_FILE_LEVEL=5
+LOG_FILE_NAME=observer.log
+
+Finish dump configuration 
+
+[2024-10-24 15:37:34.427425 pid:134548 tid:7f160b30b7c0 ctx:0 WARN: create_db@default_handler.cpp:93] >> Db already exists: sys
+[2024-10-24 15:37:34.428319 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:128, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.428980 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:256, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.429683 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:384, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.430380 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:512, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.431203 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:640, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.432219 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:768, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.432865 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:896, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.433808 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1024, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.435865 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1152, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.436653 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1280, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.437401 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1408, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.438206 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1536, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.438843 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1664, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.439463 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1792, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.440060 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:1920, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.440694 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2048, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.441334 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2176, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.441971 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2304, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.442522 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2432, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.443267 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.h:244] >> Extend one pool, this->size:2560, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.443329 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@mem_pool.h:191] >> Extend one pool, this->size:2560, item_num_per_pool:128, this->name:BufPool.
+[2024-10-24 15:37:34.443354 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: BufferPoolManager@disk_buffer_pool.cpp:807] >> buffer pool manager init with memory size 20971520, page num: 2560, pool num: 20
+[2024-10-24 15:37:34.443955 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: load_pages@double_write_buffer.cpp:290] >> double write buffer load pages done. page num=5
+[2024-10-24 15:37:34.444143 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init_meta@db.cpp:377] >> Successfully read db meta file. db=sys, file=miniob/db/sys/sys.db, check_point_lsn=0
+[2024-10-24 15:37:34.445393 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=__null
+[2024-10-24 15:37:34.445449 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=id1
+[2024-10-24 15:37:34.445475 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=id2
+[2024-10-24 15:37:34.445497 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=col1
+[2024-10-24 15:37:34.445512 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@field_meta.cpp:64] >> Init a field with name=col2
+[2024-10-24 15:37:34.445862 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:237] >> Successfully open buffer pool file miniob/db/sys/unique_table2.data.
+[2024-10-24 15:37:34.446029 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f1607dfb808, page num 0
+[2024-10-24 15:37:34.446109 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=1, page_num:0, lsn:0
+[2024-10-24 15:37:34.446149 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:275] >> Successfully open miniob/db/sys/unique_table2.data. file_desc=5, hdr_frame=0x7f1607dfb808, file header=pageCount:2, allocatedCount:2
+[2024-10-24 15:37:34.446262 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: open_file@disk_buffer_pool.cpp:898] >> insert buffer pool into fd buffer pools. fd=5, bp=0x60e000000ac0, lbt=0x7f160b939c0e 0x56301aed2544 0x56301ab13588 0x56301ab8cdf5 0x56301ab9b15b 0x56301ab38568 0x56301ab400c8 0x56301ab50a93 0x56301ab52feb 0x56301a9da45c 0x56301a9e00fd 0x56301a9c9d66 0x7f160b36bd90 0x7f160b36be40 0x56301a9d05f5
+[2024-10-24 15:37:34.446603 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f1607dfd870, page num 1
+[2024-10-24 15:37:34.446647 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=1, page_num:1, lsn:0
+[2024-10-24 15:37:34.446686 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:37:34.446744 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init_free_pages@record_manager.cpp:554] >> record file handler init free pages done. free page num=1, rc=SUCCESS
+[2024-10-24 15:37:34.446787 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@record_manager.cpp:513] >> open record file handle done. rc=SUCCESS
+[2024-10-24 15:37:34.446966 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:237] >> Successfully open buffer pool file miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:37:34.447798 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f1607dff8d8, page num 0
+[2024-10-24 15:37:34.447888 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=2, page_num:0, lsn:0
+[2024-10-24 15:37:34.447927 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: open_file@disk_buffer_pool.cpp:275] >> Successfully open miniob/db/sys/unique_table2-index_id.index. file_desc=6, hdr_frame=0x7f1607dff8d8, file header=pageCount:3, allocatedCount:3
+[2024-10-24 15:37:34.448018 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: open_file@disk_buffer_pool.cpp:898] >> insert buffer pool into fd buffer pools. fd=6, bp=0x60e000000d60, lbt=0x7f160b939c0e 0x56301aed2544 0x56301ab13588 0x56301ae5ed04 0x56301ad62728 0x56301ab9cc9b 0x56301ab38568 0x56301ab400c8 0x56301ab50a93 0x56301ab52feb 0x56301a9da45c 0x56301a9e00fd 0x56301a9c9d66 0x7f160b36bd90 0x7f160b36be40 0x56301a9d05f5
+[2024-10-24 15:37:34.448151 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f1607e01940, page num 1
+[2024-10-24 15:37:34.448184 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: read_page@double_write_buffer.cpp:189] >> double write buffer read page success. bp id=2, page_num:1, lsn:0
+[2024-10-24 15:37:34.448396 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: extend@mem_pool.cpp:96] >> Extend one pool, this->size:128, item_size:13, item_num_per_pool:128, this->name:b+tree.
+[2024-10-24 15:37:34.448448 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@mem_pool.cpp:42] >> Extend one pool, this->size:128, item_size:13, item_num_per_pool:128, this->name:b+tree.
+[2024-10-24 15:37:34.448514 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: open@bplus_tree.cpp:1022] >> Successfully open index
+[2024-10-24 15:37:34.448535 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: open@bplus_tree.cpp:979] >> open b+tree success. filename=miniob/db/sys/unique_table2-index_id.index
+[2024-10-24 15:37:34.448553 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: open@bplus_tree_index.cpp:98] >> Successfully open index, file_name:miniob/db/sys/unique_table2-index_id.index, index:index_id, field:__null, id1
+[2024-10-24 15:37:34.448626 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: open_all_tables@db.cpp:254] >> Open table: unique_table2, file: unique_table2.table
+[2024-10-24 15:37:34.448646 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: open_all_tables@db.cpp:257] >> All table have been opened. num=1
+[2024-10-24 15:37:34.575735 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:1,page_num:0,lsn=0
+[2024-10-24 15:37:34.576040 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:2,page_num:0,lsn=0
+[2024-10-24 15:37:34.576082 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:2,page_num:1,lsn=0
+[2024-10-24 15:37:34.576111 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:1,page_num:1,lsn=0
+[2024-10-24 15:37:34.576137 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:169] >> double write buffer write page invalid. buffer_pool_id:2,page_num:2,lsn=0
+[2024-10-24 15:37:34.576176 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: recover@db.cpp:314] >> db recover begin. check_point_lsn=0
+[2024-10-24 15:37:34.576215 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: recover@db.cpp:341] >> Successfully recover db. db=sys checkpoint_lsn=0
+[2024-10-24 15:37:34.576287 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: set_current_db@session.cpp:56] >> change db to sys
+[2024-10-24 15:37:34.576307 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@default_handler.cpp:69] >> Default handler init with miniob success
+[2024-10-24 15:37:34.576342 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: init@init.cpp:215] >> Successfully init utility
+[2024-10-24 15:37:36.065489 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:107] >> UPDATE
+[2024-10-24 15:37:36.065724 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:37:36.065753 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:108] >> SET
+[2024-10-24 15:37:36.065769 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:37:36.065798 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:142] >> EQ
+[2024-10-24 15:37:36.065815 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:79] >> NUMBER
+[2024-10-24 15:37:36.065858 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:141] >> COMMA
+[2024-10-24 15:37:36.065877 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:137] >> ID
+[2024-10-24 15:37:36.065892 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:142] >> EQ
+[2024-10-24 15:37:36.065906 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:79] >> NUMBER
+[2024-10-24 15:37:36.065925 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: yylex@lex_sql.l:161] >> Unknown character [ï]
+[2024-10-24 15:37:36.066249 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 INFO: generate_physical_plan@optimize_stage.cpp:96] >> use tuple iterator
+[2024-10-24 15:37:36.066344 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 TRACE: create_plan@physical_plan_generator.cpp:235] >> use table scan
+[2024-10-24 15:37:36.066443 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 INFO: open@update_physical_operator.cpp:30] >> open update operator
+[2024-10-24 15:37:36.066477 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 INFO: open@table_scan_physical_operator.cpp:23] >> open table scan operator
+[2024-10-24 15:37:36.066541 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:37:36.066574 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 TRACE: next@table_scan_physical_operator.cpp:38] >> got a record. rid=PageNum:1, SlotNum:0
+[2024-10-24 15:37:36.066757 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: sql_debug@sql_debug.cpp:51] >> sql debug info: [get a tuple: 1, 3, 1, 1]
+[2024-10-24 15:37:36.066835 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 TRACE: init@record_manager.cpp:130] >> Successfully init page_num 1.
+[2024-10-24 15:37:36.066928 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: xlatch@latch_memo.cpp:100] >> lock root success
+[2024-10-24 15:37:36.066980 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: allocate_frame@disk_buffer_pool.cpp:744] >> allocate frame 0x7f1607e039a8, page num 2
+[2024-10-24 15:37:36.067211 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: load_page@disk_buffer_pool.cpp:792] >> Load page miniob/db/sys/unique_table2-index_id.index:2, file_desc:6, frame=frame id:buffer_pool_id:2,page_num:2, dirty=0, pin=1, lsn=0
+[2024-10-24 15:37:36.067420 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 DEBUG: release_item@latch_memo.cpp:116] >> release root lock
+[2024-10-24 15:37:36.067506 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 TRACE: insert_entry_into_leaf_node@bplus_tree.cpp:1341] >> entry exists
+[2024-10-24 15:37:36.067530 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 TRACE: insert_entry@bplus_tree.cpp:1623] >> Failed to insert into leaf of index, rid:PageNum:1, SlotNum:0. rc=RECORD_DUPLICATE_KEY
+[2024-10-24 15:37:36.067617 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 WARN: open@update_physical_operator.cpp:70] >> failed to update record: RECORD_DUPLICATE_KEY
+[2024-10-24 15:37:36.067655 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 INFO: close@table_scan_physical_operator.cpp:87] >> close table scan operator
+[2024-10-24 15:37:36.067692 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 INFO: close@update_physical_operator.cpp:90] >> close update operator
+[2024-10-24 15:37:36.067876 pid:134548 tid:7f160b30b7c0 ctx:6030000216d0 INFO: handle_event@sql_task_handler.cpp:46] >> write result return SUCCESS
+[2024-10-24 15:37:39.196874 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: main@main.cpp:200] >> Server stopped
+[2024-10-24 15:37:39.197153 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:2,lsn=0, dwb size:1
+[2024-10-24 15:37:39.197214 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=6, frame=frame id:buffer_pool_id:2,page_num:2, dirty=0, pin=1, lsn=0
+[2024-10-24 15:37:39.197422 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:1,lsn=0, dwb size:2
+[2024-10-24 15:37:39.197458 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=6, frame=frame id:buffer_pool_id:2,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:37:39.197537 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:2,page_num:0,lsn=0, dwb size:3
+[2024-10-24 15:37:39.197565 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=6, frame=frame id:buffer_pool_id:2,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:37:39.197691 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:1,page_num:1,lsn=0, dwb size:4
+[2024-10-24 15:37:39.197735 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:1, dirty=0, pin=1, lsn=0
+[2024-10-24 15:37:39.197831 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: add_page@double_write_buffer.cpp:113] >> insert page into double write buffer. buffer_pool_id:1,page_num:0,lsn=0, dwb size:5
+[2024-10-24 15:37:39.197853 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: flush_page_internal@disk_buffer_pool.cpp:563] >> Flush block. file desc=5, frame=frame id:buffer_pool_id:1,page_num:0, dirty=0, pin=2, lsn=0
+[2024-10-24 15:37:39.197872 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: sync@table.cpp:808] >> Sync table over. table=unique_table2
+[2024-10-24 15:37:39.197886 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: sync@db.cpp:284] >> Successfully sync table db:sys, table:unique_table2.
+[2024-10-24 15:37:39.204730 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:1,page_num:0,lsn=0
+[2024-10-24 15:37:39.204885 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:1, page_num:0, lsn=0, check_sum=-1805445553
+[2024-10-24 15:37:39.204956 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:0,lsn=0
+[2024-10-24 15:37:39.205003 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:0, lsn=0, check_sum=397732625
+[2024-10-24 15:37:39.205032 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:1,lsn=0
+[2024-10-24 15:37:39.205116 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:1, lsn=0, check_sum=1597829643
+[2024-10-24 15:37:39.205150 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:1,page_num:1,lsn=0
+[2024-10-24 15:37:39.205227 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:1, page_num:1, lsn=0, check_sum=975686363
+[2024-10-24 15:37:39.205258 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@double_write_buffer.cpp:176] >> double write buffer write page. buffer_pool_id:2,page_num:2,lsn=0
+[2024-10-24 15:37:39.205279 pid:134548 tid:7f160b30b7c0 ctx:0 TRACE: write_page@disk_buffer_pool.cpp:612] >> write_page: buffer_pool_id:2, page_num:2, lsn=0, check_sum=1727708336
+[2024-10-24 15:37:39.205306 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: sync@db.cpp:289] >> double write buffer flush pages ret=SUCCESS
+[2024-10-24 15:37:39.205663 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: flush_meta@db.cpp:422] >> Successfully write db meta file. db=sys, file=miniob/db/sys/sys.db.tmp, check_point_lsn=0
+[2024-10-24 15:37:39.205708 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: sync@db.cpp:308] >> Successfully sync db. db=sys
+[2024-10-24 15:37:39.205768 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f1607dfd870, page 1 frame_id=buffer_pool_id:1,page_num:1
+[2024-10-24 15:37:39.205845 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f1607dfb808, page 0 frame_id=buffer_pool_id:1,page_num:0
+[2024-10-24 15:37:39.205900 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: clear_pages@double_write_buffer.cpp:213] >> clear pages in double write buffer. file name=miniob/db/sys/unique_table2.data, page count=0
+[2024-10-24 15:37:39.205933 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: close_file@disk_buffer_pool.cpp:308] >> Successfully close file 5:miniob/db/sys/unique_table2.data.
+[2024-10-24 15:37:39.205965 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: ~DiskBufferPool@disk_buffer_pool.cpp:227] >> disk buffer pool exit
+[2024-10-24 15:37:39.206004 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: close@bplus_tree_index.cpp:106] >> Begin to close index, index:index_id, field:__null, id1
+[2024-10-24 15:37:39.206065 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f1607e039a8, page 2 frame_id=buffer_pool_id:2,page_num:2
+[2024-10-24 15:37:39.206132 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f1607e01940, page 1 frame_id=buffer_pool_id:2,page_num:1
+[2024-10-24 15:37:39.206151 pid:134548 tid:7f160b30b7c0 ctx:0 DEBUG: purge_frame@disk_buffer_pool.cpp:489] >> Successfully purge frame =0x7f1607dff8d8, page 0 frame_id=buffer_pool_id:2,page_num:0
+[2024-10-24 15:37:39.206173 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: clear_pages@double_write_buffer.cpp:213] >> clear pages in double write buffer. file name=miniob/db/sys/unique_table2-index_id.index, page count=0
+[2024-10-24 15:37:39.206195 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: close_file@disk_buffer_pool.cpp:308] >> Successfully close file 6:miniob/db/sys/unique_table2-index_id.index.
+[2024-10-24 15:37:39.206207 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: close@bplus_tree_index.cpp:110] >> Successfully close index.
+[2024-10-24 15:37:39.206256 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: cleanup@mem_pool.cpp:67] >> Successfully do cleanup, this->name:b+tree.
+[2024-10-24 15:37:39.206305 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: ~Table@table.cpp:59] >> Table has been closed: unique_table2
+[2024-10-24 15:37:39.206362 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: ~Db@db.cpp:48] >> Db has been closed: sys
+[2024-10-24 15:37:39.206379 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: ~DiskBufferPool@disk_buffer_pool.cpp:227] >> disk buffer pool exit
+[2024-10-24 15:37:39.213500 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: cleanup@mem_pool.h:217] >> Successfully do cleanup, this->name:BufPool.
+[2024-10-24 15:37:39.213640 pid:134548 tid:7f160b30b7c0 ctx:0 INFO: cleanup_util@init.cpp:229] >> Shutdown Cleanly!
