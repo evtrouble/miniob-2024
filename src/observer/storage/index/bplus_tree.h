@@ -83,13 +83,17 @@ public:
     int            offset = attr_length_[0];
     common::Bitmap l_map(const_cast<char *>(v1), attr_length_[0] * 8);
     common::Bitmap r_map(const_cast<char *>(v2), attr_length_[0] * 8);
+    bool ctl = false;
     for (size_t i = 1; i < attr_type_.size(); i++) {
       // NULL get_bit 是true
-      if (r_map.get_bit(field_id_[i]) == true)
+      if (r_map.get_bit(field_id_[i]) == true){
+        if(l_map.get_bit(field_id_[i]) == true)
+        {
+          ctl = true;
+          continue;
+        }
         return 1;
-      if (l_map.get_bit(field_id_[i]) == true) {
-        return -1;
-      }
+      } else if (l_map.get_bit(field_id_[i]) == true) return -1;
       switch (attr_type_[i]) {
         case AttrType::INTS: {
           if (0 == (cmp_res = common::compare_int((void *)(v1 + offset), (void *)(v2 + offset)))) {
@@ -123,7 +127,8 @@ public:
         }
       }
     }
-    return cmp_res;
+    if(ctl)return INT32_MAX;
+    return 0;
   }
 
   int operator()(const Value &v1, const Value &v2) const
@@ -160,16 +165,21 @@ public:
 
   int operator()(const char *v1, const char *v2) const
   {
-    int result = attr_comparator_(v1, v2);
-    if (unique_ && result == 0)
-      return result;
-    if (result != 0) {
-      return result;
-    }
-
     const RID *rid1 = (const RID *)(v1 + attr_comparator_.attr_length());
     const RID *rid2 = (const RID *)(v2 + attr_comparator_.attr_length());
-    return RID::compare(rid1, rid2);
+
+    int result = RID::compare(rid1, rid2);
+    if(result == 0)return result;
+
+    int value_result = attr_comparator_(v1, v2);
+    if(value_result == 0)
+    {
+      if(unique_)return 0;
+      return result;
+    }
+    if(value_result == INT32_MAX)return result;
+    
+    return value_result;
   }
 
 private:
