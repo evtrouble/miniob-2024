@@ -370,7 +370,7 @@ RC Table::update_record(Record &new_record, Record &old_record)
     return rc;  // 插入新的索引失败
   }
 
-  rc = record_handler_->update_record(&new_record);
+  rc = record_handler_->update_record(new_record.data(), new_record.rid());
   if (rc != RC::SUCCESS) {
     // 更新数据失败应该回滚索引，但是这里除非RID错了，否则不会失败，懒得写回滚索引了
     LOG_ERROR(
