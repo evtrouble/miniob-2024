@@ -1337,6 +1337,7 @@ RC BplusTreeHandler::insert_entry_into_leaf_node(
   LeafIndexNodeHandler leaf_node(mtr, file_header_, frame);
   bool                 exists          = false;  // 该数据是否已经存在指定的叶子节点中了
   int                  insert_position = leaf_node.lookup(key_comparator_, key, &exists);
+
   if (exists) {
     LOG_TRACE("entry exists");
     return RC::RECORD_DUPLICATE_KEY;
@@ -1637,10 +1638,10 @@ RC BplusTreeHandler::update_entry(const char *user_key, const RID *rid)
 
   RC rc = RC::SUCCESS;
 
-  rc = insert_entry(user_key, rid);
+  rc = delete_entry(user_key, rid);
   if (rc != RC::SUCCESS)
     return rc;
-  return delete_entry(user_key, rid);
+  return insert_entry(user_key, rid);
 }
 
 RC BplusTreeHandler::get_entry(const char *user_key, int key_len, std::list<RID> &rids)

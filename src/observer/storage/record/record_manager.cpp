@@ -621,20 +621,18 @@ RC RecordFileHandler::insert_record(const char *data, int record_size, RID *rid)
   return record_page_handler->insert_record(data, rid);
 }
 
-RC RecordFileHandler::update_record(const char *data, const RID &rid)
+RC RecordFileHandler::update_record(Record *rec)
 {
-  RC rc = RC::SUCCESS;
+  RC ret = RC::SUCCESS;
 
-  unique_ptr<RecordPageHandler> record_page_handler(RecordPageHandler::create(storage_format_));
+  RecordPageHandler record_page_handler;
 
-  rc = record_page_handler->init(*disk_buffer_pool_, *log_handler_, rid.page_num, ReadWriteMode::READ_WRITE);
-  if (OB_FAIL(rc)) {
-    LOG_ERROR("Failed to init record page handler.page number=%d. rc=%s", rid.page_num, strrc(rc));
-    return rc;
+  ret = record_page_handler.init(*disk_buffer_pool_, *log_handler_, rec->rid().page_num, ReadWriteMode::READ_ONLY /*readonly*/);
+  if (ret != RC::SUCCESS) {
+    LOG_WARN("failed to init record page handler. page num=%d, rc=%s", rec->rid().page_num, strrc(ret));
+    return ret;
   }
-
-  rc = record_page_handler->update_record(rid, data);
-  return rc;
+  return record_page_handler.update_record(rec->rid(), rec->data());
 }
 
 RC RecordFileHandler::recover_insert_record(const char *data, int record_size, const RID &rid)

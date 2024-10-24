@@ -84,7 +84,7 @@ public:
    */
   RC insert_record(Record &record);
   RC update_record(const RID &rid, std::vector<const FieldMeta *> &fields, std::vector<Value> &values);
-  RC update_record(const Record &record);
+  RC update_record(Record &new_record, Record &old_record);
   RC delete_record(const Record &record);
   RC delete_record(const RID &rid);
   RC get_record(const RID &rid, Record &record);

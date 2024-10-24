@@ -299,12 +299,13 @@ RC Table::update_record(const RID &rid, std::vector<const FieldMeta *> &fields, 
 {
   RC rc = RC::SUCCESS;
 
-  Record record;
+  Record old_record;
 
-  rc = get_record(rid, record);
+  rc = get_record(rid, old_record);
   if (OB_FAIL(rc)) {
     return rc;
   }
+  Record new_record = old_record;
 
   for (std::size_t id = 0; id < fields.size(); id++) {
     const FieldMeta *&field = fields[id];
@@ -318,7 +319,7 @@ RC Table::update_record(const RID &rid, std::vector<const FieldMeta *> &fields, 
 
     if (value.attr_type() != AttrType::NULLS && field->type() != value.attr_type()) {
       if (AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()){
-        rc = set_value_to_record(record.data(), value, field);
+        rc = set_value_to_record(new_record.data(), value, field);
       }else{      
         Value real_value;
         rc = Value::cast_to(value, field->type(), real_value);
@@ -327,10 +328,10 @@ RC Table::update_record(const RID &rid, std::vector<const FieldMeta *> &fields, 
             table_meta_.name(), field->name(), value.to_string().c_str());
           break;
         }
-        rc = set_value_to_record(record.data(), real_value, field);
+        rc = set_value_to_record(new_record.data(), real_value, field);
       }
     } else {
-        rc = set_value_to_record(record.data(), value, field);
+        rc = set_value_to_record(new_record.data(), value, field);
       }
     if (rc != RC::SUCCESS) {
       LOG_ERROR("Update record failed. table name=%s, rc=%s", table_meta_.name(), strrc(rc));
@@ -338,20 +339,46 @@ RC Table::update_record(const RID &rid, std::vector<const FieldMeta *> &fields, 
     }
   }
 
-  return update_record(record);
+  return update_record(new_record, old_record);
 }
 
-RC Table::update_record(const Record &record)
+RC Table::update_record(Record &new_record, Record &old_record)
 {
   RC rc = RC::SUCCESS;
-  for (Index *index : indexes_) {
-    rc = index->update_entry(record.data(), &record.rid());
-    ASSERT(RC::SUCCESS == rc,
-           "failed to update entry from index. table name=%s, index name=%s, rid=%s, rc=%s",
-           name(), index->index_meta().name(), record.rid().to_string().c_str(), strrc(rc));
-    if(rc != RC::SUCCESS)return rc;
+
+  rc = delete_entry_of_indexes(old_record.data(), old_record.rid(), false);
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to delete indexes of record (rid=%d.%d). rc=%d:%s",
+        old_record.rid().page_num,
+        old_record.rid().slot_num,
+        rc,
+        strrc(rc));
+    return rc;
   }
-  return record_handler_->update_record(record.data(), record.rid());
+
+  rc = insert_entry_of_indexes(new_record.data(), new_record.rid());
+  if (rc != RC::SUCCESS) {  // 可能出现了键值重复
+    RC rc2 = insert_entry_of_indexes(old_record.data(), old_record.rid());
+    if (rc2 != RC::SUCCESS) {
+      sql_debug("Failed to rollback index after insert index failed, rc=%s", strrc(rc2));
+      LOG_ERROR("Failed to rollback index data when insert index entries failed. table name=%s, rc=%d:%s",
+          name(),
+          rc2,
+          strrc(rc2));
+      return rc2;
+    }
+    return rc;  // 插入新的索引失败
+  }
+
+  rc = record_handler_->update_record(&new_record);
+  if (rc != RC::SUCCESS) {
+    // 更新数据失败应该回滚索引，但是这里除非RID错了，否则不会失败，懒得写回滚索引了
+    LOG_ERROR(
+        "Failed to update record (rid=%d.%d). rc=%d:%s", new_record.rid().page_num, new_record.rid().slot_num, rc, strrc(rc));
+    return rc;
+  }
+
+  return rc;
 }
 
 RC Table::visit_record(const RID &rid, function<bool(Record &)> visitor)

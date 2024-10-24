@@ -179,7 +179,7 @@ const int TableMeta::find_field_idx_by_name(const char *field_name) const
 
 const IndexMeta *TableMeta::find_index_by_fields(std::vector<const char *> fields) const {
   // 找到一个命中字段最多的索引
-  int nmax = 0;
+  size_t nmax = 0;
   const IndexMeta *ret = nullptr;
   for (const IndexMeta &index : indexes_) {
     auto &index_fields = index.fields();
