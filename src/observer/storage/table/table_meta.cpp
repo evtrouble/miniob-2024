@@ -308,9 +308,9 @@ int TableMeta::deserialize(std::istream &is)
   fields_.swap(fields);
   record_size_ = fields_.back().offset() + fields_.back().len() - fields_.begin()->offset();
 
-  for (const FieldMeta &field_meta : fields_) {
-    if (!field_meta.visible()) {
-      trx_fields_.push_back(field_meta);  // 字段加上trx标识更好
+  for (size_t id = 1; id < fields_.size(); id++) {
+    if (!fields_[id].visible()) {
+      trx_fields_.push_back(fields_[id]);  // 字段加上trx标识更好
     }
   }
 

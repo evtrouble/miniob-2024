@@ -62,11 +62,6 @@ RC IndexMeta::from_json(const TableMeta &table, const Json::Value &json_value, I
     return RC::INTERNAL;
   }
 
-  if (!field_value.isString()) {
-    LOG_ERROR("Field name of index [%s] is not a string. json value=%s",
-        name_value.asCString(), field_value.toStyledString().c_str());
-    return RC::INTERNAL;
-  }
   if (!unique.isBool()) {
     LOG_ERROR("Index unique_option is not a bool. json value=%s", unique.toStyledString().c_str());
     return RC::INTERNAL;
@@ -78,6 +73,14 @@ RC IndexMeta::from_json(const TableMeta &table, const Json::Value &json_value, I
         field_num.asInt(),
         field_value.size());
     return RC::INTERNAL;
+  }
+  for (int i = 0; i < field_num.asInt(); i++) {
+    if (!field_value[i].isString()) {
+      LOG_ERROR("Field name of index [%s] is not a string. json value=%s",
+          name_value.asCString(),
+          field_value.toStyledString().c_str());
+      return RC::INTERNAL;
+    }
   }
   std::vector<const FieldMeta *> fields;
   for (Json::Value::ArrayIndex i = 0; i < field_value.size(); i++) {

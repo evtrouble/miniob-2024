@@ -47,7 +47,7 @@ public:
   int32_t             table_id() const { return table_id_; }
   const char         *name() const;
   const FieldMeta    *trx_field() const;
-  const FieldMeta *null_field() const;
+  const FieldMeta    *null_field() const;
   const FieldMeta    *field(int index) const;
   const FieldMeta    *field(const char *name) const;
   int                 field_id(const char *name) const;

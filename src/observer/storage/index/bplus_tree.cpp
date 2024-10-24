@@ -1590,6 +1590,7 @@ common::MemPoolItem::item_unique_ptr BplusTreeHandler::make_key(const Value &use
   }
   int offset = file_header_.attr_length[0];
   memset(static_cast<char *>(key.get()), 0, file_header_.attr_length[0]);
+
   if(user_key.attr_type() == AttrType::NULLS){
     common::Bitmap map(static_cast<char *>(key.get()), file_header_.attr_length[0] * 8);
     map.set_bit(file_header_.field_id[1]);
@@ -1989,7 +1990,7 @@ RC BplusTreeScanner::open(const Value& left_user_key, bool left_inclusive,
 
     iter_index_ = 0;
   } else {
-
+    Value left_key_value(left_user_key);
     char *fixed_left_key = const_cast<char *>(left_user_key.data());
     if (tree_handler_.file_header_.attr_type[1] == AttrType::CHARS) {
       bool should_inclusive_after_fix = false;
@@ -2002,9 +2003,13 @@ RC BplusTreeScanner::open(const Value& left_user_key, bool left_inclusive,
       if (should_inclusive_after_fix) {
         left_inclusive = true;
       }
+      if (fixed_left_key != left_user_key.data()) {
+        left_key_value = Value(fixed_left_key);
+        delete[] fixed_left_key;
+        fixed_left_key = nullptr;
+      }
     }
 
-    Value left_key_value(fixed_left_key);
     MemPoolItem::item_unique_ptr left_pkey;
     if (left_inclusive) {
       left_pkey = tree_handler_.make_key(left_key_value, *RID::min());
@@ -2013,11 +2018,6 @@ RC BplusTreeScanner::open(const Value& left_user_key, bool left_inclusive,
     }
 
     const char *left_key = (const char *)left_pkey.get();
-
-    if (fixed_left_key != left_user_key.data()) {
-      delete[] fixed_left_key;
-      fixed_left_key = nullptr;
-    }
 
     rc = tree_handler_.find_leaf(mtr_, BplusTreeOperationType::READ, left_key, current_frame_);
     if (rc == RC::EMPTY) {
@@ -2056,7 +2056,7 @@ RC BplusTreeScanner::open(const Value& left_user_key, bool left_inclusive,
   if (right_user_key.attr_type() == AttrType::UNDEFINED) {
     right_key_ = nullptr;
   } else {
-
+    Value right_key_value(right_user_key);
     char *fixed_right_key          = const_cast<char *>(right_user_key.data());
     bool  should_include_after_fix = false;
     if (tree_handler_.file_header_.attr_type[1] == AttrType::CHARS) {
@@ -2069,19 +2069,19 @@ RC BplusTreeScanner::open(const Value& left_user_key, bool left_inclusive,
       if (should_include_after_fix) {
         right_inclusive = true;
       }
+      if (fixed_right_key != right_user_key.data()) {
+        right_key_value = Value(fixed_right_key);
+        delete[] fixed_right_key;
+        fixed_right_key = nullptr;
+      }
     }
 
-    Value right_key_value(fixed_right_key);
     if (right_inclusive) {
       right_key_ = tree_handler_.make_key(right_key_value, *RID::max());
     } else {
       right_key_ = tree_handler_.make_key(right_key_value, *RID::min());
     }
 
-    if (fixed_right_key != right_user_key.data()) {
-      delete[] fixed_right_key;
-      fixed_right_key = nullptr;
-    }
   }
 
   if (touch_end()) {

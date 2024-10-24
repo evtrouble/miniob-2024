@@ -236,7 +236,7 @@ RC Table::open(Db *db, const char *meta_file, const char *base_dir)
     const IndexMeta                *index_meta = table_meta_.index(i);
     std::vector<const FieldMeta *>  field_metas;
     const std::vector<std::string> &field_names = index_meta->field();
-    for (size_t j = 0; j < field_names.size(); i++) {
+    for (size_t j = 0; j < field_names.size(); j++) {
       const FieldMeta *field_meta = table_meta_.field(field_names[j].c_str());
       if (field_meta == nullptr) {
         LOG_ERROR("Found invalid index meta info which has a non-exists field. table=%s, index=%s, field=%s",
