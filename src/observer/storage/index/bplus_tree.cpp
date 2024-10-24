@@ -1597,7 +1597,7 @@ common::MemPoolItem::item_unique_ptr BplusTreeHandler::make_key(const Value &use
   else 
     memcpy(
         static_cast<char *>(key.get()) + offset, user_key.data(), file_header_.attr_length[1]);
-  offset += file_header_.attr_length[1];
+  for (int i = 1; i < file_header_.attr_num; i++) offset += file_header_.attr_length[i];
   memcpy(static_cast<char *>(key.get()) + offset, &rid, sizeof(rid));
   return key;
 }
