@@ -103,7 +103,6 @@ public:
           if (0 == (cmp_res = common::compare_float((void *)(v1 + offset), (void *)(v2 + offset)))) {
             offset += attr_length_[i];
           } else {
-
             return cmp_res;
           }
           break;
@@ -114,7 +113,6 @@ public:
                         (void *)(v1 + offset), attr_length_[i], (void *)(v2 + offset), attr_length_[i]))) {
             offset += attr_length_[i];
           } else {
-
             return cmp_res;
           }
           break;
@@ -629,7 +627,7 @@ public:
    * @param key_len user_key的长度
    * @param rid  返回值，记录记录所在的页面号和slot
    */
-  RC get_entry(const Value &user_key, list<RID> &rids);
+  RC get_entry(const char *user_key, int key_len, std::list<RID> &rids);
 
   RC sync();
 
@@ -803,8 +801,8 @@ public:
    * @param right_inclusive 右边界的值是否包含在内
    * TODO 重构参数表示方法
    */
-  RC open(const Value& left_key, bool left_inclusive, 
-    const Value& right_key, bool right_inclusive);
+  RC open(const char *left_user_key, int left_len, bool left_inclusive, const char *right_user_key,
+    int right_len, bool right_inclusive);
 
   /**
    * @brief 获取下一条记录

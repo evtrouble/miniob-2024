@@ -85,8 +85,8 @@ public:
    * @param right_key 要扫描的右边界
    * @param right_inclusive 是否包含右边界
    */
-  virtual IndexScanner *create_scanner(const Value& left_key, bool left_inclusive, 
-    const Value& right_key, bool right_inclusive) = 0;
+  virtual IndexScanner *create_scanner(const char *left_key, int left_len, bool left_inclusive,
+                                             const char *right_key, int right_len, bool right_inclusive) = 0;
 
   /**
    * @brief 同步索引数据到磁盘

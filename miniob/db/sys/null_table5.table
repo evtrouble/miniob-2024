@@ -1,0 +1,48 @@
+{
+	"fields" : 
+	[
+		{
+			"FIELD_id" : 0,
+			"len" : 1,
+			"name" : "__null",
+			"nullable" : false,
+			"offset" : 0,
+			"type" : "chars",
+			"visible" : false
+		},
+		{
+			"FIELD_id" : 1,
+			"len" : 4,
+			"name" : "id",
+			"nullable" : true,
+			"offset" : 1,
+			"type" : "ints",
+			"visible" : true
+		},
+		{
+			"FIELD_id" : 2,
+			"len" : 4,
+			"name" : "num",
+			"nullable" : false,
+			"offset" : 5,
+			"type" : "ints",
+			"visible" : true
+		}
+	],
+	"indexes" : 
+	[
+		{
+			"field_name" : 
+			[
+				"__null",
+				"id"
+			],
+			"field_num" : 2,
+			"name" : "index_id",
+			"unique" : true
+		}
+	],
+	"storage_format" : 1,
+	"table_id" : 1,
+	"table_name" : "null_table5"
+}

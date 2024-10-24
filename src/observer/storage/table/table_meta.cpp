@@ -176,6 +176,33 @@ const int TableMeta::find_field_idx_by_name(const char *field_name) const
   }
   return -1;
 }
+
+const IndexMeta *TableMeta::find_index_by_fields(std::vector<const char *> fields) const {
+  // 找到一个命中字段最多的索引
+  int nmax = 0;
+  const IndexMeta *ret = nullptr;
+  for (const IndexMeta &index : indexes_) {
+    auto &index_fields = index.fields();
+    int cnt = 0;
+    for (auto &field : index_fields) {
+      bool found = false;
+      for (auto f : fields)
+        if (strcmp(field->name(), f) == 0) {
+          found = true;
+        }
+      if (found)
+        cnt++;
+      else
+        break;
+    }
+    if (cnt == index_fields.size()) {
+      if (nmax < cnt)
+        nmax = cnt, ret = &index;
+    }
+  }
+  return ret;
+}
+
 int TableMeta::field_num() const { return fields_.size(); }
 
 int TableMeta::sys_field_num() const { return static_cast<int>(trx_fields_.size()) + 1; }  // 1:_null

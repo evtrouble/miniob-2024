@@ -16,19 +16,28 @@ See the Mulan PSL v2 for more details. */
 #include "storage/index/index.h"
 #include "storage/trx/trx.h"
 
-IndexScanPhysicalOperator::IndexScanPhysicalOperator(Table *table, Index *index, ReadWriteMode mode, const Value *left_value,
-    bool left_inclusive, const Value *right_value, bool right_inclusive)
-    : table_(table),
-      index_(index),
-      mode_(mode),
-      left_inclusive_(left_inclusive),
-      right_inclusive_(right_inclusive)
+IndexScanPhysicalOperator::IndexScanPhysicalOperator(Table *table, Index *index, ReadWriteMode mode, 
+                                                     const std::vector<Value> &left_value, bool left_inclusive,
+                                                     const std::vector<Value> &right_value, bool right_inclusive)
+    : table_(table), index_(index), mode_(mode), left_inclusive_(left_inclusive),
+      right_inclusive_(right_inclusive) 
 {
-  if (left_value) {
-    left_value_ = *left_value;
+  std::vector<const FieldMeta*> fields = index_->index_meta().fields();
+  size_ = 0;
+  for (auto &field : fields) {
+    size_ += field->len();
   }
-  if (right_value) {
-    right_value_ = *right_value;
+
+  left_value_.resize(size_);
+  right_value_.resize(size_);
+  RC rc = RC::SUCCESS;
+  rc = make_data(left_value, fields, table, left_value_);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("fail to make data");
+  }
+  rc = make_data(right_value, fields, table, right_value_);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("fail to make data");
   }
 }
 
@@ -39,10 +48,9 @@ RC IndexScanPhysicalOperator::open(Trx *trx)
   }
   LOG_INFO("open index scanner operator");
 
-  IndexScanner *index_scanner = index_->create_scanner(left_value_,
-      left_inclusive_,
-      right_value_,
-      right_inclusive_);
+  IndexScanner *index_scanner =
+      index_->create_scanner(left_value_.data(), size_, left_inclusive_, 
+      right_value_.data(), size_, right_inclusive_);
   if (nullptr == index_scanner) {
     LOG_WARN("failed to create index scanner");
     return RC::INTERNAL;
@@ -144,4 +152,25 @@ RC IndexScanPhysicalOperator::filter(RowTuple &tuple, bool &result)
 std::string IndexScanPhysicalOperator::param() const
 {
   return std::string(index_->index_meta().name()) + " ON " + table_->name();
+}
+
+RC IndexScanPhysicalOperator::make_data(const std::vector<Value> &values, std::vector<const FieldMeta*> &meta, Table *table,
+                                        std::vector<char> &out) {
+  std::vector<char> ret;
+  int size = 0;
+  for (auto &field : meta) {
+    size += field->len();
+  }
+  ret.resize(size);
+  char *beg = ret.data();
+  beg += meta[0]->len();
+  for (size_t i = 0; i < values.size() && i + 1 < meta.size(); i++) {
+    Value &value = const_cast<Value &>(values[i]);
+    Value result;
+    Value::cast_to(value, meta[i + 1]->type(), result);
+    memcpy(beg, result.data(), meta[i + 1]->len());
+    beg += meta[i + 1]->len();
+  }
+  out.swap(ret);
+  return RC::SUCCESS;
 }

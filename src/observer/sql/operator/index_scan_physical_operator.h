@@ -25,8 +25,9 @@ See the Mulan PSL v2 for more details. */
 class IndexScanPhysicalOperator : public PhysicalOperator
 {
 public:
-  IndexScanPhysicalOperator(Table *table, Index *index, ReadWriteMode mode, const Value *left_value,
-      bool left_inclusive, const Value *right_value, bool right_inclusive);
+  IndexScanPhysicalOperator(Table *table, Index *index, ReadWriteMode mode, 
+                            const std::vector<Value> &left_value, bool left_inclusive,
+                            const std::vector<Value> &right_value, bool right_inclusive);
 
   virtual ~IndexScanPhysicalOperator() = default;
 
@@ -45,6 +46,8 @@ public:
 private:
   // 与TableScanPhysicalOperator代码相同，可以优化
   RC filter(RowTuple &tuple, bool &result);
+  static RC make_data(const std::vector<Value> &values, std::vector<const FieldMeta*> &meta, Table *table,
+                      std::vector<char> &out);
 
 private:
   Trx               *trx_            = nullptr;
@@ -57,8 +60,9 @@ private:
   Record   current_record_;
   RowTuple tuple_;
 
-  Value left_value_;
-  Value right_value_;
+  std::vector<char> left_value_;
+  std::vector<char> right_value_;
+  int size_ = 0;
   bool  left_inclusive_  = false;
   bool  right_inclusive_ = false;
 
