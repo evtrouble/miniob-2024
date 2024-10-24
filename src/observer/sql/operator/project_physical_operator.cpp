@@ -49,7 +49,7 @@ RC ProjectPhysicalOperator::next()
   if(rc == RC::NULL_RECORD){
     for (const unique_ptr<Expression> &expression : expressions_) {
       if(expression->type() != ExprType::AGGREGATION){
-        return rc;
+        return RC::RECORD_EOF;
       }
     }
     rc = RC::SUCCESS;

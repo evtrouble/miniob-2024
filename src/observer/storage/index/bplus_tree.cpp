@@ -1637,10 +1637,10 @@ RC BplusTreeHandler::update_entry(const char *user_key, const RID *rid)
 
   RC rc = RC::SUCCESS;
 
-  rc = delete_entry(user_key, rid);
+  rc = insert_entry(user_key, rid);
   if (rc != RC::SUCCESS)
     return rc;
-  return insert_entry(user_key, rid);
+  return delete_entry(user_key, rid);
 }
 
 RC BplusTreeHandler::get_entry(const char *user_key, int key_len, std::list<RID> &rids)
