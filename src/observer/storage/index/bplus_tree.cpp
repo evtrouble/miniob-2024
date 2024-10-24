@@ -1581,6 +1581,27 @@ MemPoolItem::item_unique_ptr BplusTreeHandler::make_key(const char *user_key, co
   return key;
 }
 
+common::MemPoolItem::item_unique_ptr BplusTreeHandler::make_key(const Value &user_key, const RID &rid)
+{
+  MemPoolItem::item_unique_ptr key = mem_pool_item_->alloc_unique_ptr();
+  if (key == nullptr) {
+    LOG_WARN("Failed to alloc memory for key.");
+    return nullptr;
+  }
+  int offset = file_header_.attr_length[0];
+  memset(static_cast<char *>(key.get()), 0, file_header_.attr_length[0]);
+  if(user_key.attr_type() == AttrType::NULLS){
+    common::Bitmap map(static_cast<char *>(key.get()), file_header_.attr_length[0] * 8);
+    map.set_bit(file_header_.field_id[1]);
+  }
+  else 
+    memcpy(
+        static_cast<char *>(key.get()) + offset, user_key.data(), file_header_.attr_length[1]);
+  offset += file_header_.attr_length[1];
+  memcpy(static_cast<char *>(key.get()) + offset, &rid, sizeof(rid));
+  return key;
+}
+
 RC BplusTreeHandler::insert_entry(const char *user_key, const RID *rid)
 {
   if (user_key == nullptr || rid == nullptr) {
@@ -1643,10 +1664,10 @@ RC BplusTreeHandler::update_entry(const char *user_key, const RID *rid)
   return insert_entry(user_key, rid);
 }
 
-RC BplusTreeHandler::get_entry(const char *user_key, int key_len, list<RID> &rids)
+RC BplusTreeHandler::get_entry(const Value &user_key, list<RID> &rids)
 {
   BplusTreeScanner scanner(*this);
-  RC rc = scanner.open(user_key, key_len, true /*left_inclusive*/, user_key, key_len, true /*right_inclusive*/);
+  RC rc = scanner.open(user_key, true /*left_inclusive*/, user_key, true /*right_inclusive*/);
   if (OB_FAIL(rc)) {
     LOG_WARN("failed to open scanner. rc=%s", strrc(rc));
     return rc;
@@ -1929,8 +1950,8 @@ BplusTreeScanner::BplusTreeScanner(BplusTreeHandler &tree_handler) : tree_handle
 
 BplusTreeScanner::~BplusTreeScanner() { close(); }
 
-RC BplusTreeScanner::open(const char *left_user_key, int left_len, bool left_inclusive, const char *right_user_key,
-    int right_len, bool right_inclusive)
+RC BplusTreeScanner::open(const Value& left_user_key, bool left_inclusive, 
+  const Value& right_user_key, bool right_inclusive)
 {
   RC rc = RC::SUCCESS;
   if (inited_) {
@@ -1944,7 +1965,7 @@ RC BplusTreeScanner::open(const char *left_user_key, int left_len, bool left_inc
   LatchMemo &latch_memo = mtr_.latch_memo();
 
   // 校验输入的键值是否是合法范围
-  if (left_user_key && right_user_key) {
+  if (left_user_key.attr_type() != AttrType::UNDEFINED && right_user_key.attr_type() != AttrType::UNDEFINED) {
     const auto &attr_comparator = tree_handler_.key_comparator_.attr_comparator();
     const int   result          = attr_comparator(left_user_key, right_user_key);
     if (result > 0 ||  // left < right
@@ -1954,7 +1975,7 @@ RC BplusTreeScanner::open(const char *left_user_key, int left_len, bool left_inc
     }
   }
 
-  if (nullptr == left_user_key) {
+  if (left_user_key.attr_type() == AttrType::UNDEFINED) {
     rc = tree_handler_.left_most_page(mtr_, current_frame_);
     if (OB_FAIL(rc)) {
       if (rc == RC::EMPTY) {
@@ -1969,10 +1990,10 @@ RC BplusTreeScanner::open(const char *left_user_key, int left_len, bool left_inc
     iter_index_ = 0;
   } else {
 
-    char *fixed_left_key = const_cast<char *>(left_user_key);
+    char *fixed_left_key = const_cast<char *>(left_user_key.data());
     if (tree_handler_.file_header_.attr_type[1] == AttrType::CHARS) {
       bool should_inclusive_after_fix = false;
-      rc = fix_user_key(left_user_key, left_len, true /*greater*/, &fixed_left_key, &should_inclusive_after_fix);
+      rc = fix_user_key(left_user_key.data(), left_user_key.length(), true /*greater*/, &fixed_left_key, &should_inclusive_after_fix);
       if (OB_FAIL(rc)) {
         LOG_WARN("failed to fix left user key. rc=%s", strrc(rc));
         return rc;
@@ -1983,16 +2004,17 @@ RC BplusTreeScanner::open(const char *left_user_key, int left_len, bool left_inc
       }
     }
 
+    Value left_key_value(fixed_left_key);
     MemPoolItem::item_unique_ptr left_pkey;
     if (left_inclusive) {
-      left_pkey = tree_handler_.make_key(fixed_left_key, *RID::min());
+      left_pkey = tree_handler_.make_key(left_key_value, *RID::min());
     } else {
-      left_pkey = tree_handler_.make_key(fixed_left_key, *RID::max());
+      left_pkey = tree_handler_.make_key(left_key_value, *RID::max());
     }
 
     const char *left_key = (const char *)left_pkey.get();
 
-    if (fixed_left_key != left_user_key) {
+    if (fixed_left_key != left_user_key.data()) {
       delete[] fixed_left_key;
       fixed_left_key = nullptr;
     }
@@ -2031,14 +2053,14 @@ RC BplusTreeScanner::open(const char *left_user_key, int left_len, bool left_inc
   }
 
   // 没有指定右边界范围，那么就返回右边界最大值
-  if (nullptr == right_user_key) {
+  if (right_user_key.attr_type() == AttrType::UNDEFINED) {
     right_key_ = nullptr;
   } else {
 
-    char *fixed_right_key          = const_cast<char *>(right_user_key);
+    char *fixed_right_key          = const_cast<char *>(right_user_key.data());
     bool  should_include_after_fix = false;
     if (tree_handler_.file_header_.attr_type[1] == AttrType::CHARS) {
-      rc = fix_user_key(right_user_key, right_len, false /*want_greater*/, &fixed_right_key, &should_include_after_fix);
+      rc = fix_user_key(right_user_key.data(), right_user_key.length(), false /*want_greater*/, &fixed_right_key, &should_include_after_fix);
       if (OB_FAIL(rc)) {
         LOG_WARN("failed to fix right user key. rc=%s", strrc(rc));
         return rc;
@@ -2048,13 +2070,15 @@ RC BplusTreeScanner::open(const char *left_user_key, int left_len, bool left_inc
         right_inclusive = true;
       }
     }
+
+    Value right_key_value(fixed_right_key);
     if (right_inclusive) {
-      right_key_ = tree_handler_.make_key(fixed_right_key, *RID::max());
+      right_key_ = tree_handler_.make_key(right_key_value, *RID::max());
     } else {
-      right_key_ = tree_handler_.make_key(fixed_right_key, *RID::min());
+      right_key_ = tree_handler_.make_key(right_key_value, *RID::min());
     }
 
-    if (fixed_right_key != right_user_key) {
+    if (fixed_right_key != right_user_key.data()) {
       delete[] fixed_right_key;
       fixed_right_key = nullptr;
     }

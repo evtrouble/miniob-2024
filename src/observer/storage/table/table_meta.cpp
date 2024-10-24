@@ -95,16 +95,15 @@ RC TableMeta::init(int32_t table_id, const char *name, const std::vector<FieldMe
     rc = fields_[i + trx_field_num + 1].init(attr_info.name.c_str(),
         attr_info.type,
         field_offset,
-        attr_info.length,
+        attr_info.type == AttrType::VECTORS? attr_info.length * sizeof(float) : attr_info.length,
         true /*visible*/,
-        i + trx_field_num + 1,
-        attr_info.length);
+        i + trx_field_num + 1, attr_info.nullable);
     if (OB_FAIL(rc)) {
       LOG_ERROR("Failed to init field meta. table name=%s, field name: %s", name, attr_info.name.c_str());
       return rc;
     }
 
-    field_offset += attr_info.length;
+    field_offset += fields_[i + trx_field_num + 1].len();
   }
 
   record_size_ = field_offset;

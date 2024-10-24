@@ -125,8 +125,16 @@ public:
         }
       }
     }
-
     return cmp_res;
+  }
+
+  int operator()(const Value &v1, const Value &v2) const
+  {
+    if(v1.attr_type() == AttrType::NULLS){
+      if(v2.attr_type() == AttrType::NULLS)return 0;
+      return 1;
+    }else if(v2.attr_type() == AttrType::NULLS)return -1;
+    return v1.compare(v2);
   }
 
 private:
@@ -621,7 +629,7 @@ public:
    * @param key_len user_key的长度
    * @param rid  返回值，记录记录所在的页面号和slot
    */
-  RC get_entry(const char *user_key, int key_len, list<RID> &rids);
+  RC get_entry(const Value &user_key, list<RID> &rids);
 
   RC sync();
 
@@ -755,6 +763,7 @@ protected:
 
 private:
   common::MemPoolItem::item_unique_ptr make_key(const char *user_key, const RID &rid);
+  common::MemPoolItem::item_unique_ptr make_key(const Value &user_key, const RID &rid);
 
 protected:
   LogHandler     *log_handler_      = nullptr;  /// 日志处理器
@@ -789,15 +798,13 @@ public:
   /**
    * @brief 扫描指定范围的数据
    * @param left_user_key 扫描范围的左边界，如果是null，则没有左边界
-   * @param left_len left_user_key 的内存大小(只有在变长字段中才会关注)
    * @param left_inclusive 左边界的值是否包含在内
    * @param right_user_key 扫描范围的右边界。如果是null，则没有右边界
-   * @param right_len right_user_key 的内存大小(只有在变长字段中才会关注)
    * @param right_inclusive 右边界的值是否包含在内
    * TODO 重构参数表示方法
    */
-  RC open(const char *left_user_key, int left_len, bool left_inclusive, const char *right_user_key, int right_len,
-      bool right_inclusive);
+  RC open(const Value& left_key, bool left_inclusive, 
+    const Value& right_key, bool right_inclusive);
 
   /**
    * @brief 获取下一条记录

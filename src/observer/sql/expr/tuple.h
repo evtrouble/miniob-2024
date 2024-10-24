@@ -246,7 +246,7 @@ public:
       } 
       else {
         cell.set_type(field_meta->type());
-        cell.set_data(this->record_->data() + field_meta->offset(), field_meta->len() - 1);
+        cell.set_data(this->record_->data() + field_meta->offset(), field_meta->len());
       }
     }
     return RC::SUCCESS;
