@@ -68,6 +68,21 @@ public:
   virtual RC divide(const Value &left, const Value &right, Value &result) const { return RC::UNSUPPORTED; }
 
   /**
+   * @brief 计算left和right的向量距离，并将结果保存到 result 中（Vector_type类专属）
+   */
+  virtual RC l2_distance(const Value &left, const Value &right, Value &result) const { return RC::UNSUPPORTED; }
+  
+  /**
+   * @brief 计算left和right的余弦距离，并将结果保存到 result 中（Vector_type类专属）
+   */
+  virtual RC cosine_distance(const Value &left, const Value &right, Value &result) const { return RC::UNSUPPORTED; }
+  
+  /**
+   * @brief 计算left和right的内积，并将结果保存到 result 中（Vector_type类专属）
+   */
+  virtual RC inner_product(const Value &left, const Value &right, Value &result) const { return RC::UNSUPPORTED; }
+
+  /**
    * @brief 计算 -val，并将结果保存到 result 中
    */
   virtual RC negative(const Value &val, Value &result) const { return RC::UNSUPPORTED; }

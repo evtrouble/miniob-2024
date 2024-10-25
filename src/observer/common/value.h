@@ -155,6 +155,33 @@ public:
     return RC::SUCCESS;
   }
 
+  static RC l2_distance(const Value &left, const Value &right, Value &result)
+  {
+    if(left.attr_type_ == AttrType::NULLS || right.attr_type_ == AttrType::NULLS){
+      result.set_null();
+      return RC::SUCCESS;
+    }
+    return DataType::type_instance(result.attr_type())->l2_distance(left, right, result);
+  }
+
+  static RC cosine_distance(const Value &left, const Value &right, Value &result)
+  {
+    if(left.attr_type_ == AttrType::NULLS || right.attr_type_ == AttrType::NULLS){
+      result.set_null();
+      return RC::SUCCESS;
+    }
+    return DataType::type_instance(result.attr_type())->cosine_distance(left, right, result);
+  }
+
+  static RC inner_product(const Value &left, const Value &right, Value &result)
+  {
+    if(left.attr_type_ == AttrType::NULLS || right.attr_type_ == AttrType::NULLS){
+      result.set_null();
+      return RC::SUCCESS;
+    }
+    return DataType::type_instance(result.attr_type())->inner_product(left, right, result);
+  }
+
   void set_type(AttrType type) { this->attr_type_ = type; }
   void set_data(char *data, int length);
   void set_data(const char *data, int length) { this->set_data(const_cast<char *>(data), length); }

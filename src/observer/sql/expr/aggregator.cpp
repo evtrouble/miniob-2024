@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/expr/aggregator.h"
 #include "common/log/log.h"
+#include "aggregator.h"
 
 RC SumAggregator::accumulate(const Value &value)
 {
@@ -130,6 +131,75 @@ RC CountAggregator::evaluate(Value& result, bool have_groub_by)
     if(have_groub_by)result.set_null();
     else result = Value((int)0);
   }
+  else result = std::move(value_);
+  return RC::SUCCESS;
+}
+
+RC L2_distanceAggregator::accumulate(const Value &value) 
+{
+  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
+  else if (value_.attr_type() == AttrType::UNDEFINED) {
+    value_ = value;
+    return RC::SUCCESS;
+  }
+  
+  ASSERT(value.attr_type() == value_.attr_type(), "type mismatch. value type: %s, value_.type: %s", 
+        attr_type_to_string(value.attr_type()), attr_type_to_string(value_.attr_type()));
+  
+  Value::l2_distance(value, value_, value_);
+  return RC::SUCCESS; 
+}
+
+RC L2_distanceAggregator::evaluate(Value &result, bool have_groub_by) 
+{
+  if (value_.attr_type() == AttrType::UNDEFINED)
+    result.set_null();
+  else result = std::move(value_);
+  return RC::SUCCESS;
+}
+
+RC Cosine_distanceAggregator::accumulate(const Value &value)
+{ 
+  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
+  else if (value_.attr_type() == AttrType::UNDEFINED) {
+    value_ = value;
+    return RC::SUCCESS;
+  }
+  
+  ASSERT(value.attr_type() == value_.attr_type(), "type mismatch. value type: %s, value_.type: %s", 
+        attr_type_to_string(value.attr_type()), attr_type_to_string(value_.attr_type()));
+  
+  Value::cosine_distance(value, value_, value_);
+  return RC::SUCCESS; 
+}
+
+RC Cosine_distanceAggregator::evaluate(Value &result, bool have_groub_by) 
+{ 
+  if (value_.attr_type() == AttrType::UNDEFINED)
+    result.set_null();
+  else result = std::move(value_);
+  return RC::SUCCESS;
+}
+
+RC Inner_productAggregator::accumulate(const Value &value) 
+{ 
+  if(value.attr_type() == AttrType::NULLS)return RC::SUCCESS;
+  else if (value_.attr_type() == AttrType::UNDEFINED) {
+    value_ = value;
+    return RC::SUCCESS;
+  }
+  
+  ASSERT(value.attr_type() == value_.attr_type(), "type mismatch. value type: %s, value_.type: %s", 
+        attr_type_to_string(value.attr_type()), attr_type_to_string(value_.attr_type()));
+  
+  Value::inner_product(value, value_, value_);
+  return RC::SUCCESS; 
+}
+
+RC Inner_productAggregator::evaluate(Value &result, bool have_groub_by) 
+{
+  if (value_.attr_type() == AttrType::UNDEFINED)
+    result.set_null();
   else result = std::move(value_);
   return RC::SUCCESS;
 }

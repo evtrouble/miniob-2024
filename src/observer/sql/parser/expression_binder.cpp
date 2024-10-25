@@ -388,6 +388,15 @@ RC check_aggregate_expression(AggregateExpr &expression)
       }
     } break;
 
+    case AggregateExpr::Type::L2_DISTANCE:
+    case AggregateExpr::Type::COSINE_DISTANCE:
+    case AggregateExpr::Type::INNER_PRODUCT:{
+      // 仅支持向量类型
+      if (child_value_type != AttrType::VECTORS) {
+        LOG_WARN("invalid child value type for aggregate expression: %d", static_cast<int>(child_value_type));
+        return RC::INVALID_ARGUMENT;
+      }
+    }break;
     case AggregateExpr::Type::COUNT:
     case AggregateExpr::Type::MAX:
     case AggregateExpr::Type::MIN: {

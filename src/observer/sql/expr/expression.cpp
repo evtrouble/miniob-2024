@@ -578,6 +578,7 @@ bool ArithmeticExpr::equal(const Expression &other) const
   return arithmetic_type_ == other_arith_expr.arithmetic_type() && left_->equal(*other_arith_expr.left_) &&
          right_->equal(*other_arith_expr.right_);
 }
+
 AttrType ArithmeticExpr::value_type() const
 {
   if (!right_) {
@@ -799,6 +800,36 @@ RC ArithmeticExpr::try_get_value(Value &value) const
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// VectorOperationExpr::VectorOperationExpr(VectorOperationExpr::Type type, Expression *left, Expression *right)
+//     : operation_type_(type), left_(left), right_(right)
+// {}
+// VectorOperationExpr::VectorOperationExpr(VectorOperationExpr::Type type, unique_ptr<Expression> left, unique_ptr<Expression> right)
+//     : operation_type_(type), left_(std::move(left)), right_(std::move(right))
+// {}
+
+// bool VectorOperationExpr::equal(const Expression &other) const
+// {
+//   if (this == &other) {
+//     return true;
+//   }
+//   if (type() != other.type()) {
+//     return false;
+//   }
+//   auto &other_operation_expr = static_cast<const VectorOperationExpr &>(other);
+//   return operation_type_ == other_operation_expr.operation_type() && left_->equal(*other_operation_expr.left_) &&
+//          right_->equal(*other_operation_expr.right_);
+// }
+
+// AttrType VectorOperationExpr::value_type() const
+// {
+//   //是向量特有操作，向量直接储存在数组里，直接返回数组类型
+//   return AttrType::VECTORS;
+// }
+
+
+
+// ////////////////////////////////////////////////////////////////////////////////
+
 UnboundAggregateExpr::UnboundAggregateExpr(const char *aggregate_name, Expression *child)
     : aggregate_name_(aggregate_name), child_(child)
 {}
@@ -856,6 +887,18 @@ unique_ptr<Aggregator> AggregateExpr::create_aggregator() const
       aggregator = make_unique<AvgAggregator>();
       break;
     }
+    case Type::L2_DISTANCE:{
+      aggregator = make_unique<L2_distanceAggregator>();
+      break;
+    }
+    case Type::COSINE_DISTANCE:{
+      aggregator = make_unique<Cosine_distanceAggregator>();
+      break;
+    }
+    case Type::INNER_PRODUCT:{
+      aggregator = make_unique<Inner_productAggregator>();
+      break;
+    }
     default: {
       ASSERT(false, "unsupported aggregate type");
       break;
@@ -882,6 +925,12 @@ RC AggregateExpr::type_from_string(const char *type_str, AggregateExpr::Type &ty
     type = Type::MAX;
   } else if (0 == strcasecmp(type_str, "min")) {
     type = Type::MIN;
+  } else if (0 == strcasecmp(type_str, "l2_distance")) {
+    type = Type::L2_DISTANCE;
+  } else if (0 == strcasecmp(type_str, "cosine_distance")) {
+    type = Type::COSINE_DISTANCE;
+  } else if (0 == strcasecmp(type_str, "inner_product")) {
+    type = Type::INNER_PRODUCT;
   } else {
     rc = RC::INVALID_ARGUMENT;
   }
