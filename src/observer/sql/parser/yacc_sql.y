@@ -414,6 +414,7 @@ create_view_stmt:    /*create view 语句的语法解析树*/
       col_names.emplace_back($5);
       std::reverse(col_names.begin(), col_names.end());
       free($3);
+      free($5);
     }
     ;
 

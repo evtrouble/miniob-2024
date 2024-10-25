@@ -188,7 +188,7 @@ RC UpdatePhysicalOperator::update_view()
 
     for (auto& id : column) {
       temp_values.emplace_back(move(values[id]));
-      fieldmetas.emplace_back(fields_[id]);
+      fieldmetas.emplace_back(map_fields[fields_[id]->field_id() - sys_field_num].meta());
     }
     for(auto& rid : table_rids[base_table]){
       table->get_record(rid, record);

@@ -689,18 +689,18 @@ static const yytype_int16 yyrline[] =
      259,   260,   261,   262,   263,   264,   265,   266,   267,   268,
      269,   270,   271,   272,   273,   277,   283,   288,   294,   300,
      306,   312,   318,   326,   332,   340,   361,   364,   377,   380,
-     385,   396,   403,   422,   425,   438,   459,   477,   489,   492,
-     497,   500,   513,   522,   531,   544,   545,   546,   550,   553,
-     554,   555,   556,   557,   560,   564,   579,   585,   599,   609,
-     626,   630,   634,   641,   648,   654,   657,   664,   676,   694,
-     701,   716,   720,   765,   774,   783,   798,   801,   804,   807,
-     810,   819,   822,   828,   831,   837,   841,   844,   853,   858,
-     865,   874,   879,   895,   926,   929,   956,   959,   962,   968,
-     971,   980,   983,   988,   993,   998,  1006,  1013,  1023,  1024,
-    1025,  1026,  1027,  1028,  1029,  1030,  1031,  1032,  1033,  1034,
-    1038,  1039,  1045,  1048,  1056,  1059,  1066,  1071,  1077,  1085,
-    1095,  1098,  1105,  1111,  1124,  1130,  1136,  1145,  1158,  1166,
-    1176,  1177
+     385,   396,   403,   423,   426,   439,   460,   478,   490,   493,
+     498,   501,   514,   523,   532,   545,   546,   547,   551,   554,
+     555,   556,   557,   558,   561,   565,   580,   586,   600,   610,
+     627,   631,   635,   642,   649,   655,   658,   665,   677,   695,
+     702,   717,   721,   766,   775,   784,   799,   802,   805,   808,
+     811,   820,   823,   829,   832,   838,   842,   845,   854,   859,
+     866,   875,   880,   896,   927,   930,   957,   960,   963,   969,
+     972,   981,   984,   989,   994,   999,  1007,  1014,  1024,  1025,
+    1026,  1027,  1028,  1029,  1030,  1031,  1032,  1033,  1034,  1035,
+    1039,  1040,  1046,  1049,  1057,  1060,  1067,  1072,  1078,  1086,
+    1096,  1099,  1106,  1112,  1125,  1131,  1137,  1146,  1159,  1167,
+    1177,  1178
 };
 #endif
 
@@ -2044,20 +2044,21 @@ yyreduce:
       col_names.emplace_back((yyvsp[-4].string));
       std::reverse(col_names.begin(), col_names.end());
       free((yyvsp[-6].string));
+      free((yyvsp[-4].string));
     }
-#line 2049 "yacc_sql.cpp"
+#line 2050 "yacc_sql.cpp"
     break;
 
   case 43: /* col_list: %empty  */
-#line 422 "yacc_sql.y"
+#line 423 "yacc_sql.y"
     {
       (yyval.relation_list) = nullptr;
     }
-#line 2057 "yacc_sql.cpp"
+#line 2058 "yacc_sql.cpp"
     break;
 
   case 44: /* col_list: COMMA ID col_list  */
-#line 426 "yacc_sql.y"
+#line 427 "yacc_sql.y"
     {
       if ((yyvsp[0].relation_list) != nullptr) {
         (yyval.relation_list) = (yyvsp[0].relation_list);
@@ -2067,11 +2068,11 @@ yyreduce:
       (yyval.relation_list)->emplace_back((yyvsp[-1].string));
       free((yyvsp[-1].string));
     }
-#line 2071 "yacc_sql.cpp"
+#line 2072 "yacc_sql.cpp"
     break;
 
   case 45: /* create_table_stmt: CREATE TABLE ID LBRACE attr_def attr_def_list RBRACE storage_format  */
-#line 439 "yacc_sql.y"
+#line 440 "yacc_sql.y"
     {
       (yyval.sql_node) = new ParsedSqlNode(SCF_CREATE_TABLE);
       CreateTableSqlNode &create_table = (yyval.sql_node)->create_table;
@@ -2092,11 +2093,11 @@ yyreduce:
         free((yyvsp[0].string));
       }
     }
-#line 2096 "yacc_sql.cpp"
+#line 2097 "yacc_sql.cpp"
     break;
 
   case 46: /* create_table_stmt: CREATE TABLE ID LBRACE attr_def attr_def_list RBRACE as_option select_stmt  */
-#line 460 "yacc_sql.y"
+#line 461 "yacc_sql.y"
     {
       (yyval.sql_node) = (yyvsp[0].sql_node);
       (yyval.sql_node)->flag = SCF_CREATE_TABLE;
@@ -2114,11 +2115,11 @@ yyreduce:
       std::reverse(create_table.attr_infos.begin(), create_table.attr_infos.end());
       delete (yyvsp[-4].attr_info);
     }
-#line 2118 "yacc_sql.cpp"
+#line 2119 "yacc_sql.cpp"
     break;
 
   case 47: /* create_table_stmt: CREATE TABLE ID as_option select_stmt  */
-#line 478 "yacc_sql.y"
+#line 479 "yacc_sql.y"
     {
       (yyval.sql_node) = (yyvsp[0].sql_node);
       (yyval.sql_node)->flag = SCF_CREATE_TABLE;
@@ -2126,33 +2127,33 @@ yyreduce:
       create_table.relation_name = (yyvsp[-2].string);
       free((yyvsp[-2].string));
     }
-#line 2130 "yacc_sql.cpp"
+#line 2131 "yacc_sql.cpp"
     break;
 
   case 48: /* as_option: %empty  */
-#line 489 "yacc_sql.y"
+#line 490 "yacc_sql.y"
     {
       (yyval.boolean) = false;
     }
-#line 2138 "yacc_sql.cpp"
+#line 2139 "yacc_sql.cpp"
     break;
 
   case 49: /* as_option: AS  */
-#line 492 "yacc_sql.y"
+#line 493 "yacc_sql.y"
          { (yyval.boolean) = true; }
-#line 2144 "yacc_sql.cpp"
+#line 2145 "yacc_sql.cpp"
     break;
 
   case 50: /* attr_def_list: %empty  */
-#line 497 "yacc_sql.y"
+#line 498 "yacc_sql.y"
     {
       (yyval.attr_infos) = nullptr;
     }
-#line 2152 "yacc_sql.cpp"
+#line 2153 "yacc_sql.cpp"
     break;
 
   case 51: /* attr_def_list: COMMA attr_def attr_def_list  */
-#line 501 "yacc_sql.y"
+#line 502 "yacc_sql.y"
     {
       if ((yyvsp[0].attr_infos) != nullptr) {
         (yyval.attr_infos) = (yyvsp[0].attr_infos);
@@ -2162,11 +2163,11 @@ yyreduce:
       (yyval.attr_infos)->emplace_back(move(*(yyvsp[-1].attr_info)));
       delete (yyvsp[-1].attr_info);
     }
-#line 2166 "yacc_sql.cpp"
+#line 2167 "yacc_sql.cpp"
     break;
 
   case 52: /* attr_def: ID type LBRACE number RBRACE nullable  */
-#line 514 "yacc_sql.y"
+#line 515 "yacc_sql.y"
     {
       (yyval.attr_info) = new AttrInfoSqlNode;
       (yyval.attr_info)->type = (AttrType)(yyvsp[-4].number);
@@ -2175,11 +2176,11 @@ yyreduce:
       (yyval.attr_info)->nullable = (yyvsp[0].boolean);
       free((yyvsp[-5].string));
     }
-#line 2179 "yacc_sql.cpp"
+#line 2180 "yacc_sql.cpp"
     break;
 
   case 53: /* attr_def: ID type nullable  */
-#line 523 "yacc_sql.y"
+#line 524 "yacc_sql.y"
     {
       (yyval.attr_info) = new AttrInfoSqlNode;
       (yyval.attr_info)->type = (AttrType)(yyvsp[-1].number);
@@ -2188,11 +2189,11 @@ yyreduce:
       (yyval.attr_info)->nullable = (yyvsp[0].boolean);
       free((yyvsp[-2].string));
     }
-#line 2192 "yacc_sql.cpp"
+#line 2193 "yacc_sql.cpp"
     break;
 
   case 54: /* attr_def: ID date_type nullable  */
-#line 532 "yacc_sql.y"
+#line 533 "yacc_sql.y"
     {
       (yyval.attr_info) = new AttrInfoSqlNode;
       (yyval.attr_info)->type = (AttrType)(yyvsp[-1].number);
@@ -2201,71 +2202,71 @@ yyreduce:
       (yyval.attr_info)->nullable = (yyvsp[0].boolean);
       free((yyvsp[-2].string));
     }
-#line 2205 "yacc_sql.cpp"
+#line 2206 "yacc_sql.cpp"
     break;
 
   case 55: /* nullable: %empty  */
-#line 544 "yacc_sql.y"
+#line 545 "yacc_sql.y"
     {(yyval.boolean) = false;}
-#line 2211 "yacc_sql.cpp"
+#line 2212 "yacc_sql.cpp"
     break;
 
   case 56: /* nullable: NULL_T  */
-#line 545 "yacc_sql.y"
+#line 546 "yacc_sql.y"
              {(yyval.boolean) = true;}
-#line 2217 "yacc_sql.cpp"
+#line 2218 "yacc_sql.cpp"
     break;
 
   case 57: /* nullable: NOT NULL_T  */
-#line 546 "yacc_sql.y"
+#line 547 "yacc_sql.y"
                  {(yyval.boolean) = false;}
-#line 2223 "yacc_sql.cpp"
+#line 2224 "yacc_sql.cpp"
     break;
 
   case 58: /* number: NUMBER  */
-#line 550 "yacc_sql.y"
+#line 551 "yacc_sql.y"
            {(yyval.number) = (yyvsp[0].number);}
-#line 2229 "yacc_sql.cpp"
+#line 2230 "yacc_sql.cpp"
     break;
 
   case 59: /* type: INT_T  */
-#line 553 "yacc_sql.y"
+#line 554 "yacc_sql.y"
                { (yyval.number) = static_cast<int>(AttrType::INTS); }
-#line 2235 "yacc_sql.cpp"
+#line 2236 "yacc_sql.cpp"
     break;
 
   case 60: /* type: STRING_T  */
-#line 554 "yacc_sql.y"
+#line 555 "yacc_sql.y"
                { (yyval.number) = static_cast<int>(AttrType::CHARS); }
-#line 2241 "yacc_sql.cpp"
+#line 2242 "yacc_sql.cpp"
     break;
 
   case 61: /* type: FLOAT_T  */
-#line 555 "yacc_sql.y"
+#line 556 "yacc_sql.y"
                { (yyval.number) = static_cast<int>(AttrType::FLOATS); }
-#line 2247 "yacc_sql.cpp"
+#line 2248 "yacc_sql.cpp"
     break;
 
   case 62: /* type: VECTOR_T  */
-#line 556 "yacc_sql.y"
+#line 557 "yacc_sql.y"
                { (yyval.number) = static_cast<int>(AttrType::VECTORS); }
-#line 2253 "yacc_sql.cpp"
+#line 2254 "yacc_sql.cpp"
     break;
 
   case 63: /* type: TEXT_T  */
-#line 557 "yacc_sql.y"
+#line 558 "yacc_sql.y"
                { (yyval.number) = static_cast<int>(AttrType::TEXTS);}
-#line 2259 "yacc_sql.cpp"
+#line 2260 "yacc_sql.cpp"
     break;
 
   case 64: /* date_type: DATE_T  */
-#line 560 "yacc_sql.y"
+#line 561 "yacc_sql.y"
              {(yyval.number) = static_cast<int>(AttrType::DATES);}
-#line 2265 "yacc_sql.cpp"
+#line 2266 "yacc_sql.cpp"
     break;
 
   case 65: /* insert_stmt: INSERT INTO ID VALUES values_list  */
-#line 565 "yacc_sql.y"
+#line 566 "yacc_sql.y"
     {
       (yyval.sql_node) = new ParsedSqlNode(SCF_INSERT);
       (yyval.sql_node)->insertion.relation_name = (yyvsp[-2].string);
@@ -2277,21 +2278,21 @@ yyreduce:
 
       free((yyvsp[-2].string));
     }
-#line 2281 "yacc_sql.cpp"
+#line 2282 "yacc_sql.cpp"
     break;
 
   case 66: /* values_list: LBRACE value_list RBRACE  */
-#line 580 "yacc_sql.y"
+#line 581 "yacc_sql.y"
     {
       (yyval.values_list) = new std::vector<std::vector<Value>>;
       (yyval.values_list)->emplace_back(move(*(yyvsp[-1].value_list)));
       delete (yyvsp[-1].value_list);
     }
-#line 2291 "yacc_sql.cpp"
+#line 2292 "yacc_sql.cpp"
     break;
 
   case 67: /* values_list: LBRACE value_list RBRACE COMMA values_list  */
-#line 586 "yacc_sql.y"
+#line 587 "yacc_sql.y"
     {
       if ((yyvsp[0].values_list) != nullptr) {
         (yyval.values_list) = (yyvsp[0].values_list);
@@ -2302,11 +2303,11 @@ yyreduce:
       (yyval.values_list)->emplace_back(move(*(yyvsp[-3].value_list)));
       delete (yyvsp[-3].value_list);
     }
-#line 2306 "yacc_sql.cpp"
+#line 2307 "yacc_sql.cpp"
     break;
 
   case 68: /* value_list: expression  */
-#line 599 "yacc_sql.y"
+#line 600 "yacc_sql.y"
                {
       (yyval.value_list) = new std::vector<Value>;
       Value temp;
@@ -2317,11 +2318,11 @@ yyreduce:
       (yyval.value_list)->emplace_back(temp);
       delete (yyvsp[0].expression);
     }
-#line 2321 "yacc_sql.cpp"
+#line 2322 "yacc_sql.cpp"
     break;
 
   case 69: /* value_list: expression COMMA value_list  */
-#line 609 "yacc_sql.y"
+#line 610 "yacc_sql.y"
                                    {
       Value temp;
       if ((yyvsp[0].value_list) != nullptr) {
@@ -2337,29 +2338,29 @@ yyreduce:
       (yyval.value_list)->emplace((yyval.value_list)->begin(), move(temp));
       delete (yyvsp[-2].expression);
     }
-#line 2341 "yacc_sql.cpp"
+#line 2342 "yacc_sql.cpp"
     break;
 
   case 70: /* value: NUMBER  */
-#line 626 "yacc_sql.y"
+#line 627 "yacc_sql.y"
            {
       (yyval.value) = new Value((int)(yyvsp[0].number));
       (yyloc) = (yylsp[0]);
     }
-#line 2350 "yacc_sql.cpp"
+#line 2351 "yacc_sql.cpp"
     break;
 
   case 71: /* value: FLOAT  */
-#line 630 "yacc_sql.y"
+#line 631 "yacc_sql.y"
            {
       (yyval.value) = new Value((float)(yyvsp[0].floats));
       (yyloc) = (yylsp[0]);
     }
-#line 2359 "yacc_sql.cpp"
+#line 2360 "yacc_sql.cpp"
     break;
 
   case 72: /* value: SSS  */
-#line 634 "yacc_sql.y"
+#line 635 "yacc_sql.y"
          {
       int len = strlen((yyvsp[0].string))-2;
       char *tmp = common::substr((yyvsp[0].string),1,len);
@@ -2367,11 +2368,11 @@ yyreduce:
       free(tmp);
       free((yyvsp[0].string));
     }
-#line 2371 "yacc_sql.cpp"
+#line 2372 "yacc_sql.cpp"
     break;
 
   case 73: /* value: DATE_VALUE  */
-#line 641 "yacc_sql.y"
+#line 642 "yacc_sql.y"
                 {
       int len = strlen((yyvsp[0].string))-2;
       char *tmp = common::substr((yyvsp[0].string),1,len);
@@ -2379,35 +2380,35 @@ yyreduce:
       free(tmp);
       free((yyvsp[0].string));
     }
-#line 2383 "yacc_sql.cpp"
+#line 2384 "yacc_sql.cpp"
     break;
 
   case 74: /* value: NULL_T  */
-#line 648 "yacc_sql.y"
+#line 649 "yacc_sql.y"
             {
       (yyval.value) = new Value((void*)nullptr);
     }
-#line 2391 "yacc_sql.cpp"
+#line 2392 "yacc_sql.cpp"
     break;
 
   case 75: /* storage_format: %empty  */
-#line 654 "yacc_sql.y"
+#line 655 "yacc_sql.y"
     {
       (yyval.string) = nullptr;
     }
-#line 2399 "yacc_sql.cpp"
+#line 2400 "yacc_sql.cpp"
     break;
 
   case 76: /* storage_format: STORAGE FORMAT EQ ID  */
-#line 658 "yacc_sql.y"
+#line 659 "yacc_sql.y"
     {
       (yyval.string) = (yyvsp[0].string);
     }
-#line 2407 "yacc_sql.cpp"
+#line 2408 "yacc_sql.cpp"
     break;
 
   case 77: /* delete_stmt: DELETE FROM ID where  */
-#line 665 "yacc_sql.y"
+#line 666 "yacc_sql.y"
     {
       (yyval.sql_node) = new ParsedSqlNode(SCF_DELETE);
       (yyval.sql_node)->deletion.relation_name = (yyvsp[-1].string);
@@ -2417,11 +2418,11 @@ yyreduce:
       }
       free((yyvsp[-1].string));
     }
-#line 2421 "yacc_sql.cpp"
+#line 2422 "yacc_sql.cpp"
     break;
 
   case 78: /* update_stmt: UPDATE ID SET key_values where  */
-#line 677 "yacc_sql.y"
+#line 678 "yacc_sql.y"
     {
       (yyval.sql_node) = new ParsedSqlNode(SCF_UPDATE);
       (yyval.sql_node)->update.relation_name = (yyvsp[-3].string);
@@ -2436,22 +2437,22 @@ yyreduce:
         delete (yyvsp[0].condition_list);
       }
     }
-#line 2440 "yacc_sql.cpp"
+#line 2441 "yacc_sql.cpp"
     break;
 
   case 79: /* key_values: ID EQ assign_value  */
-#line 695 "yacc_sql.y"
+#line 696 "yacc_sql.y"
     {
       (yyval.key_values) = new Key_values;
       (yyval.key_values)->relation_list.emplace_back(move((yyvsp[-2].string)));
       free((yyvsp[-2].string));
       (yyval.key_values)->value_list.emplace_back(unique_ptr<Expression>((yyvsp[0].expression)));
     }
-#line 2451 "yacc_sql.cpp"
+#line 2452 "yacc_sql.cpp"
     break;
 
   case 80: /* key_values: ID EQ assign_value COMMA key_values  */
-#line 702 "yacc_sql.y"
+#line 703 "yacc_sql.y"
     {
       if ((yyvsp[0].key_values) != nullptr) {
         (yyval.key_values) = (yyvsp[0].key_values);
@@ -2463,17 +2464,17 @@ yyreduce:
       free((yyvsp[-4].string));
       (yyval.key_values)->value_list.emplace_back(unique_ptr<Expression>((yyvsp[-2].expression)));
     }
-#line 2467 "yacc_sql.cpp"
+#line 2468 "yacc_sql.cpp"
     break;
 
   case 81: /* assign_value: expression  */
-#line 716 "yacc_sql.y"
+#line 717 "yacc_sql.y"
                { (yyval.expression) = (yyvsp[0].expression); }
-#line 2473 "yacc_sql.cpp"
+#line 2474 "yacc_sql.cpp"
     break;
 
   case 82: /* select_stmt: SELECT expression_list FROM rel_list where group_by having_node order_by  */
-#line 721 "yacc_sql.y"
+#line 722 "yacc_sql.y"
     {
       (yyval.sql_node) = new ParsedSqlNode(SCF_SELECT);
       if ((yyvsp[-6].expression_list) != nullptr) {
@@ -2515,21 +2516,21 @@ yyreduce:
         delete (yyvsp[0].order_by_list);
       }
     }
-#line 2519 "yacc_sql.cpp"
+#line 2520 "yacc_sql.cpp"
     break;
 
   case 83: /* calc_stmt: CALC expression_list  */
-#line 766 "yacc_sql.y"
+#line 767 "yacc_sql.y"
     {
       (yyval.sql_node) = new ParsedSqlNode(SCF_CALC);
       (yyval.sql_node)->calc.expressions.swap(*(yyvsp[0].expression_list));
       delete (yyvsp[0].expression_list);
     }
-#line 2529 "yacc_sql.cpp"
+#line 2530 "yacc_sql.cpp"
     break;
 
   case 84: /* expression_list: expression alias  */
-#line 775 "yacc_sql.y"
+#line 776 "yacc_sql.y"
     {
       (yyval.expression_list) = new std::vector<std::unique_ptr<Expression>>;
       if((yyvsp[0].string) != nullptr){
@@ -2538,11 +2539,11 @@ yyreduce:
       }
       (yyval.expression_list)->emplace_back(move((yyvsp[-1].expression)));
     }
-#line 2542 "yacc_sql.cpp"
+#line 2543 "yacc_sql.cpp"
     break;
 
   case 85: /* expression_list: expression alias COMMA expression_list  */
-#line 784 "yacc_sql.y"
+#line 785 "yacc_sql.y"
     {
       if ((yyvsp[0].expression_list) != nullptr) {
         (yyval.expression_list) = (yyvsp[0].expression_list);
@@ -2555,43 +2556,43 @@ yyreduce:
       }
       (yyval.expression_list)->emplace((yyval.expression_list)->begin(), move((yyvsp[-3].expression)));
     }
-#line 2559 "yacc_sql.cpp"
+#line 2560 "yacc_sql.cpp"
     break;
 
   case 86: /* expression: expression '+' expression  */
-#line 798 "yacc_sql.y"
+#line 799 "yacc_sql.y"
                               {
       (yyval.expression) = create_arithmetic_expression(ArithmeticExpr::Type::ADD, (yyvsp[-2].expression), (yyvsp[0].expression), sql_string, &(yyloc));
     }
-#line 2567 "yacc_sql.cpp"
+#line 2568 "yacc_sql.cpp"
     break;
 
   case 87: /* expression: expression '-' expression  */
-#line 801 "yacc_sql.y"
+#line 802 "yacc_sql.y"
                                 {
       (yyval.expression) = create_arithmetic_expression(ArithmeticExpr::Type::SUB, (yyvsp[-2].expression), (yyvsp[0].expression), sql_string, &(yyloc));
     }
-#line 2575 "yacc_sql.cpp"
+#line 2576 "yacc_sql.cpp"
     break;
 
   case 88: /* expression: expression '*' expression  */
-#line 804 "yacc_sql.y"
+#line 805 "yacc_sql.y"
                                 {
       (yyval.expression) = create_arithmetic_expression(ArithmeticExpr::Type::MUL, (yyvsp[-2].expression), (yyvsp[0].expression), sql_string, &(yyloc));
     }
-#line 2583 "yacc_sql.cpp"
+#line 2584 "yacc_sql.cpp"
     break;
 
   case 89: /* expression: expression '/' expression  */
-#line 807 "yacc_sql.y"
+#line 808 "yacc_sql.y"
                                 {
       (yyval.expression) = create_arithmetic_expression(ArithmeticExpr::Type::DIV, (yyvsp[-2].expression), (yyvsp[0].expression), sql_string, &(yyloc));
     }
-#line 2591 "yacc_sql.cpp"
+#line 2592 "yacc_sql.cpp"
     break;
 
   case 90: /* expression: LBRACE expression_list RBRACE  */
-#line 810 "yacc_sql.y"
+#line 811 "yacc_sql.y"
                                     {
       if ((yyvsp[-1].expression_list)->size() == 1) {
         (yyval.expression) = ((yyvsp[-1].expression_list)->front()).release();
@@ -2601,86 +2602,86 @@ yyreduce:
       (yyval.expression)->set_name(token_name(sql_string, &(yyloc)));
       delete (yyvsp[-1].expression_list);
     }
-#line 2605 "yacc_sql.cpp"
+#line 2606 "yacc_sql.cpp"
     break;
 
   case 91: /* expression: '-' expression  */
-#line 819 "yacc_sql.y"
+#line 820 "yacc_sql.y"
                                   {
       (yyval.expression) = create_arithmetic_expression(ArithmeticExpr::Type::NEGATIVE, (yyvsp[0].expression), nullptr, sql_string, &(yyloc));
     }
-#line 2613 "yacc_sql.cpp"
+#line 2614 "yacc_sql.cpp"
     break;
 
   case 92: /* expression: rel_attr  */
-#line 822 "yacc_sql.y"
+#line 823 "yacc_sql.y"
                {
       RelAttrSqlNode *node = (yyvsp[0].rel_attr);
       (yyval.expression) = new UnboundFieldExpr(node->relation_name, node->attribute_name);
       (yyval.expression)->set_name(token_name(sql_string, &(yyloc)));
       delete (yyvsp[0].rel_attr);
     }
-#line 2624 "yacc_sql.cpp"
+#line 2625 "yacc_sql.cpp"
     break;
 
   case 93: /* expression: '*'  */
-#line 828 "yacc_sql.y"
+#line 829 "yacc_sql.y"
           {
       (yyval.expression) = new StarExpr();
     }
-#line 2632 "yacc_sql.cpp"
+#line 2633 "yacc_sql.cpp"
     break;
 
   case 94: /* expression: ID LBRACE expression_list RBRACE  */
-#line 831 "yacc_sql.y"
+#line 832 "yacc_sql.y"
                                        {
       if((yyvsp[-1].expression_list)->size() != 1)(yyval.expression) = create_aggregate_expression("", nullptr, sql_string, &(yyloc));
       else (yyval.expression) = create_aggregate_expression((yyvsp[-3].string), (yyvsp[-1].expression_list)->at(0).release(), sql_string, &(yyloc));
       free((yyvsp[-3].string));
       delete (yyvsp[-1].expression_list);
     }
-#line 2643 "yacc_sql.cpp"
+#line 2644 "yacc_sql.cpp"
     break;
 
   case 95: /* expression: ID LBRACE RBRACE  */
-#line 837 "yacc_sql.y"
+#line 838 "yacc_sql.y"
                        {
       (yyval.expression) = create_aggregate_expression("", nullptr, sql_string, &(yyloc));
       free((yyvsp[-2].string));
     }
-#line 2652 "yacc_sql.cpp"
+#line 2653 "yacc_sql.cpp"
     break;
 
   case 96: /* expression: LBRACE select_stmt RBRACE  */
-#line 841 "yacc_sql.y"
+#line 842 "yacc_sql.y"
                                 {
       (yyval.expression) = new SelectExpr((yyvsp[-1].sql_node));
     }
-#line 2660 "yacc_sql.cpp"
+#line 2661 "yacc_sql.cpp"
     break;
 
   case 97: /* expression: value  */
-#line 844 "yacc_sql.y"
+#line 845 "yacc_sql.y"
             {
         (yyval.expression) = new ValueExpr(*(yyvsp[0].value));
         (yyval.expression)->set_name(token_name(sql_string, &(yyloc)));
         delete (yyvsp[0].value);
     }
-#line 2670 "yacc_sql.cpp"
+#line 2671 "yacc_sql.cpp"
     break;
 
   case 98: /* rel_attr: ID  */
-#line 853 "yacc_sql.y"
+#line 854 "yacc_sql.y"
        {
       (yyval.rel_attr) = new RelAttrSqlNode;
       (yyval.rel_attr)->attribute_name = (yyvsp[0].string);
       free((yyvsp[0].string));
     }
-#line 2680 "yacc_sql.cpp"
+#line 2681 "yacc_sql.cpp"
     break;
 
   case 99: /* rel_attr: ID DOT ID  */
-#line 858 "yacc_sql.y"
+#line 859 "yacc_sql.y"
                 {
       (yyval.rel_attr) = new RelAttrSqlNode;
       (yyval.rel_attr)->relation_name  = (yyvsp[-2].string);
@@ -2688,30 +2689,30 @@ yyreduce:
       free((yyvsp[-2].string));
       free((yyvsp[0].string));
     }
-#line 2692 "yacc_sql.cpp"
+#line 2693 "yacc_sql.cpp"
     break;
 
   case 100: /* rel_attr: ID DOT '*'  */
-#line 865 "yacc_sql.y"
+#line 866 "yacc_sql.y"
                  {
       (yyval.rel_attr) = new RelAttrSqlNode;
       (yyval.rel_attr)->relation_name  = (yyvsp[-2].string);
       (yyval.rel_attr)->attribute_name = '*';
       free((yyvsp[-2].string));
     }
-#line 2703 "yacc_sql.cpp"
+#line 2704 "yacc_sql.cpp"
     break;
 
   case 101: /* relation: ID  */
-#line 874 "yacc_sql.y"
+#line 875 "yacc_sql.y"
        {
       (yyval.string) = (yyvsp[0].string);
     }
-#line 2711 "yacc_sql.cpp"
+#line 2712 "yacc_sql.cpp"
     break;
 
   case 102: /* rel_list: relation alias join_list  */
-#line 879 "yacc_sql.y"
+#line 880 "yacc_sql.y"
                              {
       if ((yyvsp[0].join_list) != nullptr) {
         (yyval.join_list) = (yyvsp[0].join_list);
@@ -2728,11 +2729,11 @@ yyreduce:
         (yyval.join_list)->alias_list.emplace((yyval.join_list)->alias_list.begin(), string());
       }
     }
-#line 2732 "yacc_sql.cpp"
+#line 2733 "yacc_sql.cpp"
     break;
 
   case 103: /* rel_list: relation alias join_list COMMA rel_list  */
-#line 895 "yacc_sql.y"
+#line 896 "yacc_sql.y"
                                              {
       if ((yyvsp[0].join_list) != nullptr) {
         (yyval.join_list) = (yyvsp[0].join_list);
@@ -2760,19 +2761,19 @@ yyreduce:
       delete (yyvsp[-2].join_list);
       free((yyvsp[-4].string));
     }
-#line 2764 "yacc_sql.cpp"
+#line 2765 "yacc_sql.cpp"
     break;
 
   case 104: /* join_list: %empty  */
-#line 926 "yacc_sql.y"
+#line 927 "yacc_sql.y"
     {
       (yyval.join_list) = nullptr;
     }
-#line 2772 "yacc_sql.cpp"
+#line 2773 "yacc_sql.cpp"
     break;
 
   case 105: /* join_list: INNER JOIN relation alias on join_list  */
-#line 930 "yacc_sql.y"
+#line 931 "yacc_sql.y"
     {
       if ((yyvsp[0].join_list) != nullptr) {
         (yyval.join_list) = (yyvsp[0].join_list);
@@ -2796,300 +2797,300 @@ yyreduce:
         delete (yyvsp[-1].condition_list);
       }
     }
-#line 2800 "yacc_sql.cpp"
+#line 2801 "yacc_sql.cpp"
     break;
 
   case 106: /* alias: %empty  */
-#line 956 "yacc_sql.y"
+#line 957 "yacc_sql.y"
                 {
       (yyval.string) = nullptr;
     }
-#line 2808 "yacc_sql.cpp"
+#line 2809 "yacc_sql.cpp"
     break;
 
   case 107: /* alias: ID  */
-#line 959 "yacc_sql.y"
+#line 960 "yacc_sql.y"
          {
       (yyval.string) = (yyvsp[0].string);
     }
-#line 2816 "yacc_sql.cpp"
+#line 2817 "yacc_sql.cpp"
     break;
 
   case 108: /* alias: AS ID  */
-#line 962 "yacc_sql.y"
+#line 963 "yacc_sql.y"
             {
       (yyval.string) = (yyvsp[0].string);
     }
-#line 2824 "yacc_sql.cpp"
+#line 2825 "yacc_sql.cpp"
     break;
 
   case 109: /* on: %empty  */
-#line 968 "yacc_sql.y"
+#line 969 "yacc_sql.y"
     {
       (yyval.condition_list) = nullptr;
     }
-#line 2832 "yacc_sql.cpp"
+#line 2833 "yacc_sql.cpp"
     break;
 
   case 110: /* on: ON condition_list  */
-#line 972 "yacc_sql.y"
+#line 973 "yacc_sql.y"
     {
       (yyval.condition_list) = (yyvsp[0].condition_list);
     }
-#line 2840 "yacc_sql.cpp"
+#line 2841 "yacc_sql.cpp"
     break;
 
   case 111: /* where: %empty  */
-#line 980 "yacc_sql.y"
+#line 981 "yacc_sql.y"
     {
       (yyval.condition_list) = nullptr;
     }
-#line 2848 "yacc_sql.cpp"
+#line 2849 "yacc_sql.cpp"
     break;
 
   case 112: /* where: WHERE condition_list  */
-#line 983 "yacc_sql.y"
+#line 984 "yacc_sql.y"
                            {
       (yyval.condition_list) = (yyvsp[0].condition_list);
     }
-#line 2856 "yacc_sql.cpp"
+#line 2857 "yacc_sql.cpp"
     break;
 
   case 113: /* condition_list: condition  */
-#line 988 "yacc_sql.y"
+#line 989 "yacc_sql.y"
               {
       (yyval.condition_list) = new Conditions;
       (yyval.condition_list)->conditions.emplace_back(move(*(yyvsp[0].condition)));
       delete (yyvsp[0].condition);
     }
-#line 2866 "yacc_sql.cpp"
+#line 2867 "yacc_sql.cpp"
     break;
 
   case 114: /* condition_list: condition AND condition_list  */
-#line 993 "yacc_sql.y"
+#line 994 "yacc_sql.y"
                                    {
       (yyval.condition_list) = (yyvsp[0].condition_list);
       (yyval.condition_list)->conditions.emplace_back(move(*(yyvsp[-2].condition)));
       delete (yyvsp[-2].condition);
     }
-#line 2876 "yacc_sql.cpp"
+#line 2877 "yacc_sql.cpp"
     break;
 
   case 115: /* condition_list: condition OR condition_list  */
-#line 998 "yacc_sql.y"
+#line 999 "yacc_sql.y"
                                   {
       (yyval.condition_list) = (yyvsp[0].condition_list);
       (yyval.condition_list)->and_or = true;
       (yyval.condition_list)->conditions.emplace_back(move(*(yyvsp[-2].condition)));
       delete (yyvsp[-2].condition);
     }
-#line 2887 "yacc_sql.cpp"
+#line 2888 "yacc_sql.cpp"
     break;
 
   case 116: /* condition: expression comp_op expression  */
-#line 1007 "yacc_sql.y"
+#line 1008 "yacc_sql.y"
     {
       (yyval.condition) = new ConditionSqlNode;
       (yyval.condition)->left_expr = unique_ptr<Expression>((yyvsp[-2].expression));
       (yyval.condition)->right_expr = unique_ptr<Expression>((yyvsp[0].expression));
       (yyval.condition)->comp = (yyvsp[-1].comp);
     }
-#line 2898 "yacc_sql.cpp"
+#line 2899 "yacc_sql.cpp"
     break;
 
   case 117: /* condition: unary_op expression  */
-#line 1014 "yacc_sql.y"
+#line 1015 "yacc_sql.y"
     {
       (yyval.condition) = new ConditionSqlNode;
       (yyval.condition)->left_expr = unique_ptr<Expression>(new ValueExpr(Value((void*)nullptr)));
       (yyval.condition)->right_expr = unique_ptr<Expression>((yyvsp[0].expression));
       (yyval.condition)->comp = (yyvsp[-1].comp);
     }
-#line 2909 "yacc_sql.cpp"
+#line 2910 "yacc_sql.cpp"
     break;
 
   case 118: /* comp_op: LIKE  */
-#line 1023 "yacc_sql.y"
+#line 1024 "yacc_sql.y"
          { (yyval.comp) = LIKE_OP; }
-#line 2915 "yacc_sql.cpp"
+#line 2916 "yacc_sql.cpp"
     break;
 
   case 119: /* comp_op: NOT LIKE  */
-#line 1024 "yacc_sql.y"
+#line 1025 "yacc_sql.y"
                { (yyval.comp) = NOT_LIKE; }
-#line 2921 "yacc_sql.cpp"
+#line 2922 "yacc_sql.cpp"
     break;
 
   case 120: /* comp_op: EQ  */
-#line 1025 "yacc_sql.y"
+#line 1026 "yacc_sql.y"
          { (yyval.comp) = EQUAL_TO; }
-#line 2927 "yacc_sql.cpp"
+#line 2928 "yacc_sql.cpp"
     break;
 
   case 121: /* comp_op: LT  */
-#line 1026 "yacc_sql.y"
+#line 1027 "yacc_sql.y"
          { (yyval.comp) = LESS_THAN; }
-#line 2933 "yacc_sql.cpp"
+#line 2934 "yacc_sql.cpp"
     break;
 
   case 122: /* comp_op: GT  */
-#line 1027 "yacc_sql.y"
+#line 1028 "yacc_sql.y"
          { (yyval.comp) = GREAT_THAN; }
-#line 2939 "yacc_sql.cpp"
+#line 2940 "yacc_sql.cpp"
     break;
 
   case 123: /* comp_op: LE  */
-#line 1028 "yacc_sql.y"
+#line 1029 "yacc_sql.y"
          { (yyval.comp) = LESS_EQUAL; }
-#line 2945 "yacc_sql.cpp"
+#line 2946 "yacc_sql.cpp"
     break;
 
   case 124: /* comp_op: GE  */
-#line 1029 "yacc_sql.y"
+#line 1030 "yacc_sql.y"
          { (yyval.comp) = GREAT_EQUAL; }
-#line 2951 "yacc_sql.cpp"
+#line 2952 "yacc_sql.cpp"
     break;
 
   case 125: /* comp_op: NE  */
-#line 1030 "yacc_sql.y"
+#line 1031 "yacc_sql.y"
          { (yyval.comp) = NOT_EQUAL; }
-#line 2957 "yacc_sql.cpp"
+#line 2958 "yacc_sql.cpp"
     break;
 
   case 126: /* comp_op: IN  */
-#line 1031 "yacc_sql.y"
+#line 1032 "yacc_sql.y"
          { (yyval.comp) = IN_OP; }
-#line 2963 "yacc_sql.cpp"
+#line 2964 "yacc_sql.cpp"
     break;
 
   case 127: /* comp_op: NOT IN  */
-#line 1032 "yacc_sql.y"
+#line 1033 "yacc_sql.y"
              { (yyval.comp) = NOT_IN; }
-#line 2969 "yacc_sql.cpp"
+#line 2970 "yacc_sql.cpp"
     break;
 
   case 128: /* comp_op: IS  */
-#line 1033 "yacc_sql.y"
+#line 1034 "yacc_sql.y"
          { (yyval.comp) = IS_NULL; }
-#line 2975 "yacc_sql.cpp"
+#line 2976 "yacc_sql.cpp"
     break;
 
   case 129: /* comp_op: IS NOT  */
-#line 1034 "yacc_sql.y"
+#line 1035 "yacc_sql.y"
              { (yyval.comp) = IS_NOT_NULL; }
-#line 2981 "yacc_sql.cpp"
+#line 2982 "yacc_sql.cpp"
     break;
 
   case 130: /* unary_op: EXISTS  */
-#line 1038 "yacc_sql.y"
+#line 1039 "yacc_sql.y"
            { (yyval.comp) = EXISTS_OP; }
-#line 2987 "yacc_sql.cpp"
+#line 2988 "yacc_sql.cpp"
     break;
 
   case 131: /* unary_op: NOT EXISTS  */
-#line 1039 "yacc_sql.y"
+#line 1040 "yacc_sql.y"
                  { (yyval.comp) = NOT_EXISTS; }
-#line 2993 "yacc_sql.cpp"
+#line 2994 "yacc_sql.cpp"
     break;
 
   case 132: /* group_by: %empty  */
-#line 1045 "yacc_sql.y"
+#line 1046 "yacc_sql.y"
     {
       (yyval.expression_list) = nullptr;
     }
-#line 3001 "yacc_sql.cpp"
+#line 3002 "yacc_sql.cpp"
     break;
 
   case 133: /* group_by: GROUP BY expression_list  */
-#line 1049 "yacc_sql.y"
+#line 1050 "yacc_sql.y"
     {
       (yyval.expression_list) = (yyvsp[0].expression_list);
     }
-#line 3009 "yacc_sql.cpp"
+#line 3010 "yacc_sql.cpp"
     break;
 
   case 134: /* having_node: %empty  */
-#line 1056 "yacc_sql.y"
+#line 1057 "yacc_sql.y"
     {
       (yyval.having_list) = nullptr;
     }
-#line 3017 "yacc_sql.cpp"
+#line 3018 "yacc_sql.cpp"
     break;
 
   case 135: /* having_node: HAVING having_list  */
-#line 1060 "yacc_sql.y"
+#line 1061 "yacc_sql.y"
     {
       (yyval.having_list) = (yyvsp[0].having_list);
     }
-#line 3025 "yacc_sql.cpp"
+#line 3026 "yacc_sql.cpp"
     break;
 
   case 136: /* having_list: having_unit  */
-#line 1067 "yacc_sql.y"
+#line 1068 "yacc_sql.y"
     {
       (yyval.having_list) = new HavingNode;
       (yyval.having_list)->having_list.emplace_back(move((yyvsp[0].expression)));
     }
-#line 3034 "yacc_sql.cpp"
+#line 3035 "yacc_sql.cpp"
     break;
 
   case 137: /* having_list: having_unit OR having_list  */
-#line 1072 "yacc_sql.y"
+#line 1073 "yacc_sql.y"
     {
       (yyval.having_list) = (yyvsp[0].having_list);
       (yyval.having_list)->having_list.emplace_back(move((yyvsp[-2].expression)));
       (yyval.having_list)->and_or = true;
     }
-#line 3044 "yacc_sql.cpp"
+#line 3045 "yacc_sql.cpp"
     break;
 
   case 138: /* having_list: having_unit AND having_list  */
-#line 1078 "yacc_sql.y"
+#line 1079 "yacc_sql.y"
     {
       (yyval.having_list) = (yyvsp[0].having_list);
       (yyval.having_list)->having_list.emplace_back(move((yyvsp[-2].expression)));
     }
-#line 3053 "yacc_sql.cpp"
+#line 3054 "yacc_sql.cpp"
     break;
 
   case 139: /* having_unit: expression comp_op expression  */
-#line 1086 "yacc_sql.y"
+#line 1087 "yacc_sql.y"
     {
       unique_ptr<Expression> left((yyvsp[-2].expression));
       unique_ptr<Expression> right((yyvsp[0].expression));
       (yyval.expression) = new ComparisonExpr((yyvsp[-1].comp), std::move(left), std::move(right));
     }
-#line 3063 "yacc_sql.cpp"
+#line 3064 "yacc_sql.cpp"
     break;
 
   case 140: /* order_by: %empty  */
-#line 1095 "yacc_sql.y"
+#line 1096 "yacc_sql.y"
     {
       (yyval.order_by_list) = nullptr;
     }
-#line 3071 "yacc_sql.cpp"
+#line 3072 "yacc_sql.cpp"
     break;
 
   case 141: /* order_by: ORDER BY order_by_list  */
-#line 1099 "yacc_sql.y"
+#line 1100 "yacc_sql.y"
     {
       (yyval.order_by_list) = (yyvsp[0].order_by_list);
     }
-#line 3079 "yacc_sql.cpp"
+#line 3080 "yacc_sql.cpp"
     break;
 
   case 142: /* order_by_list: order_by_unit  */
-#line 1106 "yacc_sql.y"
+#line 1107 "yacc_sql.y"
     {
       (yyval.order_by_list) = new std::vector<OrderByNode>;
       (yyval.order_by_list)->emplace_back(move(*(yyvsp[0].order_by_unit)));
       delete (yyvsp[0].order_by_unit);
     }
-#line 3089 "yacc_sql.cpp"
+#line 3090 "yacc_sql.cpp"
     break;
 
   case 143: /* order_by_list: order_by_unit COMMA order_by_list  */
-#line 1112 "yacc_sql.y"
+#line 1113 "yacc_sql.y"
     {
       if((yyvsp[0].order_by_list) != nullptr){
         (yyval.order_by_list) = (yyvsp[0].order_by_list);
@@ -3099,41 +3100,41 @@ yyreduce:
       (yyval.order_by_list)->emplace((yyval.order_by_list)->begin(), move(*(yyvsp[-2].order_by_unit)));
       delete (yyvsp[-2].order_by_unit);
     }
-#line 3103 "yacc_sql.cpp"
+#line 3104 "yacc_sql.cpp"
     break;
 
   case 144: /* order_by_unit: expression  */
-#line 1125 "yacc_sql.y"
+#line 1126 "yacc_sql.y"
     {
       (yyval.order_by_unit) = new OrderByNode;
       (yyval.order_by_unit)->is_asc = true;
       (yyval.order_by_unit)->expression = unique_ptr<Expression>((yyvsp[0].expression));
     }
-#line 3113 "yacc_sql.cpp"
+#line 3114 "yacc_sql.cpp"
     break;
 
   case 145: /* order_by_unit: expression ASC  */
-#line 1131 "yacc_sql.y"
+#line 1132 "yacc_sql.y"
     {
       (yyval.order_by_unit) = new OrderByNode;
       (yyval.order_by_unit)->is_asc = true;
       (yyval.order_by_unit)->expression = unique_ptr<Expression>((yyvsp[-1].expression));
     }
-#line 3123 "yacc_sql.cpp"
+#line 3124 "yacc_sql.cpp"
     break;
 
   case 146: /* order_by_unit: expression DESC  */
-#line 1137 "yacc_sql.y"
+#line 1138 "yacc_sql.y"
     {
       (yyval.order_by_unit) = new OrderByNode;
       (yyval.order_by_unit)->is_asc = false;
       (yyval.order_by_unit)->expression = unique_ptr<Expression>((yyvsp[-1].expression));
     }
-#line 3133 "yacc_sql.cpp"
+#line 3134 "yacc_sql.cpp"
     break;
 
   case 147: /* load_data_stmt: LOAD DATA INFILE SSS INTO TABLE ID  */
-#line 1146 "yacc_sql.y"
+#line 1147 "yacc_sql.y"
     {
       char *tmp_file_name = common::substr((yyvsp[-3].string), 1, strlen((yyvsp[-3].string)) - 2);
 
@@ -3143,20 +3144,20 @@ yyreduce:
       free((yyvsp[0].string));
       free(tmp_file_name);
     }
-#line 3147 "yacc_sql.cpp"
+#line 3148 "yacc_sql.cpp"
     break;
 
   case 148: /* explain_stmt: EXPLAIN command_wrapper  */
-#line 1159 "yacc_sql.y"
+#line 1160 "yacc_sql.y"
     {
       (yyval.sql_node) = new ParsedSqlNode(SCF_EXPLAIN);
       (yyval.sql_node)->explain.sql_node = std::unique_ptr<ParsedSqlNode>((yyvsp[0].sql_node));
     }
-#line 3156 "yacc_sql.cpp"
+#line 3157 "yacc_sql.cpp"
     break;
 
   case 149: /* set_variable_stmt: SET ID EQ value  */
-#line 1167 "yacc_sql.y"
+#line 1168 "yacc_sql.y"
     {
       (yyval.sql_node) = new ParsedSqlNode(SCF_SET_VARIABLE);
       (yyval.sql_node)->set_variable.name  = (yyvsp[-2].string);
@@ -3164,11 +3165,11 @@ yyreduce:
       free((yyvsp[-2].string));
       delete (yyvsp[0].value);
     }
-#line 3168 "yacc_sql.cpp"
+#line 3169 "yacc_sql.cpp"
     break;
 
 
-#line 3172 "yacc_sql.cpp"
+#line 3173 "yacc_sql.cpp"
 
       default: break;
     }
@@ -3397,7 +3398,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 1179 "yacc_sql.y"
+#line 1180 "yacc_sql.y"
 
 //_____________________________________________________________________
 extern void scan_string(const char *str, yyscan_t scanner);

@@ -91,12 +91,12 @@ RC InsertPhysicalOperator::insert_view(Trx *trx)
   }
 
   // 按顺序对每张表 补齐Value，构造Record
-  std::vector<std::vector<Record>> multi_table_records;
+
   for (auto& [base_table, column] : table_columns) {
     // 对一张原始表的插入
     Table *table = static_cast<Table*>(const_cast<BaseTable*>(base_table));
 
-    for (std::vector<Value> row_value : values_set_) {
+    for (std::vector<Value>& row_value : values_set_) {
       // 补齐一行数据
       std::vector<Value> fixed_row_value(table->table_meta().field_num() - table->table_meta().sys_field_num(), Value((int)0));
       for (auto& id : column) {
