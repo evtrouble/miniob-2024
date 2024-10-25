@@ -28,7 +28,7 @@ class FieldMeta;
 class UpdatePhysicalOperator : public PhysicalOperator
 {
 public:
-  UpdatePhysicalOperator(Table *table, std::vector<const FieldMeta *> &&fields, 
+  UpdatePhysicalOperator(BaseTable *table, std::vector<const FieldMeta *> &&fields, 
     std::vector<unique_ptr<Expression>>&& values);
 
   virtual ~UpdatePhysicalOperator() = default;
@@ -39,13 +39,15 @@ public:
   RC next() override;
   RC close() override;
 
+  RC update_table();
+  RC update_view();
+
   Tuple *current_tuple() override { return nullptr; }
   RC init(vector<Value> &values);
   // 查找待更新列的序号、偏移量、长度、类型
-  RC find_target_columns();
 
 private:
-  Table             *table_ = nullptr;
+  BaseTable        *base_table_ = nullptr;
   std::vector<const FieldMeta *> fields_;
   const std::vector<unique_ptr<Expression>> values_;
   Trx                *trx_   = nullptr;

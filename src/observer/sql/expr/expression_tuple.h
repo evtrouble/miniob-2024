@@ -73,6 +73,18 @@ public:
     return rc;
   }
 
+  int get_tuple_size() const override
+  {
+    if(child_tuple_ == nullptr)return 0;
+    return child_tuple_->get_tuple_size();
+  }
+
+  RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const override
+  {
+    if(child_tuple_ == nullptr)return RC::INVALID_ARGUMENT;
+    return child_tuple_->get_tuple_rid(id, table, rid);
+  }
+
 private:
   RC get_value(const ExprPointerType &expression, Value &value) const
   {

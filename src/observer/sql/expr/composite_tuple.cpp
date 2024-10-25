@@ -69,3 +69,27 @@ Tuple &CompositeTuple::tuple_at(size_t index)
   ASSERT(index < tuples_.size(), "index=%d, tuples_size=%d", index, tuples_.size());
   return *tuples_[index]; 
 }
+
+int CompositeTuple::get_tuple_size() const
+{
+  int size = 0;
+  for(auto& child_tuple : tuples_)
+    size += child_tuple->get_tuple_size();
+  return size;
+}
+
+RC CompositeTuple::get_tuple_rid(int id, const BaseTable *&table, RID &rid) const
+{  
+  int size = get_tuple_size();
+  if (id > size - 1) {
+      return RC::INVALID_ARGUMENT;
+  }
+  for(auto& child_tuple : tuples_){
+    int child_size = child_tuple->get_tuple_size();
+    if (child_size >= id + 1) {
+      return child_tuple->get_tuple_rid(id, table, rid);
+    }
+    id -= child_size;
+  }
+  return RC::INVALID_ARGUMENT;
+}

@@ -18,7 +18,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 
-UpdateStmt::UpdateStmt(Table *table, std::vector<const FieldMeta *>&& fields, 
+UpdateStmt::UpdateStmt(BaseTable *table, std::vector<const FieldMeta *>&& fields, 
   vector<unique_ptr<Expression>>&& values, FilterStmt *filter_stmt)
   : table_(table), fields_(move(fields)), values_(move(values)), filter_stmt_(filter_stmt)
 {}
@@ -44,13 +44,11 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt,
   }
 
   // check whether the table exists
-  vector<Table *>tables;
-  Table *table = db->find_table(table_name);
+  BaseTable *table = db->find_base_table(table_name);
   if (nullptr == table) {
     LOG_WARN("no such table. db=%s, table_name=%s", db->name(), table_name);
     return RC::SCHEMA_TABLE_NOT_EXIST;
   }
-  tables.emplace_back(table);
 
   // check the fields existence
   const TableMeta &table_meta = table->table_meta();

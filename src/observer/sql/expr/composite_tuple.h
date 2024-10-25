@@ -42,6 +42,9 @@ public:
   RC  spec_at(int index, TupleCellSpec &spec) const override;
   RC  find_cell(const TupleCellSpec &spec, Value &cell) const override;
 
+  int get_tuple_size() const override;
+  RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const override;
+
   void   add_tuple(std::unique_ptr<Tuple> tuple);
   Tuple &tuple_at(size_t index);
 

@@ -61,6 +61,71 @@ RC InsertPhysicalOperator::insert_table(Trx *trx)
 RC InsertPhysicalOperator::insert_view(Trx *trx)
 {
   View *view = static_cast<View*>(base_table_);
-  if(!view->allow_write())return RC::INVALID_ARGUMENT;
-  return RC::SUCCESS;
+  if (!view->allow_write()) {
+    LOG_ERROR("view %s is not allow to insert", view->name());
+    return RC::SCHEMA_FIELD_MISSING;
+  }
+  RC rc = RC::SUCCESS;
+  const std::vector<Field> &map_fields = view->map_fields();
+  std::unordered_map<const BaseTable*, std::vector<size_t>> table_columns;
+  vector<size_t> col_ids(map_fields.size());
+  for (size_t i = 0; i < map_fields.size(); i++) {
+    const Field &field = map_fields[i];
+
+    // 查找view中的列在原始表中的位置
+    const BaseTable *table = field.table();
+    if(table->is_view()){
+      LOG_ERROR("should not insert view directly");
+      return RC::INTERNAL;
+    }
+    const int sys_field_num = table->table_meta().sys_field_num();
+    int field_idx = table->table_meta().find_field_idx_by_name(field.field_name());
+    col_ids[i] = field_idx - sys_field_num;
+    
+    auto iter = table_columns.find(field.table());
+    if (table_columns.end() == iter) {
+      table_columns.emplace(field.table(), std::vector<size_t>{i});
+    } else {
+      iter->second.emplace_back(i);
+    }
+  }
+
+  // 按顺序对每张表 补齐Value，构造Record
+  std::vector<std::vector<Record>> multi_table_records;
+  for (auto& [base_table, column] : table_columns) {
+    // 对一张原始表的插入
+    Table *table = static_cast<Table*>(const_cast<BaseTable*>(base_table));
+
+    for (std::vector<Value> row_value : values_set_) {
+      // 补齐一行数据
+      std::vector<Value> fixed_row_value(table->table_meta().field_num() - table->table_meta().sys_field_num(), Value((void*)nullptr));
+      for (auto& id : column) {
+        fixed_row_value[col_ids[id]] = row_value[id];
+      }
+
+      // 插入一行数据
+      Record rcd;
+      rc = table->make_record(static_cast<int>(fixed_row_value.size()), fixed_row_value.data(), rcd);
+      if (rc != RC::SUCCESS) {
+        LOG_WARN("failed to make record. rc=%s", strrc(rc));
+        return rc;
+      }
+      rc = trx->insert_record(table, rcd);
+      // if (rc != RC::SUCCESS) {
+      //   LOG_WARN("failed to insert record by transaction. rc=%s", strrc(rc));
+      //   // 插入失败，需要回滚之前插入成功的记录
+      //   RC rc2 = RC::SUCCESS;
+      //   for (int j = i - 1; j >= 0; j--) {
+      //     Record &done_rcd = records[j];
+      //     rc2 = trx->delete_record(table_, done_rcd);
+      //     if (RC::SUCCESS != rc2) {
+      //       LOG_WARN("failed to rollback record after insert failed. rc=%s", strrc(rc2));
+      //       break;
+      //     }
+      //   }
+      //   break;  // 插入失败，回滚后应该停止继续插入
+      // }
+    }    
+  }
+  return rc;
 }

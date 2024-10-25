@@ -97,6 +97,9 @@ public:
    */
   virtual RC find_cell(const TupleCellSpec &spec, Value &cell) const = 0;
 
+  virtual RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const = 0;
+  virtual int get_tuple_size() const = 0;
+
   virtual std::string to_string() const
   {
     std::string str;
@@ -277,6 +280,15 @@ public:
     return RC::NOTFOUND;
   }
 
+  RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const override
+  {
+    if(id > 0)return RC::INVALID_ARGUMENT;
+    table = table_;
+    rid = record_->rid();
+    return RC::SUCCESS;
+  }
+  int get_tuple_size() const override { return 1; }
+
 #if 0
   RC cell_spec_at(int index, const TupleCellSpec *&spec) const override
   {
@@ -343,6 +355,18 @@ public:
 
   RC find_cell(const TupleCellSpec &spec, Value &cell) const override { return tuple_->find_cell(spec, cell); }
 
+  virtual RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const override
+  {
+    if(tuple_ == nullptr)return RC::INVALID_ARGUMENT;
+    return tuple_->get_tuple_rid(id, table, rid);
+  }
+
+  virtual int get_tuple_size() const override
+  { 
+    if(tuple_ == nullptr)return 0;
+    return tuple_->get_tuple_size();  
+  }
+
 #if 0
   RC cell_spec_at(int index, const TupleCellSpec *&spec) const override
   {
@@ -407,6 +431,13 @@ public:
     }
     return RC::NOTFOUND;
   }
+
+  virtual RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const override
+  {
+    return RC::INVALID_ARGUMENT;
+  }
+
+  virtual int get_tuple_size() const override { return 0; }
 
   static RC make(const Tuple &tuple, ValueListTuple &value_list)
   {
@@ -488,6 +519,22 @@ public:
     }
 
     return right_->find_cell(spec, value);
+  }
+
+  virtual RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const override
+  {
+    if (id > get_tuple_size() - 1) {
+      return RC::INVALID_ARGUMENT;
+    }
+    if (left_->get_tuple_size() >= id + 1) {
+      return left_->get_tuple_rid(id, table, rid);
+    }
+    return right_->get_tuple_rid(id - left_->get_tuple_size(), table, rid);
+  }
+
+  virtual int get_tuple_size() const override 
+  { 
+    return left_->get_tuple_size() + right_->get_tuple_size(); 
   }
 
 private:

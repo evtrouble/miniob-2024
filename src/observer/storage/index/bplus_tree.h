@@ -86,14 +86,14 @@ public:
     bool ctl = false;
     for (size_t i = 1; i < attr_type_.size(); i++) {
       // NULL get_bit 是true
-      if (r_map.get_bit(field_id_[i]) == true){
-        if(l_map.get_bit(field_id_[i]) == true)
+      if (r_map.get_bit(field_id_[i])){
+        if(l_map.get_bit(field_id_[i]))
         {
           ctl = true;
           continue;
         }
         return 1;
-      } else if (l_map.get_bit(field_id_[i]) == true) return -1;
+      } else if (l_map.get_bit(field_id_[i])) return -1;
       switch (attr_type_[i]) {
         case AttrType::INTS: {
           if (0 == (cmp_res = common::compare_int((void *)(v1 + offset), (void *)(v2 + offset)))) {
@@ -169,7 +169,7 @@ public:
     const RID *rid2 = (const RID *)(v2 + attr_comparator_.attr_length());
 
     int result = RID::compare(rid1, rid2);
-    if(result == 0)return result;
+    if(result == 0)return 0;
 
     int value_result = attr_comparator_(v1, v2);
     if(value_result == 0)

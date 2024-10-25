@@ -315,7 +315,7 @@ RC PhysicalPlanGenerator::create_plan(UpdateLogicalOperator &update_oper, std::u
     }
   }
 
-  Table *table  = update_oper.table();
+  BaseTable *table  = update_oper.table();
   auto& fields  = update_oper.fields();
   auto& values = update_oper.values();
 
