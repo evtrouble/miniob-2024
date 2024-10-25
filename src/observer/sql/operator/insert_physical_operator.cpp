@@ -98,7 +98,7 @@ RC InsertPhysicalOperator::insert_view(Trx *trx)
 
     for (std::vector<Value> row_value : values_set_) {
       // 补齐一行数据
-      std::vector<Value> fixed_row_value(table->table_meta().field_num() - table->table_meta().sys_field_num(), Value((void*)nullptr));
+      std::vector<Value> fixed_row_value(table->table_meta().field_num() - table->table_meta().sys_field_num(), Value((int)0));
       for (auto& id : column) {
         fixed_row_value[col_ids[id]] = row_value[id];
       }
