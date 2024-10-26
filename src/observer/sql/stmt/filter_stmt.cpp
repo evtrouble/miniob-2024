@@ -53,7 +53,9 @@ RC FilterStmt::create(Db *db, BaseTable *default_table, tables_t& table_map, Con
         
         Field      field(table, field_meta);
         FieldExpr *field_expr = new FieldExpr(field);
-        field_expr->set_name(unbound_field_expr->field_name());
+        field_expr->set_name(table->name());
+        if(unbound_field_expr->table_name() != table->name())
+          field_expr->set_table_alias(unbound_field_expr->table_name());
         expr.reset(field_expr);
       }break;
       case ExprType::SELECT:{

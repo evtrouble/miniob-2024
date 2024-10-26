@@ -89,7 +89,9 @@ RC Expression::recursion(std::unique_ptr<Expression>& expr,
 
 RC FieldExpr::get_value(const Tuple &tuple, Value &value) const
 {
-  return tuple.find_cell(TupleCellSpec(table_name(), field_name()), value);
+  if(table_alias_.empty())
+    return tuple.find_cell(TupleCellSpec(table_name(), field_name()), value);
+  return tuple.find_cell(TupleCellSpec(table_alias_.c_str(), field_name()), value);
 }
 
 bool FieldExpr::equal(const Expression &other) const

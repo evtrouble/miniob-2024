@@ -98,9 +98,9 @@ RC ProjectPhysicalOperator::tuple_schema(TupleSchema &schema) const
 
       schema.append_cell(table_alias.empty() ? field_expr->table_name() : table_alias.c_str(),
         alias.empty() ? expression->name() : alias.c_str());
-      schema.append_cell(field_expr->table_name(), expression->name());
     } else schema.append_cell(alias.empty() ? expression->name() : alias.c_str());
   }
+
   return RC::SUCCESS;
 }
 

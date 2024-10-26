@@ -189,9 +189,10 @@ public:
 
   void set_record(Record *record) { this->record_ = record; }
 
-  void set_schema(const BaseTable *table, const std::vector<FieldMeta> *fields)
+  void set_schema(const BaseTable *table, const std::vector<FieldMeta> *fields, string alias = "")
   {
     table_ = table;
+    alias_ = alias;
     // fix:join当中会多次调用右表的open,open当中会调用set_scheme，从而导致tuple当中会存储
     // 很多无意义的field和value，因此需要先clear掉
     for (FieldExpr *spec : speces_) {
@@ -267,7 +268,7 @@ public:
   {
     const char *table_name = spec.table_name();
     const char *field_name = spec.field_name();
-    if (0 != strcmp(table_name, table_->name())) {
+    if (0 != strcmp(table_name, table_->name()) && 0 != strcmp(table_name, alias_.c_str())) {
       return RC::NOTFOUND;
     }
 
@@ -309,6 +310,7 @@ public:
 private:
   Record                  *record_ = nullptr;
   const BaseTable         *table_  = nullptr;
+  string                   alias_;
   std::vector<FieldExpr *> speces_;
 };
 

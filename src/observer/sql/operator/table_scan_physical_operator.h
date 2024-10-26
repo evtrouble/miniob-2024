@@ -28,7 +28,7 @@ class Table;
 class TableScanPhysicalOperator : public PhysicalOperator
 {
 public:
-  TableScanPhysicalOperator(Table *table, ReadWriteMode mode) : table_(table), mode_(mode) {}
+  TableScanPhysicalOperator(Table *table, ReadWriteMode mode, string alias = "") : table_(table), mode_(mode), alias_(alias) {}
 
   virtual ~TableScanPhysicalOperator() = default;
 
@@ -55,5 +55,6 @@ private:
   RecordFileScanner                        record_scanner_;
   Record                                   current_record_;
   RowTuple                                 tuple_;
+  string                                   alias_;
   std::vector<std::unique_ptr<Expression>> predicates_;  // TODO chang predicate to table tuple filter
 };

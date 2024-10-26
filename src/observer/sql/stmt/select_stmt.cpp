@@ -40,11 +40,11 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     return RC::INVALID_ARGUMENT;
   }
 
-  std::unordered_map<std::string, std::string> table_alias_map; // <table alias name, table src name>
-  BinderContext binder_context(table_alias_map);
+  std::unordered_set<std::string> table_alias_set; // 检测别名是否有重复
+  BinderContext binder_context;
 
   // collect tables in `from` statement
-  vector<BaseTable *>                tables;
+  vector<pair<BaseTable *, string>>                tables;
   auto size = depends.size();
  
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
@@ -61,16 +61,16 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
       return RC::SCHEMA_TABLE_NOT_EXIST;
     }
 
-    binder_context.add_table(table);
-    tables.push_back(table);
+    binder_context.add_table(table, table_alias);
+    tables.push_back({table, table_alias});
     
     if(!table_map.count(table_name)){
       auto temp = make_pair(table, size);
       table_map.insert({table_name, temp});
     }
     if(!table_alias.empty()){
-      if(table_alias_map.count(table_alias))return RC::INVALID_ARGUMENT;
-      table_alias_map.insert({table_alias, select_sql.relations[i]});
+      if(table_alias_set.count(table_alias))return RC::INVALID_ARGUMENT;
+      table_alias_set.insert(table_alias);
       auto temp = make_pair(table, size);
       table_map.insert({table_alias, temp});
     }
@@ -92,20 +92,6 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     }
   }
 
-   for (auto& expr : bound_expressions) {
-    if (expr->type() == ExprType::FIELD) {
-      FieldExpr *field_expr = static_cast<FieldExpr*>(expr.get());
-      const char *table_name = field_expr->table_name();
-      const char *field_name = field_expr->field_name();
-      ASSERT(!common::is_blank(field_name), "Parse ERROR!");
-      auto& temp = select_sql.relations;
-      size_t id = find(temp.begin(), temp.end(), table_name) - temp.begin();
-      if(id != temp.size() && !select_sql.alias[id].empty()){
-        field_expr->set_table_alias(select_sql.alias[id].c_str());
-      }
-    }
-  }
-
   vector<unique_ptr<Expression>> group_by_expressions;
   for (unique_ptr<Expression> &expression : select_sql.group_by) {
     RC rc = expression_binder.bind_expression(expression, group_by_expressions);
@@ -117,7 +103,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
 
   BaseTable *default_table = nullptr;
   if (tables.size() == 1) {
-    default_table = tables[0];
+    default_table = tables[0].first;
   }
 
   depends.emplace_back(vector<uint32_t>());
@@ -171,7 +157,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   // everything alright
   SelectStmt *select_stmt = new SelectStmt();
 
-  select_stmt->tables_.swap(tables);
+  swap(select_stmt->tables_, tables);
   select_stmt->query_expressions_.swap(bound_expressions);
   select_stmt->filter_stmt_ = filter_stmt;
   select_stmt->group_by_.swap(group_by_expressions);

@@ -24,27 +24,29 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 using namespace common;
 
-BaseTable *BinderContext::find_table(const char *table_name) const
+pair<BaseTable*, string> BinderContext::find_table(const char *table_name) const
 {
-  if(table_alias_map_.count(table_name))table_name = table_alias_map_.at(table_name).c_str();
-  auto pred = [table_name](BaseTable *table) { return 0 == strcasecmp(table_name, table->name()); };
+  auto pred = [table_name](pair<BaseTable*, string> pair_temp) { return 0 == strcasecmp(table_name, pair_temp.first->name())
+    || 0 == strcasecmp(table_name, pair_temp.second.c_str()); };
   auto iter = ranges::find_if(query_tables_, pred);
   if (iter == query_tables_.end()) {
-    return nullptr;
+    return make_pair<BaseTable*, string>(nullptr, "");
   }
   return *iter;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-static void wildcard_fields(BaseTable *table, vector<unique_ptr<Expression>> &expressions)
+static void wildcard_fields(pair<BaseTable *, string>& pair_temp, vector<unique_ptr<Expression>> &expressions)
 {
-  const TableMeta &table_meta = table->table_meta();
+  const TableMeta &table_meta = pair_temp.first->table_meta();
   const int        field_num  = table_meta.field_num();
 
   for (int i = table_meta.sys_field_num(); i < field_num; i++) {
-    Field      field(table, table_meta.field(i));
+    Field      field(pair_temp.first, table_meta.field(i));
     FieldExpr *field_expr = new FieldExpr(field);
     field_expr->set_name(field.field_name());
+    if(!pair_temp.second.empty())
+      field_expr->set_table_alias(pair_temp.second.c_str());
     expressions.emplace_back(field_expr);
   }
 }
@@ -116,24 +118,25 @@ RC ExpressionBinder::bind_star_expression(
 
   auto star_expr = static_cast<StarExpr *>(expr.get());
 
-  vector<BaseTable *> tables_to_wildcard;
+  vector<pair<BaseTable *, string>> tables_to_wildcard;
 
   const char *table_name = star_expr->table_name();
   if (!is_blank(table_name) && 0 != strcmp(table_name, "*")) {
-    BaseTable *table = context_.find_table(table_name);
-    if (nullptr == table) {
+    string alias;
+    auto pair_temp = context_.find_table(table_name);
+    if (nullptr == pair_temp.first) {
       LOG_INFO("no such table in from list: %s", table_name);
       return RC::SCHEMA_TABLE_NOT_EXIST;
     }
 
-    tables_to_wildcard.push_back(table);
+    tables_to_wildcard.emplace_back(pair_temp);
   } else {
-    const vector<BaseTable *> &all_tables = context_.query_tables();
+    auto &all_tables = context_.query_tables();
     tables_to_wildcard.insert(tables_to_wildcard.end(), all_tables.begin(), all_tables.end());
   }
 
-  for (BaseTable *table : tables_to_wildcard) {
-    wildcard_fields(table, bound_expressions);
+  for (auto &pair_temp : tables_to_wildcard) {
+    wildcard_fields(pair_temp, bound_expressions);
   }
 
   return RC::SUCCESS;
@@ -151,34 +154,36 @@ RC ExpressionBinder::bind_unbound_field_expression(
   const char *table_name = unbound_field_expr->table_name();
   const char *field_name = unbound_field_expr->field_name();
 
-  BaseTable *table = nullptr;
+  pair<BaseTable *, string> pair_temp;
   if (is_blank(table_name)) {
     if (context_.query_tables().size() != 1) {
       LOG_INFO("cannot determine table for field: %s", field_name);
       return RC::SCHEMA_TABLE_NOT_EXIST;
     }
 
-    table = context_.query_tables()[0];
+    pair_temp = context_.query_tables()[0];
   } else {
-    table = context_.find_table(table_name);
-    if (nullptr == table) {
+    pair_temp = context_.find_table(table_name);
+    if (nullptr == pair_temp.first) {
       LOG_INFO("no such table in from list: %s", table_name);
       return RC::SCHEMA_TABLE_NOT_EXIST;
     }
   }
 
   if (0 == strcmp(field_name, "*")) {
-    wildcard_fields(table, bound_expressions);
+    wildcard_fields(pair_temp, bound_expressions);
   } else {
-    const FieldMeta *field_meta = table->table_meta().field(field_name);
+    const FieldMeta *field_meta = pair_temp.first->table_meta().field(field_name);
     if (nullptr == field_meta) {
       LOG_INFO("no such field in table: %s.%s", table_name, field_name);
       return RC::SCHEMA_FIELD_MISSING;
     }
 
-    Field      field(table, field_meta);
+    Field      field(pair_temp.first, field_meta);
     FieldExpr *field_expr = new FieldExpr(field);
     field_expr->set_alias(expr->alias());
+    if(!pair_temp.second.empty())
+      field_expr->set_table_alias(pair_temp.second.c_str());
     field_expr->set_name(field_name);
     bound_expressions.emplace_back(field_expr);
   }
