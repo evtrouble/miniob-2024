@@ -42,6 +42,17 @@ ArithmeticExpr *create_arithmetic_expression(ArithmeticExpr::Type type,
   return expr;
 }
 
+VectorOperationExpr *create_operation_expression(VectorOperationExpr::Type type,
+                                             Expression *left,
+                                             Expression *right,
+                                             const char *sql_string,
+                                             YYLTYPE *llocp)
+{
+  VectorOperationExpr *expr = new VectorOperationExpr(type, left, right);
+  expr->set_name(token_name(sql_string, llocp));
+  return expr;
+}
+
 UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
                                            Expression *child,
                                            const char *sql_string,
@@ -129,6 +140,9 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         GE
         NE
         UNIQUE
+        L2_DISTANCE
+        COSINE_DISTANCE
+        INNER_PRODUCT
 
 
 /** union 中定义各种数据类型，真实生成的代码也是union类型，所以不能有非POD类型的数据 **/
@@ -736,6 +750,15 @@ expression:
     }
     | expression '/' expression {
       $$ = create_arithmetic_expression(ArithmeticExpr::Type::DIV, $1, $3, sql_string, &@$);
+    }
+    | L2_DISTANCE LBRACE expression COMMA expression RBRACE{
+      $$ = create_operation_expression(VectorOperationExpr::Type::L2_DISTANCE, $3, $5, sql_string, &@$);
+    }
+    | COSINE_DISTANCE LBRACE expression COMMA expression RBRACE{
+      $$ = create_operation_expression(VectorOperationExpr::Type::COSINE_DISTANCE, $3, $5, sql_string, &@$);
+    }
+    | INNER_PRODUCT LBRACE expression COMMA expression RBRACE{
+      $$ = create_operation_expression(VectorOperationExpr::Type::INNER_PRODUCT, $3, $5, sql_string, &@$);
     }
     | LBRACE expression_list RBRACE {
       if ($2->size() == 1) {
