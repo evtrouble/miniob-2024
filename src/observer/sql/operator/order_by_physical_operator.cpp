@@ -66,20 +66,23 @@ RC OrderByPhysicalOperator::next()
         }
 
         ids_.resize(value_list_.size());
-        Value value;
+        vector<vector<Value>> order_values(value_list_.size());
         for(size_t id = 0; id < value_list_.size(); id++){
-            for(auto& expr : order_by_){
-                expr->get_value(value_list_[id], value);
-                ids_[id].first.emplace_back(std::move(value));
+            auto& values = order_values[id];
+            values.resize(order_by_.size());
+            for(size_t i = 0; i < order_by_.size(); i++){
+                order_by_[i]->get_value(value_list_[id], values[i]);
             }
-            ids_[id].second = id;
+            ids_[id] = id;
         }
 
         sort(ids_.begin(), ids_.end(), [&](const auto& a, const auto& b){
-            for(size_t id = 0; id < a.first.size(); id++){
+            auto& a_vals = order_values[a];
+            auto& b_vals = order_values[b];
+            for(size_t id = 0; id < order_by_.size(); id++){
                 bool is_asc = is_asc_[id];
-                auto& a_val = a.first[id];
-                auto& b_val = b.first[id];
+                auto& a_val = a_vals[id];
+                auto& b_val = b_vals[id];
 
                 if(a_val.attr_type() == AttrType::NULLS)
                 {
@@ -91,7 +94,7 @@ RC OrderByPhysicalOperator::next()
                 int cmp = a_val.compare(b_val);
                 if(cmp == 0)continue;
                 else if(is_asc)return cmp < 0;
-                else return cmp > 0;
+                return cmp > 0;
             }
             return false;
         });
@@ -146,25 +149,22 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
         }
 
         ids_.resize(value_list_.size());
-        Value value;
+        vector<vector<Value>> order_values(value_list_.size());
         for(size_t id = 0; id < value_list_.size(); id++){
-            for(auto& expr : order_by_){
-                rc = expr->get_value(value_list_[id], value);
-                if (rc != RC::SUCCESS) {
-                    LOG_WARN("failed to get value: %s", strrc(rc));
-                    child->close();
-                    return rc;
-                }
-                ids_[id].first.emplace_back(std::move(value));
+            order_values[id].resize(order_by_.size());
+            for(size_t i = 0; i < order_by_.size(); i++){
+                order_by_[id]->get_value(value_list_[id], order_values[id][i]);
             }
-            ids_[id].second = id;
+            ids_[id] = id;
         }
 
         sort(ids_.begin(), ids_.end(), [&](const auto& a, const auto& b){
-            for(size_t id = 0; id < a.first.size(); id++){
+            auto& a_vals = order_values[a];
+            auto& b_vals = order_values[b];
+            for(size_t id = 0; id < order_by_.size(); id++){
                 bool is_asc = is_asc_[id];
-                auto& a_val = a.first[id];
-                auto& b_val = b.first[id];
+                auto& a_val = a_vals[id];
+                auto& b_val = b_vals[id];
 
                 if(a_val.attr_type() == AttrType::NULLS)
                 {
@@ -176,7 +176,7 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
                 int cmp = a_val.compare(b_val);
                 if(cmp == 0)continue;
                 else if(is_asc)return cmp < 0;
-                else return cmp > 0;
+                return cmp > 0;
             }
             return false;
         });
@@ -194,7 +194,7 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
 Tuple *OrderByPhysicalOperator::current_tuple()
 {
   if (current_id_ != value_list_.size()) {
-    return &value_list_[ids_[current_id_].second];
+    return &value_list_[ids_[current_id_]];
   }
   return nullptr;
 }

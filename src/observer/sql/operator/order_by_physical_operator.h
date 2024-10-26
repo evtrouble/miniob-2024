@@ -47,6 +47,6 @@ private:
   bool                                     first_emited_ = false;  /// 第一条数据是否已经输出
   bool                                     have_value = false;
   vector<ValueListTuple>                   value_list_;
-  vector<pair<vector<Value>, size_t>>      ids_;              
+  vector<size_t>                           ids_;              
   size_t                                   current_id_;
 };
