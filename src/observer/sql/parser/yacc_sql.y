@@ -963,6 +963,10 @@ alias:
     | AS ID {
       $$ = $2;
     }
+    | AS DATA {
+      $$ = (char *)malloc(sizeof(char) * 5);
+      memcpy($$, "data", 5);
+    }
 
 on:
     /* empty */
