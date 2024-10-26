@@ -136,7 +136,18 @@ RC VectorType::cosine_distance(const Value &left, const Value &right, Value &res
 }
 
 
-RC VectorType::inner_product(const Value &left, const Value &right, Value &result) const
+RC VectorType::inner_product(const Value &left, const Value &right, Value &result) const 
 {
-    return multiply(left, right, result);
+    ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
+    vector<float>* left_vector = (vector<float>*)left.data();
+    vector<float>* right_vector = (vector<float>*)right.data();
+    ASSERT(left_vector->size() == right_vector->size(), "vector sizes must match");
+
+    double dot_product = 0;
+    for (size_t id = 0; id < left_vector->size(); id++) {
+        dot_product += left_vector->at(id) * right_vector->at(id);
+    }
+    
+    result.set_float(static_cast<float>(dot_product));  // 返回标量点积
+    return RC::SUCCESS;
 }
