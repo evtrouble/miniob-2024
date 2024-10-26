@@ -87,6 +87,7 @@ public:
   virtual RC close() = 0;
 
   virtual Tuple *current_tuple() { return nullptr; }
+  virtual Tuple *current_raw_tuple() { return nullptr; }
 
   virtual RC tuple_schema(TupleSchema &schema) const { return RC::UNIMPLEMENTED; }
 

@@ -87,7 +87,7 @@ RC DeletePhysicalOperator::delete_view()
   const BaseTable* base_table;
   RID rid;
   while (RC::SUCCESS == (rc = child->next())) {
-    Tuple *tuple = child->current_tuple();
+    Tuple *tuple = child->current_raw_tuple();
     if (nullptr == tuple) {
       LOG_WARN("failed to get current record: %s", strrc(rc));
       return rc;

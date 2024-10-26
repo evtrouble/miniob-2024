@@ -135,7 +135,7 @@ RC UpdatePhysicalOperator::update_view()
   const int sys_field_num = base_table_->table_meta().sys_field_num();
   // 记录的有效性由事务来保证，如果事务不保证更新的有效性，那说明此事务类型不支持并发控制，比如VacuousTrx
   while (OB_SUCC(rc = child->next())) {
-    tuple = child->current_tuple();
+    tuple = child->current_raw_tuple();
     if (nullptr == tuple) {
       LOG_WARN("failed to get current record: %s", strrc(rc));
       child->close();

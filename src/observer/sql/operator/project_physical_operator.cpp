@@ -103,3 +103,8 @@ RC ProjectPhysicalOperator::tuple_schema(TupleSchema &schema) const
   }
   return RC::SUCCESS;
 }
+
+Tuple *ProjectPhysicalOperator::current_raw_tuple() 
+{
+  return children_[0]->current_raw_tuple();
+}

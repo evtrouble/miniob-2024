@@ -33,7 +33,7 @@ RC ViewScanPhysicalOperator::open(Trx *trx)
   rc = analyzer.pretreatment();
   if(OB_FAIL(rc))return rc;
 
-  tuple_.set_schema(view_, view_->table_meta().field_metas());
+  row_tuple_.set_schema(view_, view_->table_meta().field_metas());
 
   rc = view_->child()->open(trx);
   if (RC::SUCCESS != rc) {
@@ -51,35 +51,34 @@ RC ViewScanPhysicalOperator::next()
 
   bool filter_result = false;
   std::unique_ptr<PhysicalOperator> &child = view_->child();
-  Tuple *tuple = nullptr;
   while (OB_SUCC(rc = child->next())) {
-    tuple = child->current_tuple();
-    if (nullptr == tuple) {
+    tuple_ = child->current_tuple();
+    if (nullptr == tuple_) {
       LOG_WARN("failed to get current record: %s", strrc(rc));
       child->close();
       return rc;
     }
     
-    int cell_num = tuple->cell_num();
+    int cell_num = tuple_->cell_num();
     vector<Value> values(cell_num);
     for (int i = 0; i < cell_num; i++) {
-      tuple->cell_at(i, values[i]);
+      tuple_->cell_at(i, values[i]);
     }
     rc = view_->make_record(cell_num, values.data(), record_);
     if(OB_FAIL(rc))return rc;
-    tuple_.set_record(&record_);
+    row_tuple_.set_record(&record_);
     
-    rc = filter(tuple_, filter_result);
+    rc = filter(row_tuple_, filter_result);
     if (rc != RC::SUCCESS) {
       LOG_TRACE("record filtered failed=%s", strrc(rc));
       return rc;
     }
 
     if (filter_result) {
-      sql_debug("get a tuple: %s", tuple_.to_string().c_str());
+      sql_debug("get a tuple: %s", row_tuple_.to_string().c_str());
       break;
     } else {
-      sql_debug("a tuple is filtered: %s", tuple_.to_string().c_str());
+      sql_debug("a tuple is filtered: %s", row_tuple_.to_string().c_str());
     }
   }
   return rc;
@@ -92,26 +91,25 @@ RC ViewScanPhysicalOperator::next(Tuple *upper_tuple)
   join_tuple.set_left(upper_tuple);
 
   bool filter_result = false;
-  Tuple *tuple = nullptr;
   std::unique_ptr<PhysicalOperator> &child = view_->child();
   while (OB_SUCC(rc = child->next(upper_tuple))) {
-    tuple = child->current_tuple();
-    if (nullptr == tuple) {
+    tuple_ = child->current_tuple();
+    if (nullptr == tuple_) {
       LOG_WARN("failed to get current record: %s", strrc(rc));
       child->close();
       return rc;
     }
 
-    int cell_num = tuple->cell_num();
+    int cell_num = tuple_->cell_num();
     vector<Value> values(cell_num);
     for (int i = 0; i < cell_num; i++) {
-      tuple->cell_at(i, values[i]);
+      tuple_->cell_at(i, values[i]);
     }
     rc = view_->make_record(cell_num, values.data(), record_);
     if(OB_FAIL(rc))return rc;
-    tuple_.set_record(&record_);
+    row_tuple_.set_record(&record_);
 
-    join_tuple.set_right(&tuple_);
+    join_tuple.set_right(&row_tuple_);
     
     rc = filter(join_tuple, filter_result);
     if (rc != RC::SUCCESS) {
@@ -120,10 +118,10 @@ RC ViewScanPhysicalOperator::next(Tuple *upper_tuple)
     }
 
     if (filter_result) {
-      sql_debug("get a tuple: %s", tuple_.to_string().c_str());
+      sql_debug("get a tuple: %s", row_tuple_.to_string().c_str());
       break;
     } else {
-      sql_debug("a tuple is filtered: %s", tuple_.to_string().c_str());
+      sql_debug("a tuple is filtered: %s", row_tuple_.to_string().c_str());
     }
   }
   return rc;
@@ -138,7 +136,7 @@ RC ViewScanPhysicalOperator::close()
 
 Tuple *ViewScanPhysicalOperator::current_tuple()
 {
-  return &tuple_;
+  return &row_tuple_;
 }
 
 string ViewScanPhysicalOperator::param() const { return view_->name(); }
@@ -167,4 +165,9 @@ RC ViewScanPhysicalOperator::filter(Tuple &tuple, bool &result)
 
   result = true;
   return rc;
+}
+
+Tuple *ViewScanPhysicalOperator::current_raw_tuple()
+{
+  return tuple_;
 }

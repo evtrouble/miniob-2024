@@ -42,6 +42,7 @@ public:
   RC next(Tuple *upper_tuple) override;
 
   Tuple *current_tuple() override;
+  Tuple *current_raw_tuple() override;
 
   void set_predicates(std::vector<std::unique_ptr<Expression>> &&exprs);
 
@@ -52,7 +53,8 @@ private:
   View                                    *view_ = nullptr;
   Trx                                     *trx_   = nullptr;
   ReadWriteMode                            mode_  = ReadWriteMode::READ_WRITE;
-  RowTuple                                 tuple_;
+  RowTuple                                 row_tuple_;
+  Tuple                                   *tuple_;
   Record                                   record_;
   std::vector<std::unique_ptr<Expression>> predicates_;  // TODO chang predicate to table tuple filter
 };

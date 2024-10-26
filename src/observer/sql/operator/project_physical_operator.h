@@ -38,6 +38,7 @@ public:
   int cell_num() const { return tuple_.cell_num(); }
 
   Tuple *current_tuple() override;
+  Tuple *current_raw_tuple() override;
 
   RC tuple_schema(TupleSchema &schema) const override;
 

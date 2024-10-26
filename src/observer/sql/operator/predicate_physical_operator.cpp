@@ -103,3 +103,8 @@ RC PredicatePhysicalOperator::tuple_schema(TupleSchema &schema) const
 {
   return children_[0]->tuple_schema(schema);
 }
+
+Tuple *PredicatePhysicalOperator::current_raw_tuple() 
+{
+  return children_[0]->current_raw_tuple();
+}

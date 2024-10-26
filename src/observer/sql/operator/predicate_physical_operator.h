@@ -38,6 +38,7 @@ public:
   RC next(Tuple *upper_tuple) override;
 
   Tuple *current_tuple() override;
+  Tuple *current_raw_tuple() override;
 
   RC tuple_schema(TupleSchema &schema) const override;
 
