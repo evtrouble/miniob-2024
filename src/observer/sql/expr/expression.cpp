@@ -603,7 +603,6 @@ AttrType ArithmeticExpr::value_type() const
   }
 
   if(left_->value_type() == AttrType::VECTORS || right_->value_type() == AttrType::VECTORS){
-    if(arithmetic_type_ == Type::MUL)return AttrType::FLOATS;
     return AttrType::VECTORS;
   }
 

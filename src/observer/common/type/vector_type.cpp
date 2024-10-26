@@ -66,14 +66,16 @@ RC VectorType::multiply(const Value &left, const Value &right, Value &result) co
     vector<float>* left_vector = (vector<float>*)left.data();
     vector<float>* right_vector = (vector<float>*)right.data();
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
-    
-    double ans = 0;
-    for(size_t id = 0; id < left_vector->size(); id++){
-        ans += left_vector->at(id) * right_vector->at(id);
+
+    vector<float> *temp = new vector<float>(left_vector->size());
+    for (size_t id = 0; id < left_vector->size(); id++) {
+        temp->at(id) = left_vector->at(id) * right_vector->at(id);
     }
-    result.set_float(ans);
+    
+    result.set_vector(move(*temp));
     return RC::SUCCESS;
 }
+
 
 RC VectorType::to_string(const Value &val, string &result) const
 {
