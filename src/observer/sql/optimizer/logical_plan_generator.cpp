@@ -373,7 +373,7 @@ RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<Logical
 
 RC LogicalPlanGenerator::create_plan(DeleteStmt *delete_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
-  Table                      *table       = delete_stmt->table();
+  BaseTable                  *table       = delete_stmt->table();
   FilterStmt                 *filter_stmt = delete_stmt->filter_stmt();
   unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, ReadWriteMode::READ_WRITE));
 

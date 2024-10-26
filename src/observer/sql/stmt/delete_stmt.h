@@ -27,10 +27,10 @@ class FilterStmt;
 class DeleteStmt : public Stmt
 {
 public:
-  DeleteStmt(Table *table, FilterStmt *filter_stmt);
+  DeleteStmt(BaseTable *table, FilterStmt *filter_stmt);
   ~DeleteStmt() override;
 
-  Table      *table() const { return table_; }
+  BaseTable      *table() const { return table_; }
   FilterStmt *filter_stmt() const { return filter_stmt_; }
 
   StmtType type() const override { return StmtType::DELETE; }
@@ -41,6 +41,6 @@ public:
     tables_t& table_map, int fa);
 
 private:
-  Table      *table_       = nullptr;
+  BaseTable      *table_       = nullptr;
   FilterStmt *filter_stmt_ = nullptr;
 };
