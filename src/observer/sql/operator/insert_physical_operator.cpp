@@ -112,7 +112,8 @@ RC InsertPhysicalOperator::insert_view(Trx *trx)
       rc = table->make_record(static_cast<int>(fixed_row_value.size()), fixed_row_value.data(), rcd);
       if (rc != RC::SUCCESS) {
         LOG_WARN("failed to make record. rc=%s", strrc(rc));
-        return rc;
+        is_fail = true;
+        break;
       }
       rc = trx->insert_record(table, rcd);
       if (rc != RC::SUCCESS) {
