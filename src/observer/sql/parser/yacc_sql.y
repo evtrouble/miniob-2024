@@ -373,6 +373,23 @@ idx_col_list:
       free($2);
     }
     ;
+
+col_list:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | LBRACE ID idx_col_list RBRACE
+    {
+      if ($3 != nullptr) {
+        $$ = $3;
+      } else {
+        $$ = new std::vector<std::string>;
+      }
+      $$->emplace_back($2);
+      free($2);      
+    }
+    ;
 unique_option:
     /* empty */
     {
@@ -401,7 +418,7 @@ create_view_stmt:    /*create view 语句的语法解析树*/
       $$->create_view.view_name = $3;
       free($3);
     }
-    | CREATE VIEW ID LBRACE ID col_list RBRACE AS select_stmt
+    | CREATE VIEW ID LBRACE ID idx_col_list RBRACE AS select_stmt
     {
       $$ = $9;
       $$->flag = SCF_CREATE_VIEW;
@@ -416,23 +433,6 @@ create_view_stmt:    /*create view 语句的语法解析树*/
       std::reverse(col_names.begin(), col_names.end());
       free($3);
       free($5);
-    }
-    ;
-
-col_list:
-    /* empty */
-    {
-      $$ = nullptr;
-    }
-    | COMMA ID col_list
-    {
-      if ($3 != nullptr) {
-        $$ = $3;
-      } else {
-        $$ = new std::vector<std::string>;
-      }
-      $$->emplace_back($2);
-      free($2);
     }
     ;
 
@@ -563,14 +563,21 @@ date_type:
     ;
 
 insert_stmt:        /*insert   语句的语法解析树*/
-    INSERT INTO ID VALUES values_list
+    INSERT INTO ID col_list VALUES values_list
     {
       $$ = new ParsedSqlNode(SCF_INSERT);
       $$->insertion.relation_name = $3;
-      if ($5 != nullptr) {
-        $$->insertion.values.swap(*$5);
+
+      if ($6 != nullptr) {
+        $$->insertion.values.swap(*$6);
         std::reverse($$->insertion.values.begin(), $$->insertion.values.end());
-        delete $5;
+        delete $6;
+      }
+
+      if (nullptr != $4) {
+        $$->insertion.attrs_name.swap(*$4);
+        std::reverse($$->insertion.attrs_name.begin(), $$->insertion.attrs_name.end());
+        delete $4;
       }
 
       free($3);
