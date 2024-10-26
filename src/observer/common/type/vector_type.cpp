@@ -99,12 +99,11 @@ RC VectorType::l2_distance(const Value &left, const Value &right, Value &result)
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
 
     double ans = 0;
-    double temp;
-    for(size_t id = 0; id < left_vector->size(); id++){
-        temp = left_vector->at(id) - right_vector->at(id);
-        ans += temp * temp;
+    for (size_t id = 0; id < left_vector->size(); id++) {
+        double diff = left_vector->at(id) - right_vector->at(id);
+        ans += diff * diff;
     }
-    result.set_float(sqrt(ans));
+    result.set_float(static_cast<float>(sqrt(ans)));
     return RC::SUCCESS;
 }
 
@@ -116,17 +115,24 @@ RC VectorType::cosine_distance(const Value &left, const Value &right, Value &res
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
 
     double a2 = 0, b2 = 0, ab = 0;
-    double a, b;
-    for(size_t id = 0; id < left_vector->size(); id++){
-        a = left_vector->at(id);
-        b = right_vector->at(id);
+    for (size_t id = 0; id < left_vector->size(); id++) {
+        double a = left_vector->at(id);
+        double b = right_vector->at(id);
         a2 += a * a;
         b2 += b * b;
         ab += a * b;
     }
-    result.set_float(1 - ab / (sqrt(a2) * sqrt(b2)));
+
+    double norm_a = sqrt(a2);
+    double norm_b = sqrt(b2);
+    if (norm_a == 0 || norm_b == 0) {
+        result.set_float(0);
+    } else {
+        result.set_float(static_cast<float>(fabs(1 - ab / (norm_a * norm_b))));
+    }
     return RC::SUCCESS;
 }
+
 
 RC VectorType::inner_product(const Value &left, const Value &right, Value &result) const
 {

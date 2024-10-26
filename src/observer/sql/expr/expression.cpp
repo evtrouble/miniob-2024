@@ -977,18 +977,6 @@ unique_ptr<Aggregator> AggregateExpr::create_aggregator() const
       aggregator = make_unique<AvgAggregator>();
       break;
     }
-    case Type::L2_DISTANCE:{
-      aggregator = make_unique<L2_distanceAggregator>();
-      break;
-    }
-    case Type::COSINE_DISTANCE:{
-      aggregator = make_unique<Cosine_distanceAggregator>();
-      break;
-    }
-    case Type::INNER_PRODUCT:{
-      aggregator = make_unique<Inner_productAggregator>();
-      break;
-    }
     default: {
       ASSERT(false, "unsupported aggregate type");
       break;
@@ -1015,12 +1003,6 @@ RC AggregateExpr::type_from_string(const char *type_str, AggregateExpr::Type &ty
     type = Type::MAX;
   } else if (0 == strcasecmp(type_str, "min")) {
     type = Type::MIN;
-  } else if (0 == strcasecmp(type_str, "l2_distance")) {
-    type = Type::L2_DISTANCE;
-  } else if (0 == strcasecmp(type_str, "cosine_distance")) {
-    type = Type::COSINE_DISTANCE;
-  } else if (0 == strcasecmp(type_str, "inner_product")) {
-    type = Type::INNER_PRODUCT;
   } else {
     rc = RC::INVALID_ARGUMENT;
   }

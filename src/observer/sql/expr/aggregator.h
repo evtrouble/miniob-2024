@@ -66,24 +66,3 @@ public:
   RC accumulate(const Value &value) override;
   RC evaluate(Value &result, bool have_groub_by = true) override;
 };
-
-class L2_distanceAggregator : public Aggregator
-{
-public:
-  RC accumulate(const Value &value) override;
-  RC evaluate(Value &result, bool have_groub_by = true) override;
-};
-
-class Cosine_distanceAggregator : public Aggregator
-{
-public:
-  RC accumulate(const Value &value) override;
-  RC evaluate(Value &result, bool have_groub_by = true) override;
-};
-
-class Inner_productAggregator : public Aggregator
-{
-public:
-  RC accumulate(const Value &value) override;
-  RC evaluate(Value &result, bool have_groub_by = true) override;
-};

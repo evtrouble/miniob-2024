@@ -330,12 +330,6 @@ TEST(AggregateExpr, aggregate_expr_test)
   ASSERT_EQ(RC::SUCCESS, AggregateExpr::type_from_string("max", aggr_type));
   ASSERT_EQ(aggr_type, AggregateExpr::Type::MAX);
   ASSERT_EQ(RC::SUCCESS, AggregateExpr::type_from_string("min", aggr_type));
-  ASSERT_EQ(aggr_type, AggregateExpr::Type::L2_DISTANCE);
-  ASSERT_EQ(RC::SUCCESS, AggregateExpr::type_from_string("l2_distance", aggr_type));
-  ASSERT_EQ(aggr_type, AggregateExpr::Type::COSINE_DISTANCE);
-  ASSERT_EQ(RC::SUCCESS, AggregateExpr::type_from_string("cosine_distance", aggr_type));
-  ASSERT_EQ(aggr_type, AggregateExpr::Type::INNER_PRODUCT);
-  ASSERT_EQ(RC::SUCCESS, AggregateExpr::type_from_string("inner_product", aggr_type));
   ASSERT_EQ(aggr_type, AggregateExpr::Type::MIN);
   ASSERT_EQ(RC::INVALID_ARGUMENT, AggregateExpr::type_from_string("invalid type", aggr_type));
 }
