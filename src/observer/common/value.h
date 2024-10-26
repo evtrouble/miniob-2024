@@ -182,6 +182,7 @@ public:
     return DataType::type_instance(result.attr_type())->inner_product(left, right, result);
   }
 
+public:
   void set_type(AttrType type) { this->attr_type_ = type; }
   void set_data(char *data, int length);
   void set_data(const char *data, int length) { this->set_data(const_cast<char *>(data), length); }
@@ -213,6 +214,8 @@ public:
   string get_string() const;
   bool   get_boolean() const;
   int64_t get_long() const;
+
+  static constexpr int ATTR_TYPE_LENGTH[] = {-1, 4, 4, 4, 4, 1, 10, 4, 8, 0};
 
 private:
   void set_int(int val);

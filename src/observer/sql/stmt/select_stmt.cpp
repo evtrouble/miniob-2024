@@ -17,7 +17,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/log/log.h"
 #include "sql/stmt/filter_stmt.h"
 #include "storage/db/db.h"
-#include "storage/table/table.h"
+#include "storage/table/base_table.h"
 #include "sql/parser/expression_binder.h"
 
 using namespace std;
@@ -32,7 +32,7 @@ SelectStmt::~SelectStmt()
 }
 
 RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt, 
-  unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
   tables_t& table_map, int fa)
 {
   if (nullptr == db) {
@@ -44,8 +44,8 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   BinderContext binder_context(table_alias_map);
 
   // collect tables in `from` statement
-  vector<Table *>                tables;
-  auto size = depends->size();
+  vector<BaseTable *>                tables;
+  auto size = depends.size();
  
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
     const char *table_name = select_sql.relations[i].c_str();
@@ -55,7 +55,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
       return RC::INVALID_ARGUMENT;
     }
 
-    Table *table = db->find_table(table_name);
+    BaseTable *table = db->find_base_table(table_name);
     if (nullptr == table) {
       LOG_WARN("no such table. db=%s, table_name=%s", db->name(), table_name);
       return RC::SCHEMA_TABLE_NOT_EXIST;
@@ -115,14 +115,14 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
     }
   }
 
-  Table *default_table = nullptr;
+  BaseTable *default_table = nullptr;
   if (tables.size() == 1) {
     default_table = tables[0];
   }
 
-  depends->emplace_back(vector<uint32_t>());
+  depends.emplace_back(vector<uint32_t>());
   if(fa >= 0){
-    depends->at(fa).emplace_back(size);
+    depends.at(fa).emplace_back(size);
   }
 
   // create filter statement in `where` statement
@@ -148,7 +148,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
 
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
     const char *table_name = select_sql.relations[i].c_str();
-    if(table_map.at(table_name).second == size){
+    if(table_map.count(table_name) && table_map.at(table_name).second == size){
       table_map.erase(table_name);
     }
     string& table_alias = select_sql.alias[i];

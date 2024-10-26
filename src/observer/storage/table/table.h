@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include "storage/table/base_table.h"
 #include "storage/table/table_meta.h"
 #include "common/types.h"
 #include "common/lang/span.h"
@@ -37,11 +38,11 @@ class Db;
  * @brief 表
  *
  */
-class Table
+class Table : public BaseTable
 {
 public:
   Table() = default;
-  ~Table();
+  virtual ~Table();
 
   /**
    * 创建一个表
@@ -83,7 +84,7 @@ public:
    */
   RC insert_record(Record &record);
   RC update_record(const RID &rid, std::vector<const FieldMeta *> &fields, std::vector<Value> &values);
-  RC update_record(const Record &record);
+  RC update_record(Record &new_record, Record &old_record);
   RC delete_record(const Record &record);
   RC delete_record(const RID &rid);
   RC get_record(const RID &rid, Record &record);
@@ -91,7 +92,7 @@ public:
   RC recover_insert_record(Record &record);
 
   // TODO refactor
-  RC create_index(Trx *trx, bool unique, const FieldMeta *field_meta, const char *index_name);
+  RC create_index(Trx *trx, bool unique, std::vector<const FieldMeta *> &field_metas, const char *index_name);
 
   RC get_record_scanner(RecordFileScanner &scanner, Trx *trx, ReadWriteMode mode);
 
@@ -134,8 +135,6 @@ public:
 
   Db *db() const { return db_; }
 
-  const TableMeta &table_meta() const;
-
   RC                          sync();
   const std::vector<Index *> &indexes() const { return indexes_; }
 
@@ -151,11 +150,11 @@ private:
 public:
   Index *find_index(const char *index_name) const;
   Index *find_index_by_field(const char *field_name) const;
+  Index *find_index_by_fields(std::vector<const char *> fields) const;
 
 private:
   Db                *db_ = nullptr;
   string             base_dir_;
-  TableMeta          table_meta_;
   DiskBufferPool    *data_buffer_pool_ = nullptr;  /// 数据文件关联的buffer pool
   DiskBufferPool    *text_buffer_pool_ = nullptr;   /// text文件关联的buffer pool
   RecordFileHandler *record_handler_   = nullptr;  /// 记录操作

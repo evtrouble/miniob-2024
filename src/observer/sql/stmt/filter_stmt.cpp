@@ -19,9 +19,10 @@ See the Mulan PSL v2 for more details. */
 #include "common/rc.h"
 #include "storage/db/db.h"
 #include "storage/table/table.h"
+#include "storage/table/view.h"
 
-RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, Conditions& conditions, 
-    FilterStmt *&stmt, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+RC FilterStmt::create(Db *db, BaseTable *default_table, tables_t& table_map, Conditions& conditions, 
+    FilterStmt *&stmt, vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
     int fa)
 {
   RC rc = RC::SUCCESS;
@@ -30,7 +31,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, Conditi
   
   size_t min_depend = UINT32_MAX;
 
-  auto size = depends->size() - 1;
+  auto size = depends.size() - 1;
   vector<unique_ptr<Expression>> bound_expressions;
 
   auto bind_expression = [&](unique_ptr<Expression> &expr){
@@ -43,13 +44,13 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, Conditi
       case ExprType::UNBOUND_FIELD:{
         auto unbound_field_expr = static_cast<UnboundFieldExpr *>(expr.get());
 
-        Table *table;
+        BaseTable *table;
         const FieldMeta *field_meta;
 
         RC rc = get_table_and_field(db, default_table, table_map, table, field_meta, 
             *unbound_field_expr, &min_depend);
         if(rc != RC::SUCCESS)return rc;
-
+        
         Field      field(table, field_meta);
         FieldExpr *field_expr = new FieldExpr(field);
         field_expr->set_name(unbound_field_expr->field_name());
@@ -57,7 +58,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, Conditi
       }break;
       case ExprType::SELECT:{
         auto select_expr = static_cast<SelectExpr *>(expr.get());
-        select_exprs->emplace_back(select_expr);
+        select_exprs.emplace_back(select_expr);
         return select_expr->create_stmt(db, depends, select_exprs, table_map, size);
       }break;
       default:return RC::SUCCESS;
@@ -81,7 +82,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, Conditi
   }
 
   if(fa >= 0 && min_depend < size)
-    depends->at(size).emplace_back(min_depend);
+    depends.at(size).emplace_back(min_depend);
 
   tmp_stmt->filter_units_.swap(bound_expressions);
 
@@ -89,7 +90,7 @@ RC FilterStmt::create(Db *db, Table *default_table, tables_t& table_map, Conditi
   return rc;
 }
 
-RC FilterStmt::get_table_and_field(Db *db, Table *default_table, tables_t& table_map, Table*& table, const FieldMeta*& field, 
+RC FilterStmt::get_table_and_field(Db *db, BaseTable *default_table, tables_t& table_map, BaseTable*& table, const FieldMeta*& field, 
     UnboundFieldExpr& expr, size_t *min_depend)
 {
   table = nullptr;

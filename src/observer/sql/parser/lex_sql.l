@@ -61,7 +61,7 @@ extern double atof();
 
 WHITE_SAPCE      [\ \t\b\f]
 DIGIT            [0-9]+
-ID               [A-Za-z_]+[A-Za-z0-9_]*
+ID_KEY           [A-Za-z_]+[A-Za-z0-9_]*
 DOT              \.
 QUOTE            [\'\"]
 %x STR
@@ -85,6 +85,7 @@ HELP                                    RETURN_TOKEN(HELP);
 CREATE                                  RETURN_TOKEN(CREATE);
 DROP                                    RETURN_TOKEN(DROP);
 TABLE                                   RETURN_TOKEN(TABLE);
+VIEW                                    RETURN_TOKEN(VIEW);
 TABLES                                  RETURN_TOKEN(TABLES);
 INDEX                                   RETURN_TOKEN(INDEX);
 ON                                      RETURN_TOKEN(ON);
@@ -136,7 +137,7 @@ FORMAT                                  RETURN_TOKEN(FORMAT);
 L2_DISTANCE                             RETURN_TOKEN(L2_DISTANCE);
 COSINE_DISTANCE                         RETURN_TOKEN(COSINE_DISTANCE);
 INNER_PRODUCT                           RETURN_TOKEN(INNER_PRODUCT);
-{ID}                                    yylval->string=strdup(yytext); RETURN_TOKEN(ID);
+{ID_KEY}                                yylval->string=strdup(yytext); RETURN_TOKEN(ID_KEY);
 "("                                     RETURN_TOKEN(LBRACE);
 ")"                                     RETURN_TOKEN(RBRACE);
 

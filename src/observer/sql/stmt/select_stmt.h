@@ -39,11 +39,11 @@ public:
 
 public:
   static RC create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt, 
-    unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+    vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
     tables_t& table_map, int fa = -1);
 
 public:
-  const std::vector<Table *> &tables() const { return tables_; }
+  const std::vector<BaseTable *> &tables() const { return tables_; }
   FilterStmt                 *filter_stmt() const { return filter_stmt_; }
 
   std::vector<std::unique_ptr<Expression>> &query_expressions() { return query_expressions_; }
@@ -55,7 +55,7 @@ public:
 
 private:
   std::vector<std::unique_ptr<Expression>> query_expressions_;
-  std::vector<Table *>                     tables_;
+  std::vector<BaseTable *>                 tables_;
   FilterStmt                              *filter_stmt_ = nullptr;
   std::vector<std::unique_ptr<Expression>> group_by_;
   std::vector<std::unique_ptr<Expression>> order_by_;

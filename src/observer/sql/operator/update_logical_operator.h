@@ -28,20 +28,20 @@ class FieldMeta;
 class UpdateLogicalOperator : public LogicalOperator
 {
 public:
-  UpdateLogicalOperator(Table *table, const std::vector<const FieldMeta *>&& fields, 
+  UpdateLogicalOperator(BaseTable *table, const std::vector<const FieldMeta *>&& fields, 
     std::vector<unique_ptr<Expression>>&& values);
   virtual ~UpdateLogicalOperator() = default;
 
   LogicalOperatorType type() const override { return LogicalOperatorType::UPDATE; }
 
-  Table                    *table() const { return table_; }
+  BaseTable                    *table() const { return table_; }
   const std::vector<const FieldMeta *> &fields() const { return fields_; }
   std::vector<const FieldMeta *>       &fields() { return fields_; }
   const std::vector<unique_ptr<Expression>> &values() const { return values_; }
   std::vector<unique_ptr<Expression>>       &values() { return values_; }
 
 private:
-  Table             *table_ = nullptr;
+  BaseTable             *table_ = nullptr;
   std::vector<const FieldMeta *> fields_;
   std::vector<unique_ptr<Expression>> values_;
 };

@@ -32,7 +32,7 @@ public:
   Stmt *child() const { return child_stmt_.get(); }
 
   static RC create(Db *db, const ExplainSqlNode &query, Stmt *&stmt,
-    unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs,
+    vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs,
     tables_t& table_map, int fa = -1);
 
 private:

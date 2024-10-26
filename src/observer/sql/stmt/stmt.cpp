@@ -19,6 +19,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/stmt/calc_stmt.h"
 #include "sql/stmt/create_index_stmt.h"
 #include "sql/stmt/create_table_stmt.h"
+#include "sql/stmt/create_view_stmt.h"
 #include "sql/stmt/delete_stmt.h"
 #include "sql/stmt/drop_table_stmt.h"
 #include "sql/stmt/desc_table_stmt.h"
@@ -50,7 +51,7 @@ bool stmt_type_ddl(StmtType type)
   }
 }
 RC Stmt::create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt, 
-  unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
   tables_t& table_map, int fa)
 {
   stmt = nullptr;
@@ -75,6 +76,10 @@ RC Stmt::create_stmt(Db *db, ParsedSqlNode &sql_node, Stmt *&stmt,
 
     case SCF_CREATE_INDEX: {
       return CreateIndexStmt::create(db, sql_node.create_index, stmt);
+    }
+
+    case SCF_CREATE_VIEW: {
+      return CreateViewStmt::create(db, sql_node.create_view, stmt, sql_node.selection, depends, select_exprs, table_map, fa);
     }
 
     case SCF_CREATE_TABLE: {

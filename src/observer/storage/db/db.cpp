@@ -25,6 +25,7 @@ See the Mulan PSL v2 for more details. */
 #include "common/global_context.h"
 #include "storage/common/meta_util.h"
 #include "storage/table/table.h"
+#include "storage/table/view.h"
 #include "storage/table/table_meta.h"
 #include "storage/trx/trx.h"
 #include "storage/clog/disk_log_handler.h"
@@ -172,7 +173,9 @@ RC Db::drop_table(const char *table_name)
 
   // 文件路径可以移到Table模块
   string  table_file_path = table_meta_file(path_.c_str(), table_name);
-  Table  *table           = opened_tables_[table_name];
+  BaseTable  *base_table           = opened_tables_[table_name];
+  if(base_table->is_view())return RC::INVALID_ARGUMENT;
+  Table * table = dynamic_cast<Table *>(base_table);
   int32_t  table_id       = table->table_id();
   
   rc = table->drop(table_file_path.c_str());
@@ -190,7 +193,16 @@ RC Db::drop_table(const char *table_name)
 
 Table *Db::find_table(const char *table_name) const
 {
-  unordered_map<string, Table *>::const_iterator iter = opened_tables_.find(table_name);
+  std::unordered_map<std::string, BaseTable *>::const_iterator iter = opened_tables_.find(table_name);
+  if (iter != opened_tables_.end() && iter->second->is_table()) {
+    return static_cast<Table*>(iter->second);
+  }
+  return nullptr;
+}
+
+BaseTable *Db::find_base_table(const char *table_name) const
+{
+  std::unordered_map<std::string, BaseTable *>::const_iterator iter = opened_tables_.find(table_name);
   if (iter != opened_tables_.end()) {
     return iter->second;
   }
@@ -200,8 +212,8 @@ Table *Db::find_table(const char *table_name) const
 Table *Db::find_table(int32_t table_id) const
 {
   for (auto pair : opened_tables_) {
-    if (pair.second->table_id() == table_id) {
-      return pair.second;
+    if (pair.second->table_id() == table_id && pair.second->is_table()) {
+      return static_cast<Table*>(pair.second);
     }
   }
   return nullptr;
@@ -260,7 +272,10 @@ RC Db::sync()
   RC rc = RC::SUCCESS;
   // 调用所有表的sync函数刷新数据到磁盘
   for (const auto &table_pair : opened_tables_) {
-    Table *table = table_pair.second;
+    if (table_pair.second->is_view()) {
+      continue;
+    }
+    Table *table = static_cast<Table*>(table_pair.second);
     rc           = table->sync();
     if (rc != RC::SUCCESS) {
       LOG_ERROR("Failed to flush table. table=%s.%s, rc=%d:%s", name_.c_str(), table->name(), rc, strrc(rc));
@@ -427,3 +442,31 @@ RC Db::init_dblwr_buffer()
 LogHandler        &Db::log_handler() { return *log_handler_; }
 BufferPoolManager &Db::buffer_pool_manager() { return *buffer_pool_manager_; }
 TrxKit            &Db::trx_kit() { return *trx_kit_; }
+
+RC Db::create_view(const char *view_name, span<const AttrInfoSqlNode> attributes, 
+                std::vector<unique_ptr<Expression>> &map_exprs, unique_ptr<Stmt> &select_stmt,
+                SelectAnalyzer &analyzer, bool allow_write)
+{
+  RC rc = RC::SUCCESS;
+  // check table_name
+  if (opened_tables_.count(view_name) != 0) {
+    LOG_WARN("%s has been opened before.", view_name);
+    return RC::SCHEMA_TABLE_EXIST;
+  }
+
+  View *view = new View();
+  int32_t table_id = next_table_id_++;
+  std::string view_file_path = view_meta_file(path_.c_str(), view_name);
+  view->set_db(this);
+  rc = view->create(table_id, view_file_path.c_str(), view_name, path_.c_str(), attributes, 
+    map_exprs, select_stmt, analyzer, allow_write);
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to create table %s.", view_name);
+    delete view;
+    return rc;
+  }
+
+  opened_tables_[view_name] = static_cast<BaseTable*>(view);
+  LOG_INFO("Create table success. table name=%s, table_id:%d", view_name, table_id);
+  return rc;
+}

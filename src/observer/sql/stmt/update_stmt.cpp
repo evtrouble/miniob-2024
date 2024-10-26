@@ -18,7 +18,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 
-UpdateStmt::UpdateStmt(Table *table, std::vector<const FieldMeta *>&& fields, 
+UpdateStmt::UpdateStmt(BaseTable *table, std::vector<const FieldMeta *>&& fields, 
   vector<unique_ptr<Expression>>&& values, FilterStmt *filter_stmt)
   : table_(table), fields_(move(fields)), values_(move(values)), filter_stmt_(filter_stmt)
 {}
@@ -32,7 +32,7 @@ UpdateStmt::~UpdateStmt()
 }
 
 RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt, 
-  unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
   tables_t& table_map, int fa)
 {
   const char *table_name = update.relation_name.c_str();
@@ -44,13 +44,11 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt,
   }
 
   // check whether the table exists
-  vector<Table *>tables;
-  Table *table = db->find_table(table_name);
+  BaseTable *table = db->find_base_table(table_name);
   if (nullptr == table) {
     LOG_WARN("no such table. db=%s, table_name=%s", db->name(), table_name);
     return RC::SCHEMA_TABLE_NOT_EXIST;
   }
-  tables.emplace_back(table);
 
   // check the fields existence
   const TableMeta &table_meta = table->table_meta();
@@ -58,7 +56,7 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt,
 
   std::vector<const FieldMeta *> fields;
 
-  auto size = depends->size();
+  auto size = depends.size();
   for(auto& attribute_name : update.attribute_names){
     field = table_meta.field(attribute_name.c_str());
     
@@ -87,7 +85,7 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt,
     table_map.insert({table_name, temp});
   }
 
-  depends->emplace_back(vector<uint32_t>());
+  depends.emplace_back(vector<uint32_t>());
 
   FilterStmt *filter_stmt = nullptr;
   RC          rc          = FilterStmt::create(
@@ -100,7 +98,7 @@ RC UpdateStmt::create(Db *db, UpdateSqlNode &update, Stmt *&stmt,
   for(auto& value : update.values){
     if(value->type() == ExprType::SELECT){
       SelectExpr* expr = static_cast<SelectExpr*>(value.get());
-      select_exprs->emplace_back(expr);
+      select_exprs.emplace_back(expr);
       rc = expr->create_stmt(db, depends, select_exprs, table_map, size);
       if(rc != RC::SUCCESS)return rc;
     }

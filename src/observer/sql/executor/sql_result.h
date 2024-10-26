@@ -22,6 +22,70 @@ See the Mulan PSL v2 for more details. */
 
 class Session;
 
+struct SelectAnalyzer
+{
+  vector<bool>                      instack;//是否在栈内
+  std::stack<int>                   st;
+  vector<int>                       dfn;
+  vector<int>                       low;
+  int                               cnt = 0;
+  vector<int>                       scc;
+  vector<SelectExpr*> select_exprs_;           ///< 子查询表达式
+  vector<vector<uint32_t>> depends_;         ///< 依赖关系
+
+  void targan(int u = 0)
+  {
+    cnt++;
+    dfn[u] = low[u] = cnt;
+    instack[u] = true;
+    st.push(u);
+    for (size_t i = 0; i < depends_.at(u).size(); i++)
+    {
+        int v = depends_.at(u)[i];
+        if (dfn[v] == 0)
+        {
+          targan(v);
+          low[u] = std::min(low[u], low[v]);
+        }
+        else if (instack[v])low[u] = std::min(low[u], dfn[v]);
+    }
+    if (dfn[u] == low[u])
+    {
+        int temp = -1;
+        scc.push_back(INT32_MAX);
+        auto id = scc.size() - 1;
+        do{
+            temp = st.top();
+            st.pop();
+            instack[temp] = false;
+            scc[id] = std::min(scc[id], temp);
+        } while (temp != u);
+    }
+  }
+
+  RC pretreatment()
+  {
+    if(depends_.size() == 0 || depends_.size() == 1)return RC::SUCCESS;
+    if(scc.size() == 0){
+      auto size = depends_.size();
+      dfn.resize(size);
+      instack.resize(size);
+      low.resize(size);
+
+      targan();
+      std::sort(scc.begin(), scc.end());
+    }
+
+    RC rc = RC::SUCCESS;
+
+    for(int id = scc.size() - 1; id; id--){
+      rc = select_exprs_.at(scc[id] - 1)->pretreatment();
+      if(rc != RC::SUCCESS)return rc;
+    }
+    return rc;
+  }
+};
+
 /**
  * @brief SQL执行结果
  * @details
@@ -40,8 +104,8 @@ public:
   void set_state_string(const std::string &state_string) { state_string_ = state_string; }
 
   void set_operator(std::unique_ptr<PhysicalOperator> oper);
-  void set_depends(unique_ptr<vector<vector<uint32_t>>> depends);
-  void set_exprs(unique_ptr<vector<SelectExpr*>> select_exprs);
+  void set_depends(vector<vector<uint32_t>>&& depends);
+  void set_exprs(vector<SelectExpr*>&& select_exprs);
 
   bool               has_operator() const { return operator_ != nullptr; }
   const TupleSchema &tuple_schema() const { return tuple_schema_; }
@@ -54,21 +118,10 @@ public:
   RC next_chunk(Chunk &chunk);
 
 private:
-  void targan(int u);
-  RC                 pretreatment();
-
-private:
   Session                          *session_ = nullptr;  ///< 当前所属会话
   std::unique_ptr<PhysicalOperator> operator_;           ///< 执行计划
-  unique_ptr<vector<SelectExpr*>> select_exprs_;           ///< 子查询表达式
-  unique_ptr<vector<vector<uint32_t>>> depends_;         ///< 依赖关系
   TupleSchema                       tuple_schema_;       ///< 返回的表头信息。可能有也可能没有
   RC                                return_code_ = RC::SUCCESS;
   std::string                       state_string_;
-  vector<bool>                      instack;//是否在站内
-  std::stack<int>                   st;
-  vector<int>                       dfn;
-  vector<int>                       low;
-  int                               cnt = 0;
-  vector<int>                       scc;
+  SelectAnalyzer                    analyzer_;
 };

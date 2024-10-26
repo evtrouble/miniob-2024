@@ -1029,6 +1029,7 @@ RC AggregateExpr::type_from_string(const char *type_str, AggregateExpr::Type &ty
 
 RC SelectExpr::logical_generate()
 {
+  if(logical_operator_ != nullptr)return RC::SUCCESS;
   RC rc = RC::SUCCESS;
   rc = LogicalPlanGenerator().create(stmt_, logical_operator_);
   value_type_ = logical_operator_->expressions().at(0)->value_type();
@@ -1039,6 +1040,7 @@ SelectExpr::SelectExpr(ParsedSqlNode* sql_node) : sql_node_(sql_node){}
 
 RC SelectExpr::physical_generate()
 {
+  if(physical_operator_ != nullptr)return RC::SUCCESS;
   return PhysicalPlanGenerator().create(*logical_operator_, physical_operator_);
 }
 
@@ -1047,7 +1049,7 @@ SelectExpr::~SelectExpr(){
   if(sql_node_ != nullptr)delete sql_node_;
 }
 
-RC SelectExpr::create_stmt(Db *db, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs,
+RC SelectExpr::create_stmt(Db *db, vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs,
   tables_t& table_map, int fa)
 {
   return Stmt::create_stmt(db, *sql_node_, stmt_, depends, select_exprs, table_map, fa);
@@ -1156,8 +1158,9 @@ RC SelectExpr::pretreatment()
   RC rc = RC::SUCCESS;
   Tuple *tuple = nullptr;
   physical_operator_->open(trx_);
-  if(values_ == nullptr)
-    values_ = make_unique<vector<vector<Value>>>();
+  
+  values_.reset();
+  values_ = make_unique<vector<vector<Value>>>();
 
   Value value;
   while (RC::SUCCESS == (rc = next_tuple(tuple))) {

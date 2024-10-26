@@ -135,8 +135,8 @@ RC LogicalPlanGenerator::create_plan(SelectStmt *select_stmt, unique_ptr<Logical
   unique_ptr<LogicalOperator> table_oper(nullptr);
   last_oper = &table_oper;
 
-  const std::vector<Table *> &tables = select_stmt->tables();
-  for (Table *table : tables) {
+  const std::vector<BaseTable *> &tables = select_stmt->tables();
+  for (BaseTable *table : tables) {
 
     unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, ReadWriteMode::READ_ONLY));
     if (table_oper == nullptr) {
@@ -334,7 +334,7 @@ int LogicalPlanGenerator::implicit_cast_cost(AttrType from, AttrType to)
 
 RC LogicalPlanGenerator::create_plan(InsertStmt *insert_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
-  Table        *table = insert_stmt->table();
+  BaseTable        *table = insert_stmt->table();
 
   auto values_set = insert_stmt->values_set();
   InsertLogicalOperator *insert_operator = new InsertLogicalOperator(table, move(values_set));
@@ -344,7 +344,7 @@ RC LogicalPlanGenerator::create_plan(InsertStmt *insert_stmt, unique_ptr<Logical
 
 RC LogicalPlanGenerator::create_plan(UpdateStmt *update_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
-  Table                      *table       = update_stmt->table();
+  BaseTable                  *table       = update_stmt->table();
   FilterStmt                 *filter_stmt = update_stmt->filter_stmt();
   unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, ReadWriteMode::READ_WRITE));
 

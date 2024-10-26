@@ -17,11 +17,11 @@ See the Mulan PSL v2 for more details. */
 #include "storage/db/db.h"
 #include "storage/table/table.h"
 
-InsertStmt::InsertStmt(Table *table, const vector<vector<Value>>&& values_set)
+InsertStmt::InsertStmt(BaseTable *table, vector<vector<Value>>&& values_set)
     : table_(table), values_set_(std::move(values_set))
 {}
 
-RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
+RC InsertStmt::create(Db *db, InsertSqlNode &inserts, Stmt *&stmt)
 {
   const char *table_name = inserts.relation_name.c_str();
   if (nullptr == db || nullptr == table_name || inserts.values.empty()) {
@@ -31,7 +31,7 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
   }
 
   // check whether the table exists
-  Table *table = db->find_table(table_name);
+  BaseTable *table = db->find_base_table(table_name);
   if (nullptr == table) {
     LOG_WARN("no such table. db=%s, table_name=%s", db->name(), table_name);
     return RC::SCHEMA_TABLE_NOT_EXIST;
@@ -41,9 +41,29 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
   const TableMeta &table_meta = table->table_meta();
   const int        field_num  = table_meta.field_num() - table_meta.sys_field_num();
 
-  for(auto& values : inserts.values){
-    const Value *value = values.data();
+  vector<vector<Value>> row_values(inserts.values);
+  vector<size_t> cols_id;
+  if(inserts.attrs_name.size() != 0){
+    cols_id.resize(inserts.attrs_name.size());
+    for(size_t id = 0; id < cols_id.size(); id++){
+      auto field = table_meta.field(inserts.attrs_name[id].c_str());
+      cols_id[id] = field->field_id() - table_meta.sys_field_num();
+    }
+  }
+
+  for(size_t id = 0; id < inserts.values.size(); id++){
+    auto& values = inserts.values[id];
     const int        value_num  = static_cast<int>(values.size());
+    auto& row_value = row_values[id];
+
+    if(inserts.attrs_name.size() != 0){
+      row_value.resize(field_num, Value((void*)nullptr));
+      for(size_t i = 0; i < cols_id.size(); i++){
+        row_value[cols_id[i]] = values[i];
+      }
+      continue;
+    }
+
     if (field_num != value_num) {
       LOG_WARN("schema mismatch. value num=%d, field num in schema=%d", value_num, field_num);
       return RC::SCHEMA_FIELD_MISSING;
@@ -53,7 +73,7 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
     for (int i = 0; i < field_num; i++) {
       const FieldMeta *field_meta = table_meta.field(i + table_meta.sys_field_num());
       const AttrType field_type = field_meta->type();
-      const AttrType value_type = value[i].attr_type();
+      const AttrType value_type = values[i].attr_type();
       if (AttrType::TEXTS == field_type && AttrType::CHARS == value_type) {
         if (MAX_TEXT_LENGTH < values[i].length()) {
           LOG_WARN("Text length:%d, over max_length 65535", values[i].length());
@@ -61,11 +81,11 @@ RC InsertStmt::create(Db *db, const InsertSqlNode &inserts, Stmt *&stmt)
         }
       }
     }
+
+    row_value.swap(inserts.values[id]);
   }
 
-
-
   // everything alright
-  stmt = new InsertStmt(table, std::move(inserts.values));
+  stmt = new InsertStmt(table, std::move(row_values));
   return RC::SUCCESS;
 }

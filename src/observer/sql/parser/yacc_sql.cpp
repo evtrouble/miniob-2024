@@ -617,7 +617,7 @@ union yyalloc
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  80
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  59
+#define YYNNTS  63
 /* YYNRULES -- Number of rules.  */
 #define YYNRULES  147
 /* YYNSTATES -- Number of states.  */
@@ -762,7 +762,7 @@ static const yytype_int16 yytoknum[] =
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
 
-#define YYTABLE_NINF (-42)
+#define YYTABLE_NINF (-49)
 
 #define yytable_value_is_error(Yyn) \
   0
@@ -1949,12 +1949,40 @@ yyreduce:
     {
       (yyval.sql_node) = new ParsedSqlNode(SCF_CREATE_INDEX);
       CreateIndexSqlNode &create_index = (yyval.sql_node)->create_index;
-      create_index.unique = (yyvsp[-7].boolean);
-      create_index.index_name = (yyvsp[-5].string);
-      create_index.relation_name = (yyvsp[-3].string);
-      create_index.attribute_name = (yyvsp[-1].string);
-      free((yyvsp[-5].string));
-      free((yyvsp[-3].string));
+      create_index.unique = (yyvsp[-8].boolean);
+      create_index.index_name = (yyvsp[-6].string);
+      create_index.relation_name = (yyvsp[-4].string);
+      std::vector<std::string> *idx_cols = (yyvsp[-1].relation_list);
+      if (nullptr != idx_cols) {
+        create_index.attr_names.swap(*idx_cols);
+        delete (yyvsp[-1].relation_list);
+      }
+      create_index.attr_names.emplace_back((yyvsp[-2].string));
+      std::reverse(create_index.attr_names.begin(), create_index.attr_names.end());
+      free((yyvsp[-6].string));
+      free((yyvsp[-4].string));
+      free((yyvsp[-2].string));
+    }
+#line 1981 "yacc_sql.cpp"
+    break;
+
+  case 36: /* idx_col_list: %empty  */
+#line 362 "yacc_sql.y"
+    {
+      (yyval.relation_list) = nullptr;
+    }
+#line 1989 "yacc_sql.cpp"
+    break;
+
+  case 37: /* idx_col_list: COMMA ID idx_col_list  */
+#line 366 "yacc_sql.y"
+    {
+      if ((yyvsp[0].relation_list) != nullptr) {
+        (yyval.relation_list) = (yyvsp[0].relation_list);
+      } else {
+        (yyval.relation_list) = new std::vector<std::string>;
+      }
+      (yyval.relation_list)->emplace_back((yyvsp[-1].string));
       free((yyvsp[-1].string));
     }
 #line 1961 "yacc_sql.cpp"
@@ -2186,14 +2214,21 @@ yyreduce:
 #line 509 "yacc_sql.y"
     {
       (yyval.sql_node) = new ParsedSqlNode(SCF_INSERT);
-      (yyval.sql_node)->insertion.relation_name = (yyvsp[-2].string);
+      (yyval.sql_node)->insertion.relation_name = (yyvsp[-3].string);
+
       if ((yyvsp[0].values_list) != nullptr) {
         (yyval.sql_node)->insertion.values.swap(*(yyvsp[0].values_list));
         std::reverse((yyval.sql_node)->insertion.values.begin(), (yyval.sql_node)->insertion.values.end());
         delete (yyvsp[0].values_list);
       }
 
-      free((yyvsp[-2].string));
+      if (nullptr != (yyvsp[-2].relation_list)) {
+        (yyval.sql_node)->insertion.attrs_name.swap(*(yyvsp[-2].relation_list));
+        std::reverse((yyval.sql_node)->insertion.attrs_name.begin(), (yyval.sql_node)->insertion.attrs_name.end());
+        delete (yyvsp[-2].relation_list);
+      }
+
+      free((yyvsp[-3].string));
     }
 #line 2199 "yacc_sql.cpp"
     break;

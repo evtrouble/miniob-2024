@@ -135,6 +135,7 @@ struct CalcSqlNode
 struct InsertSqlNode
 {
   std::string                     relation_name;  ///< Relation to insert into
+  std::vector<std::string>        attrs_name;
   std::vector<std::vector<Value>> values;         ///< 要插入的值
 };
 
@@ -202,10 +203,10 @@ struct DropTableSqlNode
  */
 struct CreateIndexSqlNode
 {
-  bool        unique;          ///< Unique Index
-  std::string index_name;      ///< Index name
-  std::string relation_name;   ///< Relation name
-  std::string attribute_name;  ///< Attribute name
+  bool                unique;         ///< Unique Index
+  std::string         index_name;     ///< Index name
+  std::string         relation_name;  ///< Relation name
+  std::vector<string> attr_names;     ///< Attribute name
 };
 
 /**
@@ -278,6 +279,13 @@ struct ErrorSqlNode
   int         column;
 };
 
+
+struct CreateViewSqlNode
+{
+  std::string view_name;
+  std::vector<std::string> col_names;
+};
+
 /**
  * @brief 表示一个SQL语句的类型
  * @ingroup SQLParser
@@ -292,6 +300,7 @@ enum SqlCommandFlag
   SCF_DELETE,
   SCF_CREATE_TABLE,
   SCF_DROP_TABLE,
+  SCF_CREATE_VIEW,
   SCF_CREATE_INDEX,
   SCF_DROP_INDEX,
   SCF_SYNC,
@@ -323,6 +332,7 @@ public:
   DeleteSqlNode       deletion;
   UpdateSqlNode       update;
   CreateTableSqlNode  create_table;
+  CreateViewSqlNode   create_view;
   DropTableSqlNode    drop_table;
   CreateIndexSqlNode  create_index;
   ShowIndexSqlNode    show_index;

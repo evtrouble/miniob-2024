@@ -86,6 +86,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         ASC
         DESC
         TABLE
+        VIEW
         TABLES
         INDEX
         CALC
@@ -174,7 +175,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 
 %token <number> NUMBER
 %token <floats> FLOAT
-%token <string> ID
+%token <string> ID_KEY
 %token <string> SSS
 %token <string> DATE_VALUE
 
@@ -189,6 +190,8 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <value>               value
 %type <number>              number
 %type <string>              relation
+%type <string>              ID
+%type <relation_list>       col_list
 %type <comp>                comp_op
 %type <boolean>             unique_option
 %type <boolean>             as_option
@@ -196,6 +199,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <rel_attr>            rel_attr
 %type <attr_infos>          attr_def_list
 %type <attr_info>           attr_def
+%type <relation_list>       idx_col_list
 %type <values_list>         values_list
 %type <value_list>          value_list
 %type <key_values>          key_values
@@ -225,6 +229,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <sql_node>            drop_table_stmt
 %type <sql_node>            show_index_stmt
 %type <sql_node>            show_tables_stmt
+%type <sql_node>            create_view_stmt
 %type <sql_node>            desc_table_stmt
 %type <sql_node>            create_index_stmt
 %type <sql_node>            drop_index_stmt
@@ -267,6 +272,7 @@ command_wrapper:
   | create_table_stmt
   | drop_table_stmt
   | show_index_stmt
+  | create_view_stmt
   | show_tables_stmt
   | desc_table_stmt
   | create_index_stmt
@@ -346,17 +352,56 @@ desc_table_stmt:
     ;
 
 create_index_stmt:    /*create index 语句的语法解析树*/
-    CREATE unique_option INDEX ID ON ID LBRACE ID RBRACE
+    CREATE unique_option INDEX ID ON ID LBRACE ID idx_col_list RBRACE
     {
       $$ = new ParsedSqlNode(SCF_CREATE_INDEX);
       CreateIndexSqlNode &create_index = $$->create_index;
       create_index.unique = $2;
       create_index.index_name = $4;
       create_index.relation_name = $6;
-      create_index.attribute_name = $8;
+      std::vector<std::string> *idx_cols = $9;
+      if (nullptr != idx_cols) {
+        create_index.attr_names.swap(*idx_cols);
+        delete $9;
+      }
+      create_index.attr_names.emplace_back($8);
+      std::reverse(create_index.attr_names.begin(), create_index.attr_names.end());
       free($4);
       free($6);
       free($8);
+    }
+    ;
+idx_col_list:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | COMMA ID idx_col_list
+    {
+      if ($3 != nullptr) {
+        $$ = $3;
+      } else {
+        $$ = new std::vector<std::string>;
+      }
+      $$->emplace_back($2);
+      free($2);
+    }
+    ;
+
+col_list:
+    /* empty */
+    {
+      $$ = nullptr;
+    }
+    | LBRACE ID idx_col_list RBRACE
+    {
+      if ($3 != nullptr) {
+        $$ = $3;
+      } else {
+        $$ = new std::vector<std::string>;
+      }
+      $$->emplace_back($2);
+      free($2);      
     }
     ;
 unique_option:
@@ -378,6 +423,33 @@ drop_index_stmt:      /*drop index 语句的语法解析树*/
       free($5);
     }
     ;
+
+create_view_stmt:    /*create view 语句的语法解析树*/
+    CREATE VIEW ID AS select_stmt
+    {
+      $$ = $5;
+      $$->flag = SCF_CREATE_VIEW;
+      $$->create_view.view_name = $3;
+      free($3);
+    }
+    | CREATE VIEW ID LBRACE ID idx_col_list RBRACE AS select_stmt
+    {
+      $$ = $9;
+      $$->flag = SCF_CREATE_VIEW;
+      $$->create_view.view_name = $3;
+
+      std::vector<std::string> &col_names = $$->create_view.col_names;
+      if (nullptr != $6) {
+        col_names.swap(*$6);
+        delete $6;
+      }
+      col_names.emplace_back($5);
+      std::reverse(col_names.begin(), col_names.end());
+      free($3);
+      free($5);
+    }
+    ;
+
 create_table_stmt:    /*create table 语句的语法解析树*/
     CREATE TABLE ID LBRACE attr_def attr_def_list RBRACE storage_format
     {
@@ -485,7 +557,7 @@ attr_def:
 
 nullable:
     /* empty */
-    {$$ = false;}
+    { $$ = true; }
     | NULL_T {$$ = true;}
     | NOT NULL_T {$$ = false;}
     ;
@@ -505,14 +577,21 @@ date_type:
     ;
 
 insert_stmt:        /*insert   语句的语法解析树*/
-    INSERT INTO ID VALUES values_list
+    INSERT INTO ID col_list VALUES values_list
     {
       $$ = new ParsedSqlNode(SCF_INSERT);
       $$->insertion.relation_name = $3;
-      if ($5 != nullptr) {
-        $$->insertion.values.swap(*$5);
+
+      if ($6 != nullptr) {
+        $$->insertion.values.swap(*$6);
         std::reverse($$->insertion.values.begin(), $$->insertion.values.end());
-        delete $5;
+        delete $6;
+      }
+
+      if (nullptr != $4) {
+        $$->insertion.attrs_name.swap(*$4);
+        std::reverse($$->insertion.attrs_name.begin(), $$->insertion.attrs_name.end());
+        delete $4;
       }
 
       free($3);
@@ -802,6 +881,15 @@ expression:
     // your code here
     ;
 
+ID:
+    ID_KEY { $$ = $1; }
+    | DATA
+    {
+      $$ = (char *)malloc(sizeof(char) * 5);
+      memcpy($$, "data", sizeof(char) * 5);
+    }
+    ;
+
 rel_attr:
     ID {
       $$ = new RelAttrSqlNode;
@@ -915,6 +1003,7 @@ alias:
     | AS ID {
       $$ = $2;
     }
+    ;
 
 on:
     /* empty */

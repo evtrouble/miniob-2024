@@ -21,14 +21,16 @@ See the Mulan PSL v2 for more details. */
 #include "common/lang/memory.h"
 #include "common/lang/span.h"
 #include "sql/parser/parse_defs.h"
+#include "sql/executor/sql_result.h"
 #include "storage/buffer/disk_buffer_pool.h"
 #include "storage/clog/disk_log_handler.h"
 #include "storage/buffer/double_write_buffer.h"
 
-class Table;
 class LogHandler;
 class BufferPoolManager;
 class TrxKit;
+class BaseTable;
+class SelectStmt;
 
 /**
  * @brief 一个DB实例负责管理一批表
@@ -67,6 +69,16 @@ public:
       const StorageFormat storage_format = StorageFormat::ROW_FORMAT);
 
   /**
+   * @brief 创建一个视图
+   * @param table_name 视图名
+   * @param attributes 视图的属性
+   * @param storage_format 视图的存储格式
+   */
+  RC create_view(const char *view_name, span<const AttrInfoSqlNode> attributes, 
+                std::vector<unique_ptr<Expression>> &map_exprs, unique_ptr<Stmt> &select_stmt,
+                SelectAnalyzer &analyzer, bool allow_write);
+
+  /**
    * @brief 删除一个表
    * @param table_name 表名
    */
@@ -76,6 +88,9 @@ public:
    * @brief 根据表名查找表
    */
   Table *find_table(const char *table_name) const;
+
+  BaseTable *find_base_table(const char *table_name) const;
+
   /**
    * @brief 根据表ID查找表
    */
@@ -119,7 +134,7 @@ private:
 private:
   string                         name_;                 ///< 数据库名称
   string                         path_;                 ///< 数据库文件存放的目录
-  unordered_map<string, Table *> opened_tables_;        ///< 当前所有打开的表
+  unordered_map<string, BaseTable *> opened_tables_;        ///< 当前所有打开的表
   unique_ptr<BufferPoolManager>  buffer_pool_manager_;  ///< 当前数据库的buffer pool管理器
   unique_ptr<LogHandler>         log_handler_;          ///< 当前数据库的日志处理器
   unique_ptr<TrxKit>             trx_kit_;              ///< 当前数据库的事务管理器

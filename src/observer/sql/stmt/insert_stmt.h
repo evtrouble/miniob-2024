@@ -28,18 +28,18 @@ class InsertStmt : public Stmt
 {
 public:
   InsertStmt() = default;
-  InsertStmt(Table *table, const vector<vector<Value>>&& values_set);
+  InsertStmt(BaseTable *table, vector<vector<Value>>&& values_set);
 
   StmtType type() const override { return StmtType::INSERT; }
 
 public:
-  static RC create(Db *db, const InsertSqlNode &insert_sql, Stmt *&stmt);
+  static RC create(Db *db, InsertSqlNode &insert_sql, Stmt *&stmt);
 
 public:
-  Table       *table() const { return table_; }
+  BaseTable       *table() const { return table_; }
   const vector<vector<Value>>& values_set() const { return values_set_; }
 
 private:
-  Table       *table_        = nullptr;
+  BaseTable       *table_        = nullptr;
   const vector<vector<Value>> values_set_;
 };

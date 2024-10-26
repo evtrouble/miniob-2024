@@ -24,6 +24,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/parser/parse.h"
 #include "common/value.h"
 #include "storage/record/record.h"
+#include "common/lang/bitmap.h"
 
 class Table;
 
@@ -96,6 +97,9 @@ public:
    */
   virtual RC find_cell(const TupleCellSpec &spec, Value &cell) const = 0;
 
+  virtual RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const = 0;
+  virtual int get_tuple_size() const = 0;
+
   virtual std::string to_string() const
   {
     std::string str;
@@ -143,13 +147,14 @@ public:
         return rc;
       }
 
-      if(this_value.attr_type() == AttrType::NULLS){
-        if(other_value.attr_type() == AttrType::NULLS)continue;
-        else{
+      if (this_value.attr_type() == AttrType::NULLS) {
+        if (other_value.attr_type() == AttrType::NULLS)
+          continue;
+        else {
           result = 1;
           return rc;
         }
-      }else if(other_value.attr_type() == AttrType::NULLS){
+      } else if (other_value.attr_type() == AttrType::NULLS) {
         result = 1;
         return rc;
       }
@@ -184,7 +189,7 @@ public:
 
   void set_record(Record *record) { this->record_ = record; }
 
-  void set_schema(const Table *table, const std::vector<FieldMeta> *fields)
+  void set_schema(const BaseTable *table, const std::vector<FieldMeta> *fields)
   {
     table_ = table;
     // fix:join当中会多次调用右表的open,open当中会调用set_scheme，从而导致tuple当中会存储
@@ -219,9 +224,13 @@ public:
     FieldExpr       *field_expr = speces_[index];
     const FieldMeta *field_meta = field_expr->field().meta();
 
-    if(field_meta->is_field_null(this->record_->data()))cell.set_null();
+    common::Bitmap map(this->record_->data(), index + 1);
+
+    if (map.get_bit(index))
+      cell.set_null();
     else {
       if (AttrType::TEXTS == field_meta->type()) {
+        if(table_->is_view())return RC::INVALID_ARGUMENT;
         cell.set_type(AttrType::CHARS);
         // 获取TEXT数据储存位置（偏移量和长度），并分配空间
         int64_t offset = *(int64_t*)(this->record_->data() + field_meta->offset());
@@ -231,7 +240,7 @@ public:
         LOG_DEBUG("Text field: offset=%ld, length=%ld,size=%d", offset, length,sizeof(int64_t));
         char *text = (char*)malloc(length);
         // 设置读取到的TEXT数据内容
-        rc = table_->read_text(offset, length, text);
+        rc = static_cast<const Table*>(table_)->read_text(offset, length, text);
         if (RC::SUCCESS != rc) {
           LOG_WARN("Failed to read text from table, rc=%s", strrc(rc));
           return rc;
@@ -241,7 +250,7 @@ public:
       } 
       else {
         cell.set_type(field_meta->type());
-        cell.set_data(this->record_->data() + field_meta->offset(), field_meta->len() - 1);
+        cell.set_data(this->record_->data() + field_meta->offset(), field_meta->len());
       }
     }
     return RC::SUCCESS;
@@ -272,6 +281,15 @@ public:
     return RC::NOTFOUND;
   }
 
+  RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const override
+  {
+    if(id > 0)return RC::INVALID_ARGUMENT;
+    table = table_;
+    rid = record_->rid();
+    return RC::SUCCESS;
+  }
+  int get_tuple_size() const override { return 1; }
+
 #if 0
   RC cell_spec_at(int index, const TupleCellSpec *&spec) const override
   {
@@ -290,7 +308,7 @@ public:
 
 private:
   Record                  *record_ = nullptr;
-  const Table             *table_  = nullptr;
+  const BaseTable         *table_  = nullptr;
   std::vector<FieldExpr *> speces_;
 };
 
@@ -337,6 +355,18 @@ public:
   }
 
   RC find_cell(const TupleCellSpec &spec, Value &cell) const override { return tuple_->find_cell(spec, cell); }
+
+  virtual RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const override
+  {
+    if(tuple_ == nullptr)return RC::INVALID_ARGUMENT;
+    return tuple_->get_tuple_rid(id, table, rid);
+  }
+
+  virtual int get_tuple_size() const override
+  { 
+    if(tuple_ == nullptr)return 0;
+    return tuple_->get_tuple_size();  
+  }
 
 #if 0
   RC cell_spec_at(int index, const TupleCellSpec *&spec) const override
@@ -402,6 +432,13 @@ public:
     }
     return RC::NOTFOUND;
   }
+
+  virtual RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const override
+  {
+    return RC::INVALID_ARGUMENT;
+  }
+
+  virtual int get_tuple_size() const override { return 0; }
 
   static RC make(const Tuple &tuple, ValueListTuple &value_list)
   {
@@ -483,6 +520,22 @@ public:
     }
 
     return right_->find_cell(spec, value);
+  }
+
+  virtual RC get_tuple_rid(int id, const BaseTable *&table, RID &rid) const override
+  {
+    if (id > get_tuple_size() - 1) {
+      return RC::INVALID_ARGUMENT;
+    }
+    if (left_->get_tuple_size() >= id + 1) {
+      return left_->get_tuple_rid(id, table, rid);
+    }
+    return right_->get_tuple_rid(id - left_->get_tuple_size(), table, rid);
+  }
+
+  virtual int get_tuple_size() const override 
+  { 
+    return left_->get_tuple_size() + right_->get_tuple_size(); 
   }
 
 private:

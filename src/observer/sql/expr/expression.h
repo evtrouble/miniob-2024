@@ -145,6 +145,8 @@ public:
    */
   virtual RC eval(Chunk &chunk, std::vector<uint8_t> &select) { return RC::UNIMPLEMENTED; }
 
+  virtual unique_ptr<Expression> deep_copy(){ return nullptr; };
+
 protected:
   /**
    * @brief 表达式在下层算子返回的 chunk 中的位置
@@ -194,6 +196,12 @@ public:
   const char *table_name() const { return table_name_.c_str(); }
   const char *field_name() const { return field_name_.c_str(); }
 
+  unique_ptr<Expression> deep_copy() override
+  {
+    return unique_ptr<Expression>(new UnboundFieldExpr(table_name_, field_name_));
+  }
+
+
 private:
   std::string table_name_;
   std::string field_name_;
@@ -207,7 +215,7 @@ class FieldExpr : public Expression
 {
 public:
   FieldExpr() = default;
-  FieldExpr(const Table *table, const FieldMeta *field) : field_(table, field) {}
+  FieldExpr(const BaseTable *table, const FieldMeta *field) : field_(table, field) {}
   FieldExpr(const Field &field) : field_(field) {}
 
   virtual ~FieldExpr() = default;
@@ -224,12 +232,21 @@ public:
 
   void        set_table_alias(const char * table_alias) { table_alias_ = table_alias; }
   const char *table_name() const { return field_.table_name(); }
+  const BaseTable   *table() const { return field_.table(); }
   const char *field_name() const { return field_.field_name(); }
   const string     &table_alias() const { return table_alias_; }
 
   RC get_column(Chunk &chunk, Column &column) override;
 
   RC get_value(const Tuple &tuple, Value &value) const override;
+
+  unique_ptr<Expression> deep_copy() override
+  {
+    unique_ptr<Expression> ret(new FieldExpr(field_));
+    if(!table_alias_.empty())
+      static_cast<FieldExpr*>(ret.get())->set_table_alias(table_alias_.c_str());
+    return ret;
+  }
 
 private:
   Field field_;
@@ -273,6 +290,11 @@ public:
   void         get_value(Value &value) const { value = value_; }
   const Value &get_value() const { return value_; }
 
+  unique_ptr<Expression> deep_copy() override
+  {
+    return unique_ptr<Expression>(new ValueExpr(value_));
+  }
+
 private:
   Value value_;
 };
@@ -297,6 +319,11 @@ public:
   AttrType value_type() const override { return cast_type_; }
 
   std::unique_ptr<Expression> &child() { return child_; }
+
+  unique_ptr<Expression> deep_copy() override
+  {
+    return unique_ptr<Expression>(new CastExpr(move(child_->deep_copy()), cast_type_));
+  }
 
 private:
   RC cast(const Value &value, Value &cast_value) const;
@@ -353,6 +380,11 @@ public:
 
   template <typename T>
   RC compare_column(const Column &left, const Column &right, std::vector<uint8_t> &result) const;
+
+  unique_ptr<Expression> deep_copy() override
+  {
+    return unique_ptr<Expression>(new ComparisonExpr(comp_, move(left_->deep_copy()), move(right_->deep_copy())));
+  }
 
 private:
   CompOp                      comp_;
@@ -437,6 +469,11 @@ public:
   std::unique_ptr<Expression> &left() { return left_; }
   std::unique_ptr<Expression> &right() { return right_; }
 
+  unique_ptr<Expression> deep_copy() override
+  {
+    return unique_ptr<Expression>(new ArithmeticExpr(arithmetic_type_, move(left_->deep_copy()), move(right_->deep_copy())));
+  }
+
 private:
   RC calc_value(const Value &left_value, const Value &right_value, Value &value) const;
 
@@ -507,6 +544,11 @@ public:
   RC       get_value(const Tuple &tuple, Value &value) const override { return RC::INTERNAL; }
   AttrType value_type() const override { return child_->value_type(); }
 
+  unique_ptr<Expression> deep_copy() override
+  {
+    return unique_ptr<Expression>(new UnboundAggregateExpr(aggregate_name_.c_str(), child_->deep_copy().release()));
+  }
+
 private:
   std::string                 aggregate_name_;
   std::unique_ptr<Expression> child_;
@@ -551,6 +593,11 @@ public:
 
   std::unique_ptr<Aggregator> create_aggregator() const;
 
+  unique_ptr<Expression> deep_copy() override
+  {
+    return unique_ptr<Expression>(new AggregateExpr(aggregate_type_, move(child_->deep_copy())));
+  }
+
 public:
   static RC type_from_string(const char *type_str, Type &type);
 
@@ -566,7 +613,7 @@ private:
 class SelectExpr : public Expression
 {
 public:
-  using tables_t = std::unordered_map<std::string, std::pair<Table*, size_t>>;
+  using tables_t = std::unordered_map<std::string, std::pair<BaseTable*, size_t>>;
 
   SelectExpr() = default;
   SelectExpr(ParsedSqlNode* sql_node);
@@ -596,7 +643,7 @@ public:
 
   RC logical_generate();
   RC physical_generate();
-  RC create_stmt(Db *db, unique_ptr<vector<vector<uint32_t>>>& depends, unique_ptr<vector<SelectExpr*>>& select_exprs, 
+  RC create_stmt(Db *db, vector<vector<uint32_t>>& depends, vector<SelectExpr*>& select_exprs, 
     tables_t& table_map, int fa);
 
   RC next_tuple(Tuple *&tuple, Tuple *upper_tuple = nullptr) const;
