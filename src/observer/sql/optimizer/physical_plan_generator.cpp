@@ -206,7 +206,7 @@ RC PhysicalPlanGenerator::create_plan(TableGetLogicalOperator &table_get_oper, u
   index = table->find_index_by_fields(fields);
 
   if (index != nullptr) {
-// 构建value
+    // 构建value
     std::vector<Value> values;
     auto &index_meta = index->index_meta();
     for (auto &field : index_meta.fields()) {
