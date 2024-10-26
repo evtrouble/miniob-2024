@@ -39,6 +39,17 @@ RC FloatType::subtract(const Value &left, const Value &right, Value &result) con
 }
 RC FloatType::multiply(const Value &left, const Value &right, Value &result) const
 {
+  if(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS){
+    vector<float>* left_vector = (vector<float>*)left.data();
+    vector<float>* right_vector = (vector<float>*)right.data();
+    ASSERT(left_vector->size() == right_vector->size(), "invalid type");
+    double ans = 0;
+    for(size_t id = 0; id < left_vector->size(); id++){
+        ans += left_vector->at(id) * right_vector->at(id);
+    }
+    result.set_float(ans);
+    return RC::SUCCESS;
+  }
   result.set_float(left.get_float() * right.get_float());
   return RC::SUCCESS;
 }
