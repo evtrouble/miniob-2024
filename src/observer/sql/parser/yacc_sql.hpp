@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.8.2.  */
+/* A Bison parser, made by GNU Bison 3.7.  */
 
 /* Bison interface for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2021 Free Software Foundation,
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018-2020 Free Software Foundation,
    Inc.
 
    This program is free software: you can redistribute it and/or modify
@@ -16,7 +16,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -119,12 +119,15 @@ extern int yydebug;
     GE = 320,                      /* GE  */
     NE = 321,                      /* NE  */
     UNIQUE = 322,                  /* UNIQUE  */
-    NUMBER = 323,                  /* NUMBER  */
-    FLOAT = 324,                   /* FLOAT  */
-    ID_KEY = 325,                  /* ID_KEY  */
-    SSS = 326,                     /* SSS  */
-    DATE_VALUE = 327,              /* DATE_VALUE  */
-    UMINUS = 328                   /* UMINUS  */
+    L2_DISTANCE = 323,             /* L2_DISTANCE  */
+    COSINE_DISTANCE = 324,         /* COSINE_DISTANCE  */
+    INNER_PRODUCT = 325,           /* INNER_PRODUCT  */
+    NUMBER = 326,                  /* NUMBER  */
+    FLOAT = 327,                   /* FLOAT  */
+    ID_KEY = 328,                  /* ID_KEY  */
+    SSS = 329,                     /* SSS  */
+    DATE_VALUE = 330,              /* DATE_VALUE  */
+    UMINUS = 331                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -133,7 +136,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 136 "yacc_sql.y"
+#line 150 "yacc_sql.y"
 
   ParsedSqlNode *                            sql_node;
   ConditionSqlNode *                         condition;
@@ -159,7 +162,7 @@ union YYSTYPE
   Joins *                                    join_list;
   Key_values *                               key_values;
 
-#line 163 "yacc_sql.hpp"
+#line 166 "yacc_sql.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -183,8 +186,6 @@ struct YYLTYPE
 
 
 
-
 int yyparse (const char * sql_string, ParsedSqlResult * sql_result, void * scanner);
-
 
 #endif /* !YY_YY_YACC_SQL_HPP_INCLUDED  */

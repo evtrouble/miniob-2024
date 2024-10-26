@@ -48,6 +48,23 @@ RC Expression::recursion(std::unique_ptr<Expression>& expr,
       }
       return RC::SUCCESS;
     }break;
+    case ExprType::VECTOROPERATION:{
+      auto operation_expr = static_cast<VectorOperationExpr*>(expr.get());
+
+       unique_ptr<Expression>        &left_expr  = operation_expr->left();
+       unique_ptr<Expression>        &right_expr = operation_expr->right();
+
+      RC rc = recursion(left_expr, func);
+      if (OB_FAIL(rc)) {
+        return rc;
+      }
+
+      rc = recursion(right_expr, func);
+      if (OB_FAIL(rc)) {
+        return rc;
+      }
+      return RC::SUCCESS;
+    }break;
     case ExprType::COMPARISON:{
       auto comparison_expr = static_cast<ComparisonExpr*>(expr.get());
       unique_ptr<Expression> child_bound_expression;
@@ -578,6 +595,7 @@ bool ArithmeticExpr::equal(const Expression &other) const
   return arithmetic_type_ == other_arith_expr.arithmetic_type() && left_->equal(*other_arith_expr.left_) &&
          right_->equal(*other_arith_expr.right_);
 }
+
 AttrType ArithmeticExpr::value_type() const
 {
   if (!right_) {
@@ -585,7 +603,6 @@ AttrType ArithmeticExpr::value_type() const
   }
 
   if(left_->value_type() == AttrType::VECTORS || right_->value_type() == AttrType::VECTORS){
-    if(arithmetic_type_ == Type::MUL)return AttrType::FLOATS;
     return AttrType::VECTORS;
   }
 
@@ -795,6 +812,109 @@ RC ArithmeticExpr::try_get_value(Value &value) const
   }
 
   return calc_value(left_value, right_value, value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+VectorOperationExpr::VectorOperationExpr(VectorOperationExpr::Type type, Expression *left, Expression *right)
+    : operation_type_(type), left_(left), right_(right)
+{}
+VectorOperationExpr::VectorOperationExpr(VectorOperationExpr::Type type, unique_ptr<Expression> left, unique_ptr<Expression> right)
+    : operation_type_(type), left_(std::move(left)), right_(std::move(right))
+{}
+
+bool VectorOperationExpr::equal(const Expression &other) const
+{
+  if (this == &other) {
+    return true;
+  }
+  if (type() != other.type()) {
+    return false;
+  }
+  auto &other_operation_expr = static_cast<const VectorOperationExpr &>(other);
+  return operation_type_ == other_operation_expr.operation_type() && left_->equal(*other_operation_expr.left_) &&
+         right_->equal(*other_operation_expr.right_);
+}
+
+AttrType VectorOperationExpr::value_type() const
+{
+  //是向量特有操作，向量直接储存在数组里，直接返回数组类型
+  return AttrType::VECTORS;
+}
+
+RC VectorOperationExpr::get_value(const Tuple &tuple, Value &value) const
+{
+  RC rc = RC::SUCCESS;
+
+  Value left_value;
+  Value right_value;
+
+  rc = left_->get_value(tuple, left_value);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
+    return rc;
+  }
+
+  if(right_){
+    rc = right_->get_value(tuple, right_value);
+    if (rc != RC::SUCCESS) {
+      LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
+      return rc;
+    }
+  }
+  
+  return calc_value(left_value, right_value, value);
+}
+
+RC VectorOperationExpr::try_get_value(Value &value) const
+{
+  RC rc = RC::SUCCESS;
+
+  Value left_value;
+  Value right_value;
+
+  rc = left_->try_get_value(left_value);
+  if (rc != RC::SUCCESS) {
+    LOG_WARN("failed to get value of left expression. rc=%s", strrc(rc));
+    return rc;
+  }
+
+  if (right_) {
+    rc = right_->try_get_value(right_value);
+    if (rc != RC::SUCCESS) {
+      LOG_WARN("failed to get value of right expression. rc=%s", strrc(rc));
+      return rc;
+    }
+  }
+
+  return calc_value(left_value, right_value, value);
+}
+  
+RC VectorOperationExpr::calc_value(const Value &left_value, const Value &right_value, Value &value) const
+{
+  RC rc = RC::SUCCESS;
+  
+  const AttrType target_type = value_type();
+  value.set_type(target_type);
+
+  switch (operation_type_) {
+    case Type::L2_DISTANCE: {
+      Value::l2_distance(left_value, right_value, value);
+    } break;
+
+    case Type::COSINE_DISTANCE: {
+      Value::cosine_distance(left_value, right_value, value);
+    } break;
+
+    case Type::INNER_PRODUCT: {
+      Value::inner_product(left_value, right_value, value);
+    } break;
+    default: {
+      rc = RC::INTERNAL;
+      LOG_WARN("unsupported arithmetic type. %d", operation_type_);
+    } break;
+  }
+  return rc;
 }
 
 ////////////////////////////////////////////////////////////////////////////////

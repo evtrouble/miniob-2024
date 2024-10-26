@@ -58,6 +58,14 @@ RC ExpressionIterator::iterate_child_expr(Expression &expr, function<RC(unique_p
       }
     } break;
 
+    case ExprType::VECTOROPERATION:{
+      auto &operation_expr = static_cast<VectorOperationExpr &>(expr);
+      rc = callback(operation_expr.left());
+      if (OB_SUCC(rc)) {
+        rc = callback(operation_expr.right());
+      }
+    }break;
+
     case ExprType::AGGREGATION: {
       auto &aggregate_expr = static_cast<AggregateExpr &>(expr);
       rc = callback(aggregate_expr.child());

@@ -487,6 +487,7 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
       copy_len = data_len + 1;
     }
   }
+  //VECTOR数据类型处理
   if (field->type() == AttrType::VECTORS) {
     if (copy_len != data_len) return RC::INVALID_ARGUMENT;
   }

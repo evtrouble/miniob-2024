@@ -14,6 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/expr/aggregator.h"
 #include "common/log/log.h"
+#include "aggregator.h"
 
 RC SumAggregator::accumulate(const Value &value)
 {
