@@ -46,7 +46,6 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
 
     for (std::unique_ptr<Expression> &attr_expr : static_cast<SelectStmt*>(select_stmt)->query_expressions()) {
       AttrInfoSqlNode attr_info;
-      Field map_field;
       if (0 != attr_expr->alias().length()) {
         size_t pos = attr_expr->alias().find('.');
         if (std::string::npos == pos) {
@@ -64,7 +63,6 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
         FieldMeta field = *(field_expr->field().meta());
         attr_info.length = field.len();
         attr_info.nullable = field.nullable();
-        map_field = field_expr->field();
       } else {
         allow_write = false;
         if (ExprType::VALUE == attr_expr->type()) {

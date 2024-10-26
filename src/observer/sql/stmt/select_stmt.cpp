@@ -148,7 +148,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
 
   for (size_t i = 0; i < select_sql.relations.size(); i++) {
     const char *table_name = select_sql.relations[i].c_str();
-    if(table_map.at(table_name).second == size){
+    if(table_map.count(table_name) && table_map.at(table_name).second == size){
       table_map.erase(table_name);
     }
     string& table_alias = select_sql.alias[i];
