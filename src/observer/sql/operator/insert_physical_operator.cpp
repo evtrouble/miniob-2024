@@ -66,25 +66,25 @@ RC InsertPhysicalOperator::insert_view(Trx *trx)
     return RC::SCHEMA_FIELD_MISSING;
   }
   RC rc = RC::SUCCESS;
-  const std::vector<Field> &map_fields = view->map_fields();
+  auto &map_exprs = view->map_exprs();
   std::unordered_map<const BaseTable*, std::vector<size_t>> table_columns;
-  vector<size_t> col_ids(map_fields.size());
-  for (size_t i = 0; i < map_fields.size(); i++) {
-    const Field &field = map_fields[i];
+  vector<size_t> col_ids(map_exprs.size());
+  for (size_t i = 0; i < map_exprs.size(); i++) {
+    auto field = static_cast<FieldExpr*>(map_exprs[i].get());
 
     // 查找view中的列在原始表中的位置
-    const BaseTable *table = field.table();
+    const BaseTable *table = field->table();
     if(table->is_view()){
       LOG_ERROR("should not insert view directly");
       return RC::INTERNAL;
     }
     const int sys_field_num = table->table_meta().sys_field_num();
-    int field_idx = table->table_meta().find_field_idx_by_name(field.field_name());
+    int field_idx = table->table_meta().find_field_idx_by_name(field->field_name());
     col_ids[i] = field_idx - sys_field_num;
     
-    auto iter = table_columns.find(field.table());
+    auto iter = table_columns.find(field->table());
     if (table_columns.end() == iter) {
-      table_columns.emplace(field.table(), std::vector<size_t>{i});
+      table_columns.emplace(field->table(), std::vector<size_t>{i});
     } else {
       iter->second.emplace_back(i);
     }

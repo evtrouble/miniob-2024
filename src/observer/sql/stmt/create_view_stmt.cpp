@@ -41,7 +41,7 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
       return rc;
     }
 
-    std::vector<Field> map_fields;
+    std::vector<unique_ptr<Expression>> map_exprs;
     bool allow_write = true;
 
     for (std::unique_ptr<Expression> &attr_expr : static_cast<SelectStmt*>(select_stmt)->query_expressions()) {
@@ -88,7 +88,7 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
         attr_info.nullable = nullable;
       }
       attr_infos.emplace_back(attr_info);
-      map_fields.emplace_back(map_field);
+      map_exprs.emplace_back(move(attr_expr->deep_copy()));
     }
 
     if (!create_view.col_names.empty()) {
@@ -98,7 +98,7 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
     }
 
   CreateViewStmt *temp = new CreateViewStmt(std::move(create_view.view_name), 
-                            std::move(attr_infos), std::move(map_fields), select_stmt, allow_write);
+                            std::move(attr_infos), std::move(map_exprs), select_stmt, allow_write);
   temp->analyzer_.depends_.swap(depends);
   temp->analyzer_.select_exprs_.swap(select_exprs);
   stmt = temp;

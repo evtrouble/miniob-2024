@@ -34,8 +34,8 @@ class CreateViewStmt : public Stmt
 public:
   CreateViewStmt(
       const std::string&& view_name, std::vector<AttrInfoSqlNode>&& attr_infos,
-      std::vector<Field>&& map_fields, Stmt* select_stmt, bool allow_write)
-      : view_name_(move(view_name)), attr_infos_(move(attr_infos)), map_fields_(move(map_fields)), 
+      std::vector<unique_ptr<Expression>>&& map_exprs, Stmt* select_stmt, bool allow_write)
+      : view_name_(move(view_name)), attr_infos_(move(attr_infos)), map_exprs_(move(map_exprs)), 
       select_stmt_(unique_ptr<Stmt>(select_stmt)), allow_write_(allow_write)
   {}
   virtual ~CreateViewStmt() = default;
@@ -44,7 +44,7 @@ public:
 
   const std::string                  &view_name() const { return view_name_; }
   const std::vector<AttrInfoSqlNode> &attr_infos() const { return attr_infos_; }
-  std::vector<Field>           &map_fields() { return map_fields_; }
+  std::vector<unique_ptr<Expression>> &map_exprs() { return map_exprs_; }
   unique_ptr<Stmt>             &select_stmt() { return select_stmt_; }
   SelectAnalyzer               &analyzer() { return analyzer_; }
   bool                          allow_write() const { return allow_write_; }
@@ -56,7 +56,7 @@ public:
 private:
   std::string view_name_;
   std::vector<AttrInfoSqlNode> attr_infos_; // 视图列信息
-  std::vector<Field> map_fields_;           // col映射到的原始列，里面有table、fieldMeta
+  std::vector<unique_ptr<Expression>> map_exprs_; // col映射到的原始表达式
   unique_ptr<Stmt> select_stmt_; 
   SelectAnalyzer  analyzer_;
   bool allow_write_ = false;                // 是否允许对视图进行写操作

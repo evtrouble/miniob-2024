@@ -23,7 +23,7 @@ public:
             const char *name,       // view_name
             const char *base_dir,   // db/sys
             span<const AttrInfoSqlNode> attributes, 
-            std::vector<Field> &map_fields, 
+            std::vector<unique_ptr<Expression>> &map_exprs, 
             unique_ptr<Stmt> &select_stmt, SelectAnalyzer &analyzer, bool allow_write);
 
 public:
@@ -32,13 +32,13 @@ public:
   virtual const TableMeta &table_meta() const { return table_meta_; }
   
   Db *db() const { return db_; }
-  const std::vector<Field> &map_fields() const { return map_fields_; }
+  const std::vector<unique_ptr<Expression>> &map_exprs() const { return map_exprs_; }
   unique_ptr<PhysicalOperator> &child() { return physical_oper_; }
   SelectAnalyzer   &analyzer() { return analyzer_; }
   bool              allow_write() const { return allow_write_; }
 
   void set_db(Db *db) { db_ = db; }
-  Field* find_field(const char *name);
+  Expression* find_expr(const char *name);
 
   RC init();
 
@@ -46,7 +46,7 @@ private:
   Db *db_;
   std::string base_dir_;
   TableMeta   table_meta_;
-  std::vector<Field> map_fields_;       // view列映射的原始表中的列，可写view中所有col映射的都是Field，只读view不需要用到这个映射
+  std::vector<unique_ptr<Expression>> map_exprs_;       // view列映射的原始表中的表达式
   unique_ptr<Stmt> select_stmt_;
   unique_ptr<PhysicalOperator> physical_oper_;
   SelectAnalyzer  analyzer_;

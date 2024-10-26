@@ -1391,7 +1391,7 @@ RETURN_TOKEN(FORMAT);
 case 61:
 YY_RULE_SETUP
 #line 137 "lex_sql.l"
-yylval->string=strdup(yytext); RETURN_TOKEN(ID);
+yylval->string=strdup(yytext); RETURN_TOKEN(ID_KEY);
 	YY_BREAK
 case 62:
 YY_RULE_SETUP

@@ -120,7 +120,7 @@ RC UpdatePhysicalOperator::update_view()
   }
 
   RC rc = RC::SUCCESS;
-  const std::vector<Field> &map_fields = view->map_fields();
+  auto &map_exprs = view->map_exprs();
   std::unordered_map<const BaseTable*, std::vector<size_t>> table_columns;
 
   Tuple *tuple = nullptr;
@@ -147,7 +147,7 @@ RC UpdatePhysicalOperator::update_view()
         const FieldMeta *field = fields_[i];
 
         // 原始表要更新的列有哪些
-        const BaseTable *table = map_fields[field->field_id() - sys_field_num].table();
+        const BaseTable *table = static_cast<FieldExpr*>(map_exprs[field->field_id() - sys_field_num].get())->table();
         if(table->is_view()){
           LOG_ERROR("should not update view directly");
           return RC::INTERNAL;
@@ -188,7 +188,7 @@ RC UpdatePhysicalOperator::update_view()
 
     for (auto& id : column) {
       temp_values.emplace_back(move(values[id]));
-      fieldmetas.emplace_back(map_fields[fields_[id]->field_id() - sys_field_num].meta());
+      fieldmetas.emplace_back(static_cast<FieldExpr*>(map_exprs[fields_[id]->field_id() - sys_field_num].get())->field().meta());
     }
     for(auto& rid : table_rids[base_table]){
       table->get_record(rid, record);

@@ -19,7 +19,7 @@ RC View::create(int32_t table_id,
             const char *name,       // view_name
             const char *base_dir,   // db/sys
             span<const AttrInfoSqlNode> attr_infos, 
-            std::vector<Field> &map_fields, 
+            std::vector<unique_ptr<Expression>> &map_exprs, 
             unique_ptr<Stmt> &select_stmt, SelectAnalyzer &analyzer, bool allow_write)
 {
   RC rc = RC::SUCCESS;
@@ -42,7 +42,7 @@ RC View::create(int32_t table_id,
 
   std::swap(select_stmt_, select_stmt);
   std::swap(analyzer_, analyzer);
-  map_fields_.swap(map_fields);
+  map_exprs_.swap(map_exprs);
 
   const vector<FieldMeta> *trx_fields = db_->trx_kit().trx_fields();
   if ((rc = table_meta_.init(table_id, name, trx_fields, attr_infos)) != RC::SUCCESS) {
@@ -77,11 +77,11 @@ RC View::create(int32_t table_id,
   return rc;
 }
 
-Field* View::find_field(const char *name)
+Expression* View::find_expr(const char *name)
 {
   int id = table_meta_.field_id(name);
   if(id < table_meta_.sys_field_num())return nullptr;
-  return &map_fields_[id - table_meta_.sys_field_num()];
+  return map_exprs_[id - table_meta_.sys_field_num()].get();
 }
 
 RC View::init()

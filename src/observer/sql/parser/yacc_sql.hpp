@@ -121,7 +121,7 @@ extern int yydebug;
     UNIQUE = 322,                  /* UNIQUE  */
     NUMBER = 323,                  /* NUMBER  */
     FLOAT = 324,                   /* FLOAT  */
-    ID = 325,                      /* ID  */
+    ID_KEY = 325,                  /* ID_KEY  */
     SSS = 326,                     /* SSS  */
     DATE_VALUE = 327,              /* DATE_VALUE  */
     UMINUS = 328                   /* UMINUS  */

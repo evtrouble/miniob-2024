@@ -75,7 +75,7 @@ public:
    * @param storage_format 视图的存储格式
    */
   RC create_view(const char *view_name, span<const AttrInfoSqlNode> attributes, 
-                std::vector<Field> &map_fields, unique_ptr<Stmt> &select_stmt,
+                std::vector<unique_ptr<Expression>> &map_exprs, unique_ptr<Stmt> &select_stmt,
                 SelectAnalyzer &analyzer, bool allow_write);
 
   /**

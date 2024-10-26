@@ -161,7 +161,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 
 %token <number> NUMBER
 %token <floats> FLOAT
-%token <string> ID
+%token <string> ID_KEY
 %token <string> SSS
 %token <string> DATE_VALUE
 
@@ -176,6 +176,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <value>               value
 %type <number>              number
 %type <string>              relation
+%type <string>              ID
 %type <relation_list>       col_list
 %type <comp>                comp_op
 %type <boolean>             unique_option
@@ -850,6 +851,15 @@ expression:
     // your code here
     ;
 
+ID:
+    ID_KEY { $$ = $1; }
+    | DATA
+    {
+      $$ = (char *)malloc(sizeof(char) * 5);
+      memcpy($$, "data", 5);
+    }
+    ;
+
 rel_attr:
     ID {
       $$ = new RelAttrSqlNode;
@@ -963,10 +973,7 @@ alias:
     | AS ID {
       $$ = $2;
     }
-    | AS DATA {
-      $$ = (char *)malloc(sizeof(char) * 5);
-      memcpy($$, "data", 5);
-    }
+    ;
 
 on:
     /* empty */

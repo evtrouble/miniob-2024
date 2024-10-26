@@ -61,7 +61,7 @@ extern double atof();
 
 WHITE_SAPCE      [\ \t\b\f]
 DIGIT            [0-9]+
-ID               [A-Za-z_]+[A-Za-z0-9_]*
+ID_KEY           [A-Za-z_]+[A-Za-z0-9_]*
 DOT              \.
 QUOTE            [\'\"]
 %x STR
@@ -134,7 +134,7 @@ GROUP                                   RETURN_TOKEN(GROUP);
 BY                                      RETURN_TOKEN(BY);
 STORAGE                                 RETURN_TOKEN(STORAGE);
 FORMAT                                  RETURN_TOKEN(FORMAT);
-{ID}                                    yylval->string=strdup(yytext); RETURN_TOKEN(ID);
+{ID_KEY}                                yylval->string=strdup(yytext); RETURN_TOKEN(ID_KEY);
 "("                                     RETURN_TOKEN(LBRACE);
 ")"                                     RETURN_TOKEN(RBRACE);
 

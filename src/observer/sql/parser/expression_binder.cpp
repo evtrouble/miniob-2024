@@ -41,11 +41,9 @@ static void wildcard_fields(BaseTable *table, vector<unique_ptr<Expression>> &ex
   const int        field_num  = table_meta.field_num();
   if(table->is_view()){
     View *view = static_cast<View*>(table);
-    for(auto& field : view->map_fields())
+    for(auto& expr : view->map_exprs())
     {
-      FieldExpr *field_expr = new FieldExpr(field);
-      field_expr->set_name(field.field_name());
-      expressions.emplace_back(field_expr);
+      expressions.emplace_back(move(expr->deep_copy()));
     }
     return;
   }
@@ -177,15 +175,12 @@ RC ExpressionBinder::bind_unbound_field_expression(
   } else {
     if(table->is_view()){
       View *view = static_cast<View*>(table);
-      Field* field = view->find_field(field_name);
-      if (nullptr == field) {
+      Expression* expr = view->find_expr(field_name);
+      if (nullptr == expr) {
         LOG_INFO("no such field in view: %s.%s", table_name, field_name);
         return RC::SCHEMA_FIELD_MISSING;
       }
-      FieldExpr *field_expr = new FieldExpr(*field);
-      field_expr->set_name(field->field_name());
-      field_expr->set_alias(expr->alias());
-      bound_expressions.emplace_back(field_expr);
+      bound_expressions.emplace_back(move(expr->deep_copy()));
       return RC::SUCCESS;
     }
 
