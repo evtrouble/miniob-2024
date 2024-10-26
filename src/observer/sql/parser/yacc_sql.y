@@ -671,6 +671,10 @@ value:
     |NULL_T {
       $$ = new Value((void*)nullptr);
     }
+    | '[' value_list ']'   {
+      $$ = new Value($2);
+      delete $2;
+    }
     ;
 storage_format:
     /* empty */

@@ -41,6 +41,19 @@ Value::Value(const Date *s, int len /*= 10*/)
     set_string((const char*)s, len); 
 }
 
+Value::Value(std::vector<Value> *values)
+{
+  reset();
+  attr_type_        = AttrType::VECTORS;
+  value_.vector_value_ = new vector<float>(values->size());
+  own_data_ = true;
+  for(size_t id = 0; id < values->size(); id++){
+    value_.vector_value_->at(id) = values->at(id).get_float();
+  }
+
+  length_ = value_.vector_value_->size() * sizeof(float);
+}
+
 Value::Value(const Value &other) noexcept
 {
   this->attr_type_ = other.attr_type_;

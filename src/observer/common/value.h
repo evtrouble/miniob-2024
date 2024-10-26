@@ -21,6 +21,7 @@ See the Mulan PSL v2 for more details. */
 
 static constexpr int MAX_TEXT_LENGTH = 65535;//设置TEXT数据的最大长度
 class Date;
+class Vector;
 class ParsedSqlNode;
 
 /**
@@ -53,6 +54,7 @@ public:
   explicit Value(bool val);
   explicit Value(const char *s, int len = 0);
   explicit Value(const Date *s, int len = 0);
+  explicit Value(std::vector<Value> *values);
   explicit Value(int64_t val);//添加int64_t的Value构造函数
 
   Value(const Value &other) noexcept;
