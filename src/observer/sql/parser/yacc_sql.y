@@ -863,7 +863,7 @@ ID:
     | DATA
     {
       $$ = (char *)malloc(sizeof(char) * 5);
-      memcpy($$, "data", 5);
+      memcpy($$, "data", sizeof(char) * 5);
     }
     ;
 

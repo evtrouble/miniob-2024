@@ -79,7 +79,7 @@ RC CreateViewStmt::create(Db *db, const CreateViewSqlNode &create_view,
             if (field.nullable()) {
               nullable = true;
             } 
-          }
+          } else if(ExprType::AGGREGATION == expr->type()) nullable = true;
           return RC::SUCCESS;
         };
         attr_expr->recursion(attr_expr, check_expr_nullable);

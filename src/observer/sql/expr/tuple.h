@@ -189,7 +189,7 @@ public:
 
   void set_record(Record *record) { this->record_ = record; }
 
-  void set_schema(const Table *table, const std::vector<FieldMeta> *fields)
+  void set_schema(const BaseTable *table, const std::vector<FieldMeta> *fields)
   {
     table_ = table;
     // fix:join当中会多次调用右表的open,open当中会调用set_scheme，从而导致tuple当中会存储
@@ -230,6 +230,7 @@ public:
       cell.set_null();
     else {
       if (AttrType::TEXTS == field_meta->type()) {
+        if(table_->is_view())return RC::INVALID_ARGUMENT;
         cell.set_type(AttrType::CHARS);
         // 获取TEXT数据储存位置（偏移量和长度），并分配空间
         int64_t offset = *(int64_t*)(this->record_->data() + field_meta->offset());
@@ -239,7 +240,7 @@ public:
         LOG_DEBUG("Text field: offset=%ld, length=%ld,size=%d", offset, length,sizeof(int64_t));
         char *text = (char*)malloc(length);
         // 设置读取到的TEXT数据内容
-        rc = table_->read_text(offset, length, text);
+        rc = static_cast<const Table*>(table_)->read_text(offset, length, text);
         if (RC::SUCCESS != rc) {
           LOG_WARN("Failed to read text from table, rc=%s", strrc(rc));
           return rc;
@@ -307,7 +308,7 @@ public:
 
 private:
   Record                  *record_ = nullptr;
-  const Table             *table_  = nullptr;
+  const BaseTable         *table_  = nullptr;
   std::vector<FieldExpr *> speces_;
 };
 

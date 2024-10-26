@@ -39,14 +39,7 @@ static void wildcard_fields(BaseTable *table, vector<unique_ptr<Expression>> &ex
 {
   const TableMeta &table_meta = table->table_meta();
   const int        field_num  = table_meta.field_num();
-  if(table->is_view()){
-    View *view = static_cast<View*>(table);
-    for(auto& expr : view->map_exprs())
-    {
-      expressions.emplace_back(move(expr->deep_copy()));
-    }
-    return;
-  }
+
   for (int i = table_meta.sys_field_num(); i < field_num; i++) {
     Field      field(table, table_meta.field(i));
     FieldExpr *field_expr = new FieldExpr(field);
@@ -173,17 +166,6 @@ RC ExpressionBinder::bind_unbound_field_expression(
   if (0 == strcmp(field_name, "*")) {
     wildcard_fields(table, bound_expressions);
   } else {
-    if(table->is_view()){
-      View *view = static_cast<View*>(table);
-      Expression* expr = view->find_expr(field_name);
-      if (nullptr == expr) {
-        LOG_INFO("no such field in view: %s.%s", table_name, field_name);
-        return RC::SCHEMA_FIELD_MISSING;
-      }
-      bound_expressions.emplace_back(move(expr->deep_copy()));
-      return RC::SUCCESS;
-    }
-
     const FieldMeta *field_meta = table->table_meta().field(field_name);
     if (nullptr == field_meta) {
       LOG_INFO("no such field in table: %s.%s", table_name, field_name);
@@ -472,6 +454,7 @@ RC ExpressionBinder::bind_aggregate_expression(
 
   auto aggregate_expr = make_unique<AggregateExpr>(aggregate_type, std::move(child_expr));
   aggregate_expr->set_name(unbound_aggregate_expr->name());
+  aggregate_expr->set_alias(unbound_aggregate_expr->alias());
   rc = check_aggregate_expression(*aggregate_expr);
   if (OB_FAIL(rc)) {
     return rc;

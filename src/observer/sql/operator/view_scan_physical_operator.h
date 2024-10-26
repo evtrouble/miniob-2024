@@ -52,6 +52,7 @@ private:
   View                                    *view_ = nullptr;
   Trx                                     *trx_   = nullptr;
   ReadWriteMode                            mode_  = ReadWriteMode::READ_WRITE;
-  Tuple                                   *tuple_;
+  RowTuple                                 tuple_;
+  Record                                   record_;
   std::vector<std::unique_ptr<Expression>> predicates_;  // TODO chang predicate to table tuple filter
 };

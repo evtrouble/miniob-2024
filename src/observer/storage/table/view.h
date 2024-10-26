@@ -29,7 +29,6 @@ public:
 public:
   virtual int32_t table_id() const { return table_meta_.table_id(); }
   virtual const char *name() const { return table_meta_.name(); }
-  virtual const TableMeta &table_meta() const { return table_meta_; }
   
   Db *db() const { return db_; }
   const std::vector<unique_ptr<Expression>> &map_exprs() const { return map_exprs_; }
@@ -41,11 +40,12 @@ public:
   Expression* find_expr(const char *name);
 
   RC init();
+  RC make_record(int value_num, const Value *values, Record &record);
+  RC set_value_to_record(char *record_data, const Value &value, const FieldMeta *field);
 
 private:
-  Db *db_;
-  std::string base_dir_;
-  TableMeta   table_meta_;
+  Db             *db_;
+  std::string     base_dir_;
   std::vector<unique_ptr<Expression>> map_exprs_;       // view列映射的原始表中的表达式
   unique_ptr<Stmt> select_stmt_;
   unique_ptr<PhysicalOperator> physical_oper_;

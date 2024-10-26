@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdint>
+#include "storage/table/table_meta.h"
 
 class TableMeta;
 
@@ -22,7 +23,7 @@ public:
 
   virtual int32_t table_id() const = 0;
   virtual const char *name() const = 0;
-  virtual const TableMeta &table_meta() const = 0;
+  virtual const TableMeta &table_meta() const { return table_meta_; }
 public:
   void set_view_type()
   {
@@ -39,4 +40,7 @@ public:
 
 private:
   BaseTabletype base_type_ = BaseTabletype::TABLE_TYPE;
+
+protected:
+  TableMeta      table_meta_;
 };

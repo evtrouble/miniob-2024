@@ -2699,7 +2699,7 @@ yyreduce:
 #line 864 "yacc_sql.y"
     {
       (yyval.string) = (char *)malloc(sizeof(char) * 5);
-      memcpy((yyval.string), "data", 5);
+      memcpy((yyval.string), "data", sizeof(char) * 5);
     }
 #line 2705 "yacc_sql.cpp"
     break;

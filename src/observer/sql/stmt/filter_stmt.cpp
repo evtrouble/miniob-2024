@@ -50,19 +50,7 @@ RC FilterStmt::create(Db *db, BaseTable *default_table, tables_t& table_map, Con
         RC rc = get_table_and_field(db, default_table, table_map, table, field_meta, 
             *unbound_field_expr, &min_depend);
         if(rc != RC::SUCCESS)return rc;
-
-        if(table->is_view()){
-          View *view = static_cast<View*>(table);
-          Expression* view_expr = view->find_expr(unbound_field_expr->field_name());
-          if (nullptr == view_expr) {
-            LOG_INFO("no such field in view: %s.%s", unbound_field_expr->table_name(), unbound_field_expr->field_name());
-            return RC::SCHEMA_FIELD_MISSING;
-          }
-          expr.reset();
-          expr = move(view_expr->deep_copy());
-          return RC::SUCCESS;
-        }
-
+        
         Field      field(table, field_meta);
         FieldExpr *field_expr = new FieldExpr(field);
         field_expr->set_name(unbound_field_expr->field_name());
