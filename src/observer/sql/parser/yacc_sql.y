@@ -93,6 +93,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         SELECT
         SHOW
         SYNC
+        WITH
         INSERT
         DELETE
         UPDATE
@@ -144,6 +145,11 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         L2_DISTANCE
         COSINE_DISTANCE
         INNER_PRODUCT
+        DISTANCE                                
+        LISTS                              
+        TYPE            
+        PROBES                
+        IVFFLAT      
 
 
 /** union 中定义各种数据类型，真实生成的代码也是union类型，所以不能有非POD类型的数据 **/
@@ -206,6 +212,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <expression>          assign_value
 %type <condition_list>      where
 %type <condition_list>      on
+%type <number>              vector_operation
 %type <join_list>           join_list
 %type <condition_list>      condition_list
 %type <string>              storage_format
@@ -370,7 +377,29 @@ create_index_stmt:    /*create index 语句的语法解析树*/
       free($6);
       free($8);
     }
+    | CREATE VECTOR_T INDEX ID ON ID LBRACE ID idx_col_list RBRACE WITH LBRACE
+      DISTANCE EQ L2_DISTANCE COMMA TYPE EQ IVFFLAT COMMA LISTS EQ
+      NUMBER COMMA PROBES EQ number RBRACE
+    {
+
+    }
     ;
+
+vector_operation:
+    L2_DISTANCE
+    {
+      $$ = (int)VectorOperationExpr::Type::L2_DISTANCE;
+    }
+    | COSINE_DISTANCE
+    {
+      $$ = (int)VectorOperationExpr::Type::COSINE_DISTANCE;
+    }
+    | INNER_PRODUCT
+    {
+      $$ = (int)VectorOperationExpr::Type::INNER_PRODUCT;
+    }
+    ;
+
 idx_col_list:
     /* empty */
     {
@@ -834,14 +863,8 @@ expression:
     | expression '/' expression {
       $$ = create_arithmetic_expression(ArithmeticExpr::Type::DIV, $1, $3, sql_string, &@$);
     }
-    | L2_DISTANCE LBRACE expression COMMA expression RBRACE{
-      $$ = create_operation_expression(VectorOperationExpr::Type::L2_DISTANCE, $3, $5, sql_string, &@$);
-    }
-    | COSINE_DISTANCE LBRACE expression COMMA expression RBRACE{
-      $$ = create_operation_expression(VectorOperationExpr::Type::COSINE_DISTANCE, $3, $5, sql_string, &@$);
-    }
-    | INNER_PRODUCT LBRACE expression COMMA expression RBRACE{
-      $$ = create_operation_expression(VectorOperationExpr::Type::INNER_PRODUCT, $3, $5, sql_string, &@$);
+    | vector_operation LBRACE expression COMMA expression RBRACE{
+      $$ = create_operation_expression((VectorOperationExpr::Type)$1, $3, $5, sql_string, &@$);
     }
     | LBRACE expression_list RBRACE {
       if ($2->size() == 1) {
@@ -891,6 +914,16 @@ ID:
     {
       $$ = (char *)malloc(sizeof(char) * 5);
       memcpy($$, "data", sizeof(char) * 5);
+    }
+    | LISTS
+    {
+      $$ = (char *)malloc(sizeof(char) * 6);
+      memcpy($$, "lists", sizeof(char) * 6);
+    }
+    | TYPE
+    {
+      $$ = (char *)malloc(sizeof(char) * 5);
+      memcpy($$, "type", sizeof(char) * 5);
     }
     ;
 

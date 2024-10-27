@@ -151,9 +151,10 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
         ids_.resize(value_list_.size());
         vector<vector<Value>> order_values(value_list_.size());
         for(size_t id = 0; id < value_list_.size(); id++){
-            order_values[id].resize(order_by_.size());
+            auto& values = order_values[id];
+            values.resize(order_by_.size());
             for(size_t i = 0; i < order_by_.size(); i++){
-                order_by_[id]->get_value(value_list_[id], order_values[id][i]);
+                order_by_[i]->get_value(value_list_[id], values[i]);
             }
             ids_[id] = id;
         }
