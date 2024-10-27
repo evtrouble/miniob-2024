@@ -10,24 +10,61 @@ See the Mulan PSL v2 for more details. */
 
 #pragma once
 
+#include <unordered_map>
+
 #include "storage/index/index.h"
+#include "sql/expr/expression.h"
+
+class Calculator
+{
+public:
+  void init(VectorOperationExpr::Type type, int length)
+  {
+    attr_length_ = length;
+    type_ = type;
+  }
+
+  float operator()(Value &left, Value &right)
+  {
+    result_.set_type(AttrType::VECTORS);
+    switch (type_)
+    {
+      case VectorOperationExpr::Type::COSINE_DISTANCE:
+        left.cosine_distance(left, right, result_);
+        return result_.get_float();
+      case VectorOperationExpr::Type::INNER_PRODUCT:
+        left.inner_product(left, right, result_);
+        return result_.get_float();
+      case VectorOperationExpr::Type::L2_DISTANCE:
+        left.l2_distance(left, right, result_);
+        return result_.get_float();
+      default:
+        return 0;
+    }
+  }
+
+  VectorOperationExpr::Type type() { return type_; }
+
+private:
+  int      attr_length_;
+  VectorOperationExpr::Type type_;
+  Value    result_;
+};
 
 /**
  * @brief ivfflat 向量索引
  * @ingroup Index
  */
+
 class IvfflatIndex : public Index
 {
 public:
-  IvfflatIndex(){};
-  virtual ~IvfflatIndex() noexcept {};
+  IvfflatIndex() = default;
+  virtual ~IvfflatIndex() noexcept = default;
 
-  RC create(Table *table, const char *file_name, const bool unique, const IndexMeta &index_meta,
-      const std::vector<int> &field_ids, const std::vector<const FieldMeta *> &field_metas);
-
+  RC create(Table *table, VectorIndexNode &vector_index, const FieldMeta *field_meta);
   RC open(Table *table, const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta)
   {
-
     return RC::UNIMPLEMENTED;
   };
 
@@ -37,9 +74,9 @@ public:
 
   RC close() { return RC::UNIMPLEMENTED; }
 
-  RC insert_entry(const char *record, const RID *rid) override { return RC::UNIMPLEMENTED; }
-  RC delete_entry(const char *record, const RID *rid) override { return RC::UNIMPLEMENTED; }
-  RC update_entry(const char *record, const RID *rid) override { return RC::UNIMPLEMENTED; }
+  RC insert_entry(const char *record, const RID *rid) override;
+  RC delete_entry(const char *record, const RID *rid) override;
+  RC update_entry(const char *record, const RID *rid) override;
 
   RC sync() override { return RC::UNIMPLEMENTED; };
   IndexScanner *create_scanner(const char *left_key, int left_len, bool left_inclusive,
@@ -47,10 +84,34 @@ public:
                                               override { return nullptr; }
   RC drop() override { return RC::UNIMPLEMENTED; }
 
+  void k_means();
+
+  size_t get_id(Value &value)
+  {
+    size_t id = 0;
+    float mmin = 1e38;
+    int size = std::min(lists_, num);
+    for(int i = 0; i < size; i++){
+      float temp = calculator_(centers_[i], value); 
+      if(mmin > temp){
+        mmin = temp;
+        id = i;
+      }
+    }
+    return id;
+  }
+
 private:
   bool   inited_ = false;
   Table *table_  = nullptr;
   int    lists_  = 1;
   int    probes_ = 1;
-  IndexMeta index_meta;
+  int      attr_offset_;
+  int      attr_length_;
+  Calculator  calculator_;
+  vector<Value> centers_;
+  vector<Value> before_centers;
+  vector<vector<RID>> clusters_;
+  unordered_map<RID, Value, RIDHash> records_;
+  int num = 0;
 };

@@ -19,8 +19,8 @@ See the Mulan PSL v2 for more details. */
 int VectorType::compare(const Value &left, const Value &right) const
 {
     ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
-    vector<float>* left_vector = (vector<float>*)left.data();
-    vector<float>* right_vector = (vector<float>*)right.data();
+    vector<float>* left_vector = left.get_vector();
+    vector<float>* right_vector = right.get_vector();
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
     
     for(size_t id = 0; id < left_vector->size(); id++){
@@ -105,6 +105,7 @@ RC VectorType::l2_distance(const Value &left, const Value &right, Value &result)
         double diff = left_vector->at(id) - right_vector->at(id);
         ans += diff * diff;
     }
+
     result.set_float(static_cast<float>(sqrt(ans)));
     return RC::SUCCESS;
 }

@@ -141,7 +141,6 @@ void Value::reset()
       if (own_data_ && value_.vector_value_ != nullptr) {
         delete value_.vector_value_;
         value_.vector_value_ = nullptr;
-        
       }
       break;
     
@@ -515,6 +514,19 @@ float Value::get_float() const
 }
 
 string Value::get_string() const { return this->to_string(); }
+
+vector<float> *Value::get_vector() const
+{
+  switch (attr_type_) {
+    case AttrType::VECTORS: {
+      return value_.vector_value_;
+    } break;
+    default: {
+      return nullptr;
+    }
+  }
+  return nullptr;
+}
 
 bool Value::get_boolean() const
 {

@@ -216,6 +216,7 @@ public:
   string get_string() const;
   bool   get_boolean() const;
   int64_t get_long() const;
+  vector<float> *get_vector() const;
 
   static constexpr int ATTR_TYPE_LENGTH[] = {-1, 4, 4, 4, 4, 1, 10, 4, 8, 0};
 
@@ -240,7 +241,6 @@ private:
     bool    bool_value_;
     char   *pointer_value_;
     vector<float>   *vector_value_;
-    ParsedSqlNode   *select_value_;
     int64_t long_value_;
   } value_ = {.int_value_ = 0};
 
