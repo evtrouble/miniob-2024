@@ -167,8 +167,9 @@ union YYSTYPE
   bool                                       boolean;
   Joins *                                    join_list;
   Key_values *                               key_values;
+  enum VectorIndexType                       vector_index_type;
 
-#line 172 "yacc_sql.hpp"
+#line 173 "yacc_sql.hpp"
 
 };
 typedef union YYSTYPE YYSTYPE;

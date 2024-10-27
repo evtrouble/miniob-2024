@@ -21,7 +21,7 @@ See the Mulan PSL v2 for more details. */
 using namespace std;
 using namespace common;
 
-RC CreateIndexStmt::create(Db *db, const CreateIndexSqlNode &create_index, Stmt *&stmt)
+RC CreateIndexStmt::create(Db *db, CreateIndexSqlNode &create_index, Stmt *&stmt)
 {
   stmt = nullptr;
 
@@ -56,6 +56,7 @@ RC CreateIndexStmt::create(Db *db, const CreateIndexSqlNode &create_index, Stmt 
     return RC::SCHEMA_INDEX_NAME_REPEAT;
   }
 
-  stmt = new CreateIndexStmt(table, field_metas, create_index.index_name, create_index.unique);
+  stmt = new CreateIndexStmt(table, field_metas, create_index.index_name, create_index.unique, create_index.vector_index);
+    
   return RC::SUCCESS;
 }

@@ -93,6 +93,8 @@ public:
 
   // TODO refactor
   RC create_index(Trx *trx, bool unique, std::vector<const FieldMeta *> &field_metas, const char *index_name);
+  RC create_vector_index(Trx *trx, bool unique, std::vector<const FieldMeta *> &field_metas, const char *index_name,
+      VectorIndexNode &vector_index);
 
   RC get_record_scanner(RecordFileScanner &scanner, Trx *trx, ReadWriteMode mode);
 

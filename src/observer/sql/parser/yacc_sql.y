@@ -177,6 +177,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
   bool                                       boolean;
   Joins *                                    join_list;
   Key_values *                               key_values;
+  enum VectorIndexType                       vector_index_type;
 }
 
 %token <number> NUMBER
@@ -213,6 +214,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <condition_list>      where
 %type <condition_list>      on
 %type <number>              vector_operation
+%type <vector_index_type>   vector_index_type
 %type <join_list>           join_list
 %type <condition_list>      condition_list
 %type <string>              storage_format
@@ -378,10 +380,28 @@ create_index_stmt:    /*create index 语句的语法解析树*/
       free($8);
     }
     | CREATE VECTOR_T INDEX ID ON ID LBRACE ID idx_col_list RBRACE WITH LBRACE
-      DISTANCE EQ L2_DISTANCE COMMA TYPE EQ IVFFLAT COMMA LISTS EQ
+      DISTANCE EQ vector_operation COMMA TYPE EQ vector_index_type COMMA LISTS EQ
       NUMBER COMMA PROBES EQ number RBRACE
     {
+      $$ = new ParsedSqlNode(SCF_CREATE_INDEX);
+      CreateIndexSqlNode &create_index = $$->create_index;
+      create_index.index_name = $4;
+      create_index.relation_name = $6;
+      std::vector<std::string> *idx_cols = $9;
+      if (nullptr != idx_cols) {
+        create_index.attr_names.swap(*idx_cols);
+        delete $9;
+      }
+      create_index.attr_names.emplace_back($8);
+      std::reverse(create_index.attr_names.begin(), create_index.attr_names.end());
+      free($4);
+      free($6);
+      free($8);
 
+      create_index.vector_index.distance = $15;    
+      create_index.vector_index.type = $19;
+      create_index.vector_index.lists = $23;
+      create_index.vector_index.probes = $27; 
     }
     ;
 
@@ -399,6 +419,9 @@ vector_operation:
       $$ = (int)VectorOperationExpr::Type::INNER_PRODUCT;
     }
     ;
+
+vector_index_type:
+    IVFFLAT { $$ = VectorIndexType::IVFFLAT; };
 
 idx_col_list:
     /* empty */

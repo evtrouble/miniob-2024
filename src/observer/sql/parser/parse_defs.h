@@ -195,6 +195,20 @@ struct DropTableSqlNode
   std::string relation_name;  ///< 要删除的表名
 };
 
+enum class VectorIndexType
+{
+  UNDEFINED,
+  IVFFLAT
+};
+
+struct VectorIndexNode
+{
+  int distance;              
+  VectorIndexType type = VectorIndexType::UNDEFINED;
+  int lists = 1;
+  int probes = 1;  
+};
+
 /**
  * @brief 描述一个create index语句
  * @ingroup SQLParser
@@ -207,6 +221,7 @@ struct CreateIndexSqlNode
   std::string         index_name;     ///< Index name
   std::string         relation_name;  ///< Relation name
   std::vector<string> attr_names;     ///< Attribute name
+  VectorIndexNode     vector_index;                                  
 };
 
 /**

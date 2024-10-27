@@ -32,6 +32,9 @@ RC CreateIndexExecutor::execute(SQLStageEvent *sql_event)
 
   Trx   *trx   = session->current_trx();
   Table *table = create_index_stmt->table();
+  if(create_index_stmt->vector_index().type != VectorIndexType::UNDEFINED)
+    return table->create_vector_index(trx, create_index_stmt->unique(), create_index_stmt->field_meta(), create_index_stmt->index_name().c_str(),
+        create_index_stmt->vector_index());
   return table->create_index(
       trx, create_index_stmt->unique(), create_index_stmt->field_meta(), create_index_stmt->index_name().c_str());
 }
