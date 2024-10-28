@@ -134,7 +134,7 @@ RC Table::create(Db *db, int32_t table_id, const char *path, const char *name, c
   // 创建文件存放text
   bool exist_text_feild = false;
   for (const FieldMeta &field : *table_meta_.field_metas()) {
-    if (AttrType::TEXTS == field.type()) {
+    if (AttrType::TEXTS == field.type() || AttrType::VECTORS_HIGH == field.type()) {
       exist_text_feild = true;
       break;
     }
@@ -319,7 +319,8 @@ RC Table::update_record(const RID &rid, std::vector<const FieldMeta *> &fields, 
     }
 
     if (value.attr_type() != AttrType::NULLS && field->type() != value.attr_type()) {
-      if (AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()){
+      if ((AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type())||
+      (AttrType::VECTORS_HIGH == field->type() && AttrType::VECTORS == value.attr_type())){
         rc = set_value_to_record(new_record.data(), value, field);
       }else{      
         Value real_value;
@@ -452,7 +453,8 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
     }
 
     if (value.attr_type() != AttrType::NULLS && field->type() != value.attr_type()) {
-      if (AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()){
+      if ((AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()) ||
+      (AttrType::VECTORS_HIGH == field->type() && AttrType::VECTORS == value.attr_type())){
         rc = set_value_to_record(record_data, value, field);
       }else{
         Value real_value;
@@ -498,14 +500,14 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
   //TEXT数据类型处理，需要将value中的字符串插入到文件中，然后将offset、length写入record
   if(value.attr_type() != AttrType::NULLS)
   {
-    if (AttrType::TEXTS == field->type()) {
+    if (AttrType::TEXTS == field->type() || AttrType::VECTORS_HIGH == field->type()) {
       int64_t position[2];
       position[1] = value.length();
       text_buffer_pool_->append_data(position[0], position[1], value.data());
       memcpy(record_data + field->offset(), position, 2 * sizeof(int64_t));
     }
-    else if(value.attr_type() == AttrType::VECTORS)
-        memcpy(record_data + field->offset(), ((vector<float>*)value.data())->data(), copy_len);
+    else if(AttrType::VECTORS == field->type())
+        memcpy(record_data + field->offset(), value.data(), copy_len);
     else memcpy(record_data + field->offset(), value.data(), copy_len);
   }
 

@@ -146,7 +146,8 @@ RC View::make_record(int value_num, const Value *values, Record &record)
     }
 
     if (value.attr_type() != AttrType::NULLS && field->type() != value.attr_type()) {
-      if (AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()){
+      if ((AttrType::TEXTS == field->type() && AttrType::CHARS == value.attr_type()) ||
+      (AttrType::VECTORS_HIGH == field->type() && AttrType::VECTORS == value.attr_type())){
         rc = set_value_to_record(record_data, value, field);
       }else{
         Value real_value;
