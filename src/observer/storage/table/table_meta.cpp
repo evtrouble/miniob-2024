@@ -25,6 +25,7 @@ static const Json::StaticString FIELD_TABLE_NAME("table_name");
 static const Json::StaticString FIELD_STORAGE_FORMAT("storage_format");
 static const Json::StaticString FIELD_FIELDS("fields");
 static const Json::StaticString FIELD_INDEXES("indexes");
+static constexpr int MAX_VECTORS_LENGTH = 16000;
 
 TableMeta::TableMeta(const TableMeta &other)
     : table_id_(other.table_id_),
@@ -98,6 +99,10 @@ RC TableMeta::init(int32_t table_id, const char *name, const std::vector<FieldMe
         attr_info.type == AttrType::VECTORS? attr_info.length * sizeof(float) : attr_info.length,
         true /*visible*/,
         i + trx_field_num + 1, attr_info.nullable);
+    if (AttrType::VECTORS_HIGH == fields_[i + trx_field_num + 1].type() && 
+    fields_[i + trx_field_num + 1].real_len() > MAX_VECTORS_LENGTH){
+      return rc = RC::INVALID_ARGUMENT;
+    }
     if (OB_FAIL(rc)) {
       LOG_ERROR("Failed to init field meta. table name=%s, field name: %s", name, attr_info.name.c_str());
       return rc;
