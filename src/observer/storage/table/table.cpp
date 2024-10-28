@@ -507,7 +507,7 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
       memcpy(record_data + field->offset(), position, 2 * sizeof(int64_t));
     }
     else if(AttrType::VECTORS == field->type())
-        memcpy(record_data + field->offset(), ((vector<float>*)value.data())->data(), copy_len);
+        memcpy(record_data + field->offset(), value.data(), copy_len);
     else memcpy(record_data + field->offset(), value.data(), copy_len);
   }
 

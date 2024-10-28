@@ -33,8 +33,8 @@ int VectorType::compare(const Value &left, const Value &right) const
 RC VectorType::add(const Value &left, const Value &right, Value &result) const 
 {
     ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
-    vector<float>* left_vector = (vector<float>*)left.data();
-    vector<float>* right_vector = (vector<float>*)right.data();
+    vector<float>* left_vector = left.get_vector();
+    vector<float>* right_vector = right.get_vector();
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
     
     vector<float> *temp = new vector<float>(left_vector->size());
@@ -48,8 +48,8 @@ RC VectorType::add(const Value &left, const Value &right, Value &result) const
 RC VectorType::subtract(const Value &left, const Value &right, Value &result) const 
 {
     ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
-    vector<float>* left_vector = (vector<float>*)left.data();
-    vector<float>* right_vector = (vector<float>*)right.data();
+    vector<float>* left_vector = left.get_vector();
+    vector<float>* right_vector = right.get_vector();
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
     
     vector<float> *temp = new vector<float>(left_vector->size());
@@ -63,8 +63,8 @@ RC VectorType::subtract(const Value &left, const Value &right, Value &result) co
 RC VectorType::multiply(const Value &left, const Value &right, Value &result) const 
 {
     ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
-    vector<float>* left_vector = (vector<float>*)left.data();
-    vector<float>* right_vector = (vector<float>*)right.data();
+    vector<float>* left_vector = left.get_vector();
+    vector<float>* right_vector = right.get_vector();
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
 
     vector<float> *temp = new vector<float>(left_vector->size());
@@ -96,8 +96,8 @@ RC VectorType::to_string(const Value &val, string &result) const
 RC VectorType::l2_distance(const Value &left, const Value &right, Value &result) const
 {
     ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
-    vector<float>* left_vector = (vector<float>*)left.data();
-    vector<float>* right_vector = (vector<float>*)right.data();
+    vector<float>* left_vector = left.get_vector();
+    vector<float>* right_vector = right.get_vector();
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
 
     double ans = 0;
@@ -113,8 +113,8 @@ RC VectorType::l2_distance(const Value &left, const Value &right, Value &result)
 RC VectorType::cosine_distance(const Value &left, const Value &right, Value &result) const
 {
     ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
-    vector<float>* left_vector = (vector<float>*)left.data();
-    vector<float>* right_vector = (vector<float>*)right.data();
+    vector<float>* left_vector = left.get_vector();
+    vector<float>* right_vector = right.get_vector();
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
 
     double a2 = 0, b2 = 0, ab = 0;
@@ -140,8 +140,8 @@ RC VectorType::cosine_distance(const Value &left, const Value &right, Value &res
 RC VectorType::inner_product(const Value &left, const Value &right, Value &result) const 
 {
     ASSERT(left.attr_type() == AttrType::VECTORS && right.attr_type() == AttrType::VECTORS, "invalid type");
-    vector<float>* left_vector = (vector<float>*)left.data();
-    vector<float>* right_vector = (vector<float>*)right.data();
+    vector<float>* left_vector = left.get_vector();
+    vector<float>* right_vector = right.get_vector();
     ASSERT(left_vector->size() == right_vector->size(), "vector sizes must match");
 
     double dot_product = 0;
