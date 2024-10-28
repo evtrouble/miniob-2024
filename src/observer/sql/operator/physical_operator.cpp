@@ -18,6 +18,7 @@ std::string physical_operator_type_name(PhysicalOperatorType type)
 {
   switch (type) {
     case PhysicalOperatorType::TABLE_SCAN: return "TABLE_SCAN";
+    case PhysicalOperatorType::VECTOR_INDEX_SCAN: return "VECTOR_INDEX_SCAN";
     case PhysicalOperatorType::CREATE_TABLE: return "CREATE_TABLE";
     case PhysicalOperatorType::VIEW_SCAN: return "VIEW_SCAN";
     case PhysicalOperatorType::INDEX_SCAN: return "INDEX_SCAN";
