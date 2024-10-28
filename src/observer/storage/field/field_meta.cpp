@@ -56,9 +56,9 @@ RC FieldMeta::init(
   if (AttrType::VECTORS == attr_type && attr_len >= static_cast<int>(1000*sizeof(float))){
     attr_type_ = AttrType::VECTORS_HIGH;
     attr_len_ = TEXT_FIELD_LENGTH;
-    real_attr_len_ = attr_len;
+    real_attr_len_ = static_cast<int>(attr_len/sizeof(float));
   }
-  
+
   else{
     attr_type_   = attr_type;
     attr_len_    = attr_len;
