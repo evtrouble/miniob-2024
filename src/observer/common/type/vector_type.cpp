@@ -80,7 +80,7 @@ RC VectorType::multiply(const Value &left, const Value &right, Value &result) co
 RC VectorType::to_string(const Value &val, string &result) const
 {
     ASSERT(val.attr_type() == AttrType::VECTORS, "invalid type");
-    vector<float>* val_vector = (vector<float>*)val.data();
+    vector<float>* val_vector = val.get_vector();
     result = "[";
     Value temp;
     size_t id = 0;

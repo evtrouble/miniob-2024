@@ -206,7 +206,6 @@ void Value::set_vector(const char *data)
     value_.vector_value_->emplace_back(stof(temp));
   }
   length_ = value_.vector_value_->size() * sizeof(float);
-  cout<<strlen(data)<<endl;
 }
 
 void Value::set_vector(const char *data, int len)
