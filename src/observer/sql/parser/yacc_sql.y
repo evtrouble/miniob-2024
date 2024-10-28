@@ -384,7 +384,7 @@ create_index_stmt:    /*create index 语句的语法解析树*/
       free($8);
     }
     | CREATE VECTOR_T INDEX ID ON ID LBRACE ID idx_col_list RBRACE WITH LBRACE
-      DISTANCE EQ vector_operation COMMA TYPE EQ vector_index_type COMMA LISTS EQ
+      TYPE EQ vector_index_type COMMA DISTANCE EQ vector_operation COMMA LISTS EQ
       NUMBER COMMA PROBES EQ number RBRACE
     {
       $$ = new ParsedSqlNode(SCF_CREATE_INDEX);
@@ -402,8 +402,8 @@ create_index_stmt:    /*create index 语句的语法解析树*/
       free($6);
       free($8);
 
-      create_index.vector_index.distance = $15;    
-      create_index.vector_index.type = $19;
+      create_index.vector_index.distance = $19;    
+      create_index.vector_index.type = $15;
       create_index.vector_index.lists = $23;
       create_index.vector_index.probes = $27; 
     }
