@@ -249,7 +249,7 @@ public:
         cell.set_data(text, length);
         free(text);
       }
-      if (AttrType::TEXTS == field_meta->type()) {
+      else if (AttrType::TEXTS == field_meta->type()) {
         if(table_->is_view())return RC::INVALID_ARGUMENT;
         cell.set_type(AttrType::CHARS);
         // 获取TEXT数据储存位置（偏移量和长度），并分配空间

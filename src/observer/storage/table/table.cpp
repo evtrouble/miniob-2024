@@ -503,6 +503,7 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
     if (AttrType::TEXTS == field->type() || AttrType::VECTORS_HIGH == field->type()) {
       int64_t position[2];
       position[1] = value.length();
+      cout<<value.length()<<endl;
       text_buffer_pool_->append_data(position[0], position[1], value.data());
       memcpy(record_data + field->offset(), position, 2 * sizeof(int64_t));
     }
