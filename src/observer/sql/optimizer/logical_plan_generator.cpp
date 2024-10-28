@@ -25,6 +25,7 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/predicate_logical_operator.h"
 #include "sql/operator/project_logical_operator.h"
 #include "sql/operator/table_get_logical_operator.h"
+#include "sql/operator/vector_index_get_logical_operator.h"
 #include "sql/operator/group_by_logical_operator.h"
 #include "sql/operator/order_by_logical_operator.h"
 #include "sql/operator/update_logical_operator.h"
@@ -41,6 +42,8 @@ See the Mulan PSL v2 for more details. */
 #include "sql/stmt/stmt.h"
 
 #include "sql/expr/expression_iterator.h"
+#include "storage/index/index.h"
+#include "storage/index/ivfflat_index.h"
 
 using namespace std;
 using namespace common;
@@ -130,14 +133,15 @@ RC LogicalPlanGenerator::create_plan(CreateTableStmt *create_table_stmt, std::un
 
 RC LogicalPlanGenerator::create_plan(SelectStmt *select_stmt, unique_ptr<LogicalOperator> &logical_operator)
 {
+  if(OB_SUCC(create_vector_plan(select_stmt, logical_operator)))return RC::SUCCESS;
+
   unique_ptr<LogicalOperator> *last_oper = nullptr;
 
   unique_ptr<LogicalOperator> table_oper(nullptr);
   last_oper = &table_oper;
 
   auto &tables = select_stmt->tables();
-  for (auto& [table, alias] : tables) {
-    
+  for (auto& [table, alias] : tables) {    
     unique_ptr<LogicalOperator> table_get_oper(new TableGetLogicalOperator(table, ReadWriteMode::READ_ONLY, alias));
     if (table_oper == nullptr) {
       table_oper = std::move(table_get_oper);
@@ -196,9 +200,10 @@ RC LogicalPlanGenerator::create_plan(SelectStmt *select_stmt, unique_ptr<Logical
     last_oper = &having_oper;
   }
 
+  auto& order_by = select_stmt->order_by();
   unique_ptr<LogicalOperator> order_by_oper;
-  if(select_stmt->order_by().size()){
-    order_by_oper = make_unique<OrderByLogicalOperator>(std::move(select_stmt->order_by()), std::move(select_stmt->is_asc()), select_stmt->limit());
+  if(order_by.size()){
+    order_by_oper = make_unique<OrderByLogicalOperator>(std::move(order_by), std::move(select_stmt->is_asc()), select_stmt->limit());
     if (*last_oper) {
       order_by_oper->add_child(std::move(*last_oper));
     }
@@ -502,5 +507,62 @@ RC LogicalPlanGenerator::create_group_by_plan(SelectStmt *select_stmt, unique_pt
   auto group_by_oper = make_unique<GroupByLogicalOperator>(std::move(group_by_expressions),
                                                            std::move(aggregate_expressions));
   logical_operator = std::move(group_by_oper);
+  return RC::SUCCESS;
+}
+
+RC LogicalPlanGenerator::create_vector_plan(SelectStmt *select_stmt, unique_ptr<LogicalOperator> &logical_operator)
+{
+  auto &tables = select_stmt->tables();
+  auto& order_by = select_stmt->order_by();
+
+  if(tables.size() != 1 || order_by.size() != 1 || order_by[0]->type() != ExprType::VECTOROPERATION
+    || !select_stmt->is_asc()[0])
+    return RC::INVALID_ARGUMENT;
+  
+  VectorOperationExpr* vector_expr = static_cast<VectorOperationExpr*>(order_by[0].get());
+  Table *table = static_cast<Table*>(tables[0].first);
+
+  unique_ptr<Expression> &left_expr  = vector_expr->left();
+  unique_ptr<Expression> &right_expr = vector_expr->right();
+
+  // 左右比较的一边最少是一个值
+  if (left_expr->type() != ExprType::VALUE && right_expr->type() != ExprType::VALUE) 
+    return RC::INVALID_ARGUMENT;
+
+  FieldExpr *field_expr = nullptr;
+  ValueExpr *value_expr = nullptr;
+  if (left_expr->type() == ExprType::FIELD) {
+    ASSERT(right_expr->type() == ExprType::VALUE, "right expr should be a value expr while left is field expr");
+    field_expr = static_cast<FieldExpr *>(left_expr.get());
+    value_expr = static_cast<ValueExpr *>(right_expr.get());
+  } else if (right_expr->type() == ExprType::FIELD) {
+    ASSERT(left_expr->type() == ExprType::VALUE, "left expr should be a value expr while right is a field expr");
+    field_expr = static_cast<FieldExpr *>(right_expr.get());
+    value_expr = static_cast<ValueExpr *>(left_expr.get());
+  }
+
+  if (field_expr == nullptr)return RC::INVALID_ARGUMENT;
+
+  Value value;
+  ASSERT(value_expr != nullptr, "got an index but value expr is null ?");
+  if (value_expr->try_get_value(value) != RC::SUCCESS || value.attr_type() != AttrType::VECTORS)
+    return RC::INVALID_ARGUMENT;
+
+  Index* index = table->find_index_by_field(field_expr->field().field_name());
+  if(index == nullptr || !index->is_vector_index())return RC::INVALID_ARGUMENT;
+
+  if(static_cast<IvfflatIndex*>(index)->type() != vector_expr->operation_type())
+    return RC::INVALID_ARGUMENT;
+  
+  unique_ptr<LogicalOperator> *last_oper = nullptr;
+  unique_ptr<LogicalOperator> table_oper(new VectorIndexGetLogicalOperator(index, move(value), table, select_stmt->limit()));
+  last_oper = &table_oper;
+
+  auto project_oper = make_unique<ProjectLogicalOperator>(std::move(select_stmt->query_expressions()), tables.size() > 1);
+  if (*last_oper) {
+    project_oper->add_child(std::move(*last_oper));
+  }
+
+  logical_operator = std::move(project_oper);
   return RC::SUCCESS;
 }

@@ -17,7 +17,7 @@ See the Mulan PSL v2 for more details. */
 
 using namespace std;
 
-RC IvfflatIndex::create(Table *table, VectorIndexNode &vector_index, const FieldMeta *field_meta)
+RC IvfflatIndex::create(Table *table, VectorIndexNode &vector_index, const FieldMeta *field_meta, const IndexMeta &index_meta)
 {
     table_ = table;
     attr_offset_ = field_meta->offset();
@@ -29,6 +29,9 @@ RC IvfflatIndex::create(Table *table, VectorIndexNode &vector_index, const Field
     centers_.resize(lists_);
     clusters_.resize(lists_);
     before_centers.resize(lists_);
+
+    index_meta_ = index_meta;
+    field_metas_.emplace_back(*field_meta);
     return RC::SUCCESS;
 }
 
@@ -48,11 +51,11 @@ RC IvfflatIndex::insert_entry(const char *record, const RID *rid)
         num++;
         k_means();
     }
-    int size = std::min(lists_, num);
-    for(int i = 0; i < size; i++){
-        cout<<centers_[i].to_string()<<' ';
-    }
-    cout<<endl;
+    // int size = std::min(lists_, num);
+    // for(int i = 0; i < size; i++){
+    //     cout<<centers_[i].to_string()<<' ';
+    // }
+    // cout<<endl;
     return RC::SUCCESS; 
 }
 
@@ -82,11 +85,11 @@ RC IvfflatIndex::delete_entry(const char *record, const RID *rid)
         records_.erase(*rid);
         k_means();
     }
-    int size = std::min(lists_, num);
-    for(int i = 0; i < size; i++){
-        cout<<centers_[i].to_string()<<' ';
-    }
-    cout<<endl;
+    // int size = std::min(lists_, num);
+    // for(int i = 0; i < size; i++){
+    //     cout<<centers_[i].to_string()<<' ';
+    // }
+    // cout<<endl;
     return RC::SUCCESS; 
 }
 
@@ -107,11 +110,11 @@ RC IvfflatIndex::update_entry(const char *record, const RID *rid)
         records_[*rid] = std::move(tmp);
         k_means();
     }
-    int size = std::min(lists_, num);
-    for(int i = 0; i < size; i++){
-        cout<<centers_[i].to_string()<<' ';
-    }
-    cout<<endl;
+    // int size = std::min(lists_, num);
+    // for(int i = 0; i < size; i++){
+    //     cout<<centers_[i].to_string()<<' ';
+    // }
+    // cout<<endl;
     return RC::SUCCESS; 
 }
 
@@ -177,11 +180,12 @@ vector<RID> IvfflatIndex::ann_search(const vector<float> &base_vector, size_t li
             }
         }
     }
-    vector<RID> ret(limit);
-    size_t id = 0;
+    vector<RID> ret;
+    ret.reserve(limit);
     while(!rid_pq.empty()){
-        ret[id++] = std::move(rid_pq.top().second);
+        ret.emplace_back(std::move(rid_pq.top().second));
         rid_pq.pop();
     }
+    reverse(ret.begin(), ret.end());
     return ret;
 }

@@ -50,6 +50,8 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/update_physical_operator.h"
 #include "sql/operator/create_table_logical_operator.h"
 #include "sql/operator/create_table_physical_operator.h"
+#include "sql/operator/vector_index_get_logical_operator.h"
+#include "sql/operator/vector_index_scan_physical_operator.h"
 #include "storage/table/view.h"
 #include "storage/index/index.h"
 
@@ -106,6 +108,10 @@ RC PhysicalPlanGenerator::create(LogicalOperator &logical_operator, unique_ptr<P
 
     case LogicalOperatorType::CREATE_TABLE: {
       return create_plan(static_cast<CreateTableLogicalOperator &>(logical_operator), oper);
+    } break;
+
+    case LogicalOperatorType::VECTOR_INDEX_GET: {
+      return create_plan(static_cast<VectorIndexGetLogicalOperator &>(logical_operator), oper);
     } break;
 
     default: {
@@ -481,6 +487,14 @@ RC PhysicalPlanGenerator::create_plan(CreateTableLogicalOperator &logical_oper, 
     }
     oper->add_child(std::move(select_oper));
   }
+
+  return RC::SUCCESS;
+}
+
+RC PhysicalPlanGenerator::create_plan(VectorIndexGetLogicalOperator &logical_oper, std::unique_ptr<PhysicalOperator> &oper)
+{
+  oper = unique_ptr<PhysicalOperator>(new VectorIndexScanPhysicalOperator(logical_oper.index(), 
+    std::move(logical_oper.value()), logical_oper.table(), logical_oper.limit()));
 
   return RC::SUCCESS;
 }

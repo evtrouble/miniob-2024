@@ -59,7 +59,7 @@ public:
   IvfflatIndex() = default;
   virtual ~IvfflatIndex() noexcept = default;
 
-  RC create(Table *table, VectorIndexNode &vector_index, const FieldMeta *field_meta);
+  RC create(Table *table, VectorIndexNode &vector_index, const FieldMeta *field_meta, const IndexMeta &index_meta);
   RC open(Table *table, const char *file_name, const IndexMeta &index_meta, const FieldMeta &field_meta)
   {
     return RC::UNIMPLEMENTED;

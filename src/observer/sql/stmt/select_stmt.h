@@ -62,6 +62,6 @@ private:
   std::vector<std::unique_ptr<Expression>> order_by_;
   std::vector<std::unique_ptr<Expression>> having_list_;
   bool                                     and_or_ = false;
-  std::vector<bool>                        is_asc_;
+  std::vector<bool>                        is_asc_; // 升序为true
   int                                      limit_ = -1;
 };

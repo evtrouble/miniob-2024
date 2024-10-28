@@ -868,7 +868,7 @@ RC Table::create_vector_index(Trx *trx, bool unique, std::vector<const FieldMeta
   IvfflatIndex *index      = new IvfflatIndex();
   string          index_file = table_index_file(base_dir_.c_str(), name(), index_name);
 
-  rc = index->create(this, vector_index, field_metas[sys_field_num]);
+  rc = index->create(this, vector_index, field_metas[sys_field_num], new_index_meta);
   if (rc != RC::SUCCESS) {
     delete index;
     LOG_ERROR("Failed to create bplus tree index. file name=%s, rc=%d:%s", index_file.c_str(), rc, strrc(rc));
@@ -905,15 +905,15 @@ RC Table::create_vector_index(Trx *trx, bool unique, std::vector<const FieldMeta
 
   indexes_.push_back(index);
 
-  /// 接下来将这个索引放到表的元数据中
-  // TableMeta new_table_meta(table_meta_);
-  // rc = new_table_meta.add_index(new_index_meta);
-  // if (rc != RC::SUCCESS) {
-  //   LOG_ERROR("Failed to add index (%s) on table (%s). error=%d:%s", index_name, name(), rc, strrc(rc));
-  //   return rc;
-  // }
+  // 接下来将这个索引放到表的元数据中
+  TableMeta new_table_meta(table_meta_);
+  rc = new_table_meta.add_index(new_index_meta);
+  if (rc != RC::SUCCESS) {
+    LOG_ERROR("Failed to add index (%s) on table (%s). error=%d:%s", index_name, name(), rc, strrc(rc));
+    return rc;
+  }
 
-  // table_meta_.swap(new_table_meta);
+  table_meta_.swap(new_table_meta);
 
   LOG_INFO("Successfully added a new index (%s) on the table (%s)", index_name, name());
   return rc;

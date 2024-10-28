@@ -87,7 +87,7 @@ struct Conditions
 struct OrderByNode
 {
   std::unique_ptr<Expression> expression;
-  bool        is_asc;  ///< 升序or降序
+  bool        is_asc;  ///< 升序or降序 升序为true
 };
 
 struct HavingNode
