@@ -41,7 +41,7 @@ Value::Value(const Date *s, int len /*= 10*/)
     set_string((const char*)s, len); 
 }
 
-Value::Value(std::vector<Value> *values)
+Value::Value(const std::vector<Value> *values)
 {
   reset();
   attr_type_        = AttrType::VECTORS;
@@ -307,7 +307,7 @@ void Value::set_vector(vector<float>&& embedding)
   value_.vector_value_ = &embedding;
 }
 
-void Value::set_vector(vector<float>* embedding)
+void Value::set_vector(const vector<float>* embedding)
 {
   reset();
   attr_type_ = AttrType::VECTORS;

@@ -117,7 +117,7 @@ RC TableMeta::init(int32_t table_id, const char *name, const std::vector<FieldMe
 
 RC TableMeta::add_index(const IndexMeta &index)
 {
-  indexes_.push_back(index);
+  indexes_.emplace_back(index);
   return RC::SUCCESS;
 }
 
@@ -337,7 +337,7 @@ int TableMeta::deserialize(std::istream &is)
 
   for (size_t id = 1; id < fields_.size(); id++) {
     if (!fields_[id].visible()) {
-      trx_fields_.push_back(fields_[id]);  // 字段加上trx标识更好
+      trx_fields_.emplace_back(fields_[id]);  // 字段加上trx标识更好
     }
   }
 

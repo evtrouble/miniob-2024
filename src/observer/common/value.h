@@ -54,7 +54,7 @@ public:
   explicit Value(bool val);
   explicit Value(const char *s, int len = 0);
   explicit Value(const Date *s, int len = 0);
-  explicit Value(std::vector<Value> *values);
+  explicit Value(const std::vector<Value> *values);
   explicit Value(int64_t val);//添加int64_t的Value构造函数
 
   Value(const Value &other) noexcept;
@@ -192,7 +192,7 @@ public:
   void set_boolean(bool val);
   void set_vector(const char *data, int length);
   void set_vector(const char *data);
-  void set_vector(vector<float>* embedding);
+  void set_vector(const vector<float>* embedding);
   void set_vector(vector<float>&& embedding);
   void set_null();
   void set_long(int64_t val);

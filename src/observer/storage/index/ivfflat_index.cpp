@@ -12,15 +12,17 @@ See the Mulan PSL v2 for more details. */
 // Created on 2024/10/27.
 //
 
+#include <queue>
 #include "storage/index/ivfflat_index.h"
+
+using namespace std;
 
 RC IvfflatIndex::create(Table *table, VectorIndexNode &vector_index, const FieldMeta *field_meta)
 {
     table_ = table;
     attr_offset_ = field_meta->offset();
-    attr_length_ = field_meta->len();
 
-    calculator_.init((VectorOperationExpr::Type)vector_index.distance, attr_length_);
+    calculator_.init((VectorOperationExpr::Type)vector_index.distance, field_meta->len());
     inited_ = true;
     lists_  = vector_index.lists;
     probes_ = vector_index.probes;
@@ -35,7 +37,7 @@ RC IvfflatIndex::insert_entry(const char *record, const RID *rid)
     if(records_.count(*rid) != 0)return RC::INVALID_ARGUMENT;
 
     Value tmp;
-    tmp.set_vector(record + attr_offset_, attr_length_);
+    tmp.set_vector(record + attr_offset_, calculator_.attr_length_);
     records_[*rid] = tmp;
 
     if(num < lists_){
@@ -46,9 +48,11 @@ RC IvfflatIndex::insert_entry(const char *record, const RID *rid)
         num++;
         k_means();
     }
-    // for(auto& center : centers_){
-    //     cout<<center.to_string()<<endl;
-    // }
+    int size = std::min(lists_, num);
+    for(int i = 0; i < size; i++){
+        cout<<centers_[i].to_string()<<' ';
+    }
+    cout<<endl;
     return RC::SUCCESS; 
 }
 
@@ -71,15 +75,18 @@ RC IvfflatIndex::delete_entry(const char *record, const RID *rid)
         records_.erase(*rid);
         num--;
         std::swap(clusters_[id], clusters_[num]);
+        clusters_[num].clear();
         std::swap(centers_[id], centers_[num]);
     } else {
         num--;
         records_.erase(*rid);
         k_means();
     }
-    // for(auto& center : centers_){
-    //     cout<<center.to_string()<<endl;
-    // }
+    int size = std::min(lists_, num);
+    for(int i = 0; i < size; i++){
+        cout<<centers_[i].to_string()<<' ';
+    }
+    cout<<endl;
     return RC::SUCCESS; 
 }
 
@@ -88,7 +95,7 @@ RC IvfflatIndex::update_entry(const char *record, const RID *rid)
     if(records_.count(*rid) == 0)return RC::SUCCESS;
 
     Value tmp;
-    tmp.set_vector(record + attr_offset_, attr_length_);
+    tmp.set_vector(record + attr_offset_, calculator_.attr_length_);
 
     if(num <= lists_){
         size_t id = get_id(records_[*rid]);
@@ -100,15 +107,18 @@ RC IvfflatIndex::update_entry(const char *record, const RID *rid)
         records_[*rid] = std::move(tmp);
         k_means();
     }
-    // for(auto& center : centers_){
-    //     cout<<center.to_string()<<endl;
-    // }
+    int size = std::min(lists_, num);
+    for(int i = 0; i < size; i++){
+        cout<<centers_[i].to_string()<<' ';
+    }
+    cout<<endl;
     return RC::SUCCESS; 
 }
 
 void IvfflatIndex::k_means()
 {
-    while(true){
+    int loops = upper_limit;
+    while(loops--){
         before_centers = centers_;
 
         for(int i = 0; i < lists_; i++)clusters_[i].clear();
@@ -137,4 +147,40 @@ void IvfflatIndex::k_means()
         }
         if(ctl)break;   
     }
+}
+
+vector<RID> IvfflatIndex::ann_search(const vector<float> &base_vector, size_t limit)
+{
+    std::priority_queue<pair<float,int>> pq;
+    Value value;
+    value.set_vector(&base_vector);
+    int size = std::min(lists_, num);
+    for(int i = 0; i < size; i++){
+        float temp = calculator_(centers_[i], value); 
+        if((int)pq.size() < probes_)pq.emplace(temp, i);
+        else if(pq.top().first > temp){
+            pq.pop();
+            pq.emplace(temp, i);
+        }
+    }
+    std::priority_queue<pair<float, RID>> rid_pq;
+    while(!pq.empty()){
+        int id = pq.top().second;
+        pq.pop();
+        for(auto& cluster : clusters_[id]){
+            float temp = calculator_(records_[cluster], value); 
+            if((int)rid_pq.size() < limit)rid_pq.emplace(temp, cluster);
+            else if(rid_pq.top().first > temp){
+                rid_pq.pop();
+                rid_pq.emplace(temp, cluster);
+            }
+        }
+    }
+    vector<RID> ret(limit);
+    size_t id = 0;
+    while(!rid_pq.empty()){
+        ret[id++] = std::move(rid_pq.top().second);
+        rid_pq.pop();
+    }
+    return ret;
 }

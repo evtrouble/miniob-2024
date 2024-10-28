@@ -263,7 +263,7 @@ RC Table::open(Db *db, const char *meta_file, const char *base_dir)
       //  do all cleanup action in destructive Table function.
       return rc;
     }
-    indexes_.push_back(index);
+    indexes_.emplace_back(index);
   }
 
   return rc;
@@ -845,7 +845,8 @@ RC Table::create_vector_index(Trx *trx, bool unique, std::vector<const FieldMeta
     return RC::INVALID_ARGUMENT;
   }
 
-  if(field_metas.size() != 2 || field_metas[1]->type() != AttrType::VECTORS)
+  int sys_field_num = table_meta_.sys_field_num();
+  if((int)field_metas.size() != sys_field_num + 1 || field_metas[sys_field_num]->type() != AttrType::VECTORS)
     return RC::INVALID_ARGUMENT;
 
   IndexMeta new_index_meta;
@@ -867,7 +868,7 @@ RC Table::create_vector_index(Trx *trx, bool unique, std::vector<const FieldMeta
   IvfflatIndex *index      = new IvfflatIndex();
   string          index_file = table_index_file(base_dir_.c_str(), name(), index_name);
 
-  rc = index->create(this, vector_index, field_metas[1]);
+  rc = index->create(this, vector_index, field_metas[sys_field_num]);
   if (rc != RC::SUCCESS) {
     delete index;
     LOG_ERROR("Failed to create bplus tree index. file name=%s, rc=%d:%s", index_file.c_str(), rc, strrc(rc));

@@ -15,7 +15,7 @@ See the Mulan PSL v2 for more details. */
 #include "storage/index/index.h"
 #include "sql/expr/expression.h"
 
-class Calculator
+struct Calculator
 {
 public:
   void init(VectorOperationExpr::Type type, int length)
@@ -43,9 +43,6 @@ public:
     }
   }
 
-  VectorOperationExpr::Type type() { return type_; }
-
-private:
   int      attr_length_;
   VectorOperationExpr::Type type_;
   Value    result_;
@@ -70,7 +67,7 @@ public:
 
   bool is_vector_index() override { return true; }
 
-  vector<RID> ann_search(const vector<float> &base_vector, size_t limit) { return vector<RID>(); }
+  vector<RID> ann_search(const vector<float> &base_vector, size_t limit);
 
   RC close() { return RC::UNIMPLEMENTED; }
 
@@ -85,6 +82,7 @@ public:
   RC drop() override { return RC::UNIMPLEMENTED; }
 
   void k_means();
+  VectorOperationExpr::Type type() { return calculator_.type_; }
 
   size_t get_id(Value &value)
   {
@@ -102,12 +100,12 @@ public:
   }
 
 private:
+  constexpr static int upper_limit = 10;
   bool   inited_ = false;
   Table *table_  = nullptr;
   int    lists_  = 1;
   int    probes_ = 1;
   int      attr_offset_;
-  int      attr_length_;
   Calculator  calculator_;
   vector<Value> centers_;
   vector<Value> before_centers;
