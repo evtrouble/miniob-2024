@@ -26,15 +26,17 @@ See the Mulan PSL v2 for more details. */
 class OrderByLogicalOperator : public LogicalOperator
 {
 public:
-  OrderByLogicalOperator(std::vector<std::unique_ptr<Expression>>&& order_by, std::vector<bool>&& is_asc);
+  OrderByLogicalOperator(std::vector<std::unique_ptr<Expression>>&& order_by, std::vector<bool>&& is_asc, int limit);
   virtual ~OrderByLogicalOperator() = default;
 
   LogicalOperatorType type() const override { return LogicalOperatorType::ORDER_BY; }
 
   std::vector<std::unique_ptr<Expression>> &order_by() { return order_by_; }
   std::vector<bool>                        &is_asc() { return is_asc_; }
+  int                                       limit() { return limit_; }
 
 private:
   std::vector<std::unique_ptr<Expression>> order_by_;
   std::vector<bool>                        is_asc_;
+  int                                      limit_ = -1;
 };

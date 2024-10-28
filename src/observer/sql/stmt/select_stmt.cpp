@@ -165,6 +165,7 @@ RC SelectStmt::create(Db *db, SelectSqlNode &select_sql, Stmt *&stmt,
   select_stmt->is_asc_.swap(is_asc);
   select_stmt->having_list_.swap(having_list_expressions);
   select_stmt->and_or_ = select_sql.having_list.and_or;
+  select_stmt->limit_ = select_sql.limit;
   stmt                      = select_stmt;
   return RC::SUCCESS;
 }

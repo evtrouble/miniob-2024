@@ -52,6 +52,7 @@ public:
   std::vector<std::unique_ptr<Expression>> &having_list() { return having_list_; }
   std::vector<bool>                        &is_asc() { return is_asc_; }
   bool                                      and_or() { return and_or_; }
+  int                                       limit() { return limit_; }
 
 private:
   std::vector<std::unique_ptr<Expression>> query_expressions_;
@@ -62,4 +63,5 @@ private:
   std::vector<std::unique_ptr<Expression>> having_list_;
   bool                                     and_or_ = false;
   std::vector<bool>                        is_asc_;
+  int                                      limit_ = -1;
 };

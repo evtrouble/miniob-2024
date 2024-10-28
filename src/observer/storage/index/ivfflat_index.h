@@ -81,8 +81,10 @@ public:
                                               override { return nullptr; }
   RC drop() override { return RC::UNIMPLEMENTED; }
 
-  void k_means();
   VectorOperationExpr::Type type() { return calculator_.type_; }
+
+private:
+  void k_means();
 
   size_t get_id(Value &value)
   {

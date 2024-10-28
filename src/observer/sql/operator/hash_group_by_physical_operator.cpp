@@ -38,7 +38,6 @@ RC HashGroupByPhysicalOperator::open(Trx *trx)
 
   have_value = false;
   is_null = false;
-  groups_.clear();
   return rc;
 }
 
@@ -141,6 +140,8 @@ RC HashGroupByPhysicalOperator::next(Tuple *upper_tuple)
 RC HashGroupByPhysicalOperator::close()
 {
   children_[0]->close();
+  std::vector<GroupType> temp;
+  groups_.swap(temp);
   LOG_INFO("close hash group by operator");
   return RC::SUCCESS;
 }

@@ -116,6 +116,7 @@ struct SelectSqlNode
   std::vector<std::unique_ptr<Expression>> group_by;     ///< group by clause
   HavingNode                               having_list;
   std::vector<OrderByNode>                 order_by;  ///< order by clause
+  int                                      limit = -1;
 };
 
 /**

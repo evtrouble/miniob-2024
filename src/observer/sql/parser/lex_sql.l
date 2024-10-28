@@ -133,6 +133,7 @@ ORDER                                   RETURN_TOKEN(ORDER);
 HAVING                                  RETURN_TOKEN(HAVING);
 GROUP                                   RETURN_TOKEN(GROUP);
 BY                                      RETURN_TOKEN(BY);
+LIMIT                                   RETURN_TOKEN(LIMIT);
 STORAGE                                 RETURN_TOKEN(STORAGE);
 FORMAT                                  RETURN_TOKEN(FORMAT);
 L2_DISTANCE                             RETURN_TOKEN(L2_DISTANCE);
@@ -146,6 +147,8 @@ IVFFLAT                                 RETURN_TOKEN(IVFFLAT);
 {ID_KEY}                                yylval->string=strdup(yytext); RETURN_TOKEN(ID_KEY);
 "("                                     RETURN_TOKEN(LBRACE);
 ")"                                     RETURN_TOKEN(RBRACE);
+"["                                     RETURN_TOKEN(LMBRACE);
+"]"                                     RETURN_TOKEN(RMBRACE);
 
 ","                                     RETURN_TOKEN(COMMA);
 "="                                     RETURN_TOKEN(EQ);

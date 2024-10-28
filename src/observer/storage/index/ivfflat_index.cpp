@@ -157,19 +157,20 @@ vector<RID> IvfflatIndex::ann_search(const vector<float> &base_vector, size_t li
     int size = std::min(lists_, num);
     for(int i = 0; i < size; i++){
         float temp = calculator_(centers_[i], value); 
-        if((int)pq.size() < probes_)pq.emplace(temp, i);
+        if(pq.size() < (size_t)probes_)pq.emplace(temp, i);
         else if(pq.top().first > temp){
             pq.pop();
             pq.emplace(temp, i);
         }
     }
+    
     std::priority_queue<pair<float, RID>> rid_pq;
     while(!pq.empty()){
         int id = pq.top().second;
         pq.pop();
         for(auto& cluster : clusters_[id]){
             float temp = calculator_(records_[cluster], value); 
-            if((int)rid_pq.size() < limit)rid_pq.emplace(temp, cluster);
+            if(rid_pq.size() < (size_t)limit)rid_pq.emplace(temp, cluster);
             else if(rid_pq.top().first > temp){
                 rid_pq.pop();
                 rid_pq.emplace(temp, cluster);

@@ -25,7 +25,7 @@ See the Mulan PSL v2 for more details. */
 class OrderByPhysicalOperator : public PhysicalOperator
 {
 public:
-  OrderByPhysicalOperator(std::vector<std::unique_ptr<Expression>>&& order_by, std::vector<bool>&& is_asc);
+  OrderByPhysicalOperator(std::vector<std::unique_ptr<Expression>>&& order_by, std::vector<bool>&& is_asc, int limit);
 
   virtual ~OrderByPhysicalOperator() = default;
 
@@ -40,6 +40,9 @@ public:
 
 private:
   RC fetch_next();
+  RC     quick_sort(Tuple *upper_tuple = nullptr);
+  RC     limit_sort(Tuple *upper_tuple = nullptr);
+  bool     cmp(const vector<Value>& a_vals, const vector<Value>& b_vals);
 
 private:
   std::vector<std::unique_ptr<Expression>> order_by_;
@@ -47,6 +50,8 @@ private:
   bool                                     first_emited_ = false;  /// 第一条数据是否已经输出
   bool                                     have_value = false;
   vector<ValueListTuple>                   value_list_;
-  vector<size_t>                           ids_;              
+  vector<size_t>                           ids_;     
+  vector<vector<Value>>                    order_values_;        
   size_t                                   current_id_;
+  int                                      limit_ = -1;
 };

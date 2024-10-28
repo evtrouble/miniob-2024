@@ -444,7 +444,7 @@ RC PhysicalPlanGenerator::create_plan(OrderByLogicalOperator &logical_oper, std:
 
   std::vector<std::unique_ptr<Expression>>& order_by = logical_oper.order_by();
   std::vector<bool>&                        is_asc = logical_oper.is_asc();
-  unique_ptr<OrderByPhysicalOperator> order_by_oper = make_unique<OrderByPhysicalOperator>(std::move(order_by), std::move(is_asc));
+  unique_ptr<OrderByPhysicalOperator> order_by_oper = make_unique<OrderByPhysicalOperator>(std::move(order_by), std::move(is_asc), logical_oper.limit());
 
   ASSERT(logical_oper.children().size() == 1, "group by operator should have 1 child");
 

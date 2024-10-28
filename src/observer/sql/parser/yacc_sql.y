@@ -99,6 +99,8 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         UPDATE
         LBRACE
         RBRACE
+        LMBRACE
+        RMBRACE
         COMMA
         TRX_BEGIN
         TRX_COMMIT
@@ -135,6 +137,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
         EXPLAIN
         STORAGE
         FORMAT
+        LIMIT
         EQ
         LT
         GT
@@ -196,6 +199,7 @@ UnboundAggregateExpr *create_aggregate_expression(const char *aggregate_name,
 %type <condition>           condition
 %type <value>               value
 %type <number>              number
+%type <number>              limit
 %type <string>              relation
 %type <string>              ID
 %type <relation_list>       col_list
@@ -723,7 +727,7 @@ value:
     |NULL_T {
       $$ = new Value((void*)nullptr);
     }
-    | '[' value_list ']'   {
+    | LMBRACE value_list RMBRACE {
       $$ = new Value($2);
       delete $2;
     }
@@ -796,7 +800,7 @@ assign_value:
     ;
 
 select_stmt:        /*  select 语句的语法解析树*/
-    SELECT expression_list FROM rel_list where group_by having_node order_by
+    SELECT expression_list FROM rel_list where group_by having_node order_by limit
     {
       $$ = new ParsedSqlNode(SCF_SELECT);
       if ($2 != nullptr) {
@@ -837,8 +841,20 @@ select_stmt:        /*  select 语句的语法解析树*/
         $$->selection.order_by.swap(*$8);
         delete $8;
       }
+
+      $$->selection.limit = $9;
     }
     ;
+
+limit:
+    /* empty */
+    {
+      $$ = -1;
+    }
+    | LIMIT number
+    {
+      $$ = $2;
+    }
 
 calc_stmt:
     CALC expression_list
