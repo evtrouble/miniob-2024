@@ -53,4 +53,4 @@ Tuple *VectorIndexScanPhysicalOperator::current_tuple()
   return &tuple_;
 }
 
-string VectorIndexScanPhysicalOperator::param() const { return string(index_->index_meta().name()) + "ON" + table_->name(); }
+string VectorIndexScanPhysicalOperator::param() const { return string(index_->index_meta().name()) + " ON " + table_->name(); }
