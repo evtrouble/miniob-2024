@@ -53,8 +53,14 @@ RC FieldMeta::init(
   }
 
   name_        = name;
-  attr_type_   = attr_type;
-  attr_len_    = attr_len;
+  if (AttrType::VECTORS == attr_type && attr_len >= static_cast<int>(1000*sizeof(float))){
+    attr_type_ = AttrType::VECTORS_HIGH;
+    attr_len_ = TEXT_FIELD_LENGTH;
+  }
+  else{
+    attr_type_   = attr_type;
+    attr_len_    = attr_len;
+  }
   attr_offset_ = attr_offset;
   visible_     = visible;
   field_id_    = field_id;

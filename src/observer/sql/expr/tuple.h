@@ -230,6 +230,25 @@ public:
     if (map.get_bit(index))
       cell.set_null();
     else {
+      if (AttrType::VECTORS_HIGH == field_meta->type()){
+        if(table_->is_view())return RC::INVALID_ARGUMENT;
+        cell.set_type(AttrType::VECTORS);
+        // 获取TEXT数据储存位置（偏移量和长度），并分配空间
+        int64_t offset = *(int64_t*)(this->record_->data() + field_meta->offset());
+        int64_t length = *(int64_t*)(this->record_->data() + field_meta->offset() + sizeof(int64_t));
+        // 输出日志，检查 offset 和 length
+
+        LOG_DEBUG("Text field: offset=%ld, length=%ld,size=%d", offset, length,sizeof(int64_t));
+        char *text = (char*)malloc(length);
+        // 设置读取到的TEXT数据内容
+        rc = static_cast<const Table*>(table_)->read_text(offset, length, text);
+        if (RC::SUCCESS != rc) {
+          LOG_WARN("Failed to read text from table, rc=%s", strrc(rc));
+          return rc;
+        }
+        cell.set_data(text, length);
+        free(text);
+      }
       if (AttrType::TEXTS == field_meta->type()) {
         if(table_->is_view())return RC::INVALID_ARGUMENT;
         cell.set_type(AttrType::CHARS);
