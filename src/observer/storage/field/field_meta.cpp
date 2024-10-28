@@ -56,7 +56,9 @@ RC FieldMeta::init(
   if (AttrType::VECTORS == attr_type && attr_len >= static_cast<int>(1000*sizeof(float))){
     attr_type_ = AttrType::VECTORS_HIGH;
     attr_len_ = TEXT_FIELD_LENGTH;
+    real_attr_len_ = attr_len;
   }
+  
   else{
     attr_type_   = attr_type;
     attr_len_    = attr_len;
@@ -84,6 +86,8 @@ bool FieldMeta::visible() const { return visible_; }
 int FieldMeta::field_id() const { return field_id_; }
 
 bool FieldMeta::nullable() const { return nullable_; }
+
+int FieldMeta::real_len() const { return real_attr_len_; }
 
 void FieldMeta::set_field_null(char *data, bool is_null) const
 {

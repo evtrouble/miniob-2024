@@ -45,6 +45,7 @@ public:
   bool        visible() const;
   int         field_id() const;
   bool        nullable() const;
+  int         real_len() const;
 
 public:
   void desc(ostream &os) const;
@@ -64,4 +65,5 @@ protected:
   bool     visible_;
   int      field_id_;
   bool     nullable_;  // 字段值能否为null
+  int      real_attr_len_; // 高维向量的实际长度
 };

@@ -187,6 +187,10 @@ RC View::set_value_to_record(char *record_data, const Value &value, const FieldM
     if (copy_len != data_len) return RC::INVALID_ARGUMENT;
   }
 
+  if (AttrType::VECTORS_HIGH == field->type()){
+    if (copy_len != static_cast<size_t>(field->real_len())) return RC::INVALID_ARGUMENT;
+  }
+  
   field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
   if(value.attr_type() != AttrType::NULLS)
     memcpy(record_data + field->offset(), value.data(), copy_len);

@@ -495,6 +495,9 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
     if (copy_len != data_len) return RC::INVALID_ARGUMENT;
   }
 
+  if (AttrType::VECTORS_HIGH == field->type()){
+    if (copy_len != static_cast<size_t>(field->real_len())) return RC::INVALID_ARGUMENT;
+  }
   field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
     
   //TEXT数据类型处理，需要将value中的字符串插入到文件中，然后将offset、length写入record
