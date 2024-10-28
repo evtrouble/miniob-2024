@@ -37,6 +37,7 @@ public:
   RC next(Tuple *upper_tuple) override;
 
   Tuple *current_tuple() override;
+  int    limit() { return limit_; }
 
 private:
   RC fetch_next();

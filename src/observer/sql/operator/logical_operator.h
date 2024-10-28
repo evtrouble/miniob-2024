@@ -45,6 +45,7 @@ enum class LogicalOperatorType
   EXPLAIN,     ///< 查看执行计划
   ORDER_BY,    ///< 排序
   CREATE_TABLE, ///< create-table-select
+  LIMIT,
   GROUP_BY,    ///< 分组
 };
 
