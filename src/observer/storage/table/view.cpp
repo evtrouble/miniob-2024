@@ -188,7 +188,7 @@ RC View::set_value_to_record(char *record_data, const Value &value, const FieldM
   }
 
   if (AttrType::VECTORS_HIGH == field->type()){
-    if (data_len != static_cast<size_t>(field->real_len())) return RC::INVALID_ARGUMENT;
+    if (static_cast<size_t>(data_len/sizeof(float)) != static_cast<size_t>(field->real_len())) return RC::INVALID_ARGUMENT;
   }
   
   field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);

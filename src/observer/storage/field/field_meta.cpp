@@ -62,6 +62,7 @@ RC FieldMeta::init(
   else{
     attr_type_   = attr_type;
     attr_len_    = attr_len;
+    real_attr_len_ = attr_len;
   }
   attr_offset_ = attr_offset;
   visible_     = visible;
