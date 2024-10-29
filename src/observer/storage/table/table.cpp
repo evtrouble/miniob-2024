@@ -99,6 +99,7 @@ RC Table::create(Db *db, int32_t table_id, const char *path, const char *name, c
   const vector<FieldMeta> *trx_fields = db->trx_kit().trx_fields();
   if ((rc = table_meta_.init(table_id, name, trx_fields, attributes, storage_format)) != RC::SUCCESS) {
     LOG_ERROR("Failed to init table meta. name:%s, ret:%d", name, rc);
+    std::remove(path);
     return rc;  // delete table file
   }
 
@@ -332,9 +333,9 @@ RC Table::update_record(const RID &rid, std::vector<const FieldMeta *> &fields, 
         }
         rc = set_value_to_record(new_record.data(), real_value, field);
       }
-    } else {
-        rc = set_value_to_record(new_record.data(), value, field);
-      }
+    }else {
+      rc = set_value_to_record(new_record.data(), value, field);
+    }
     if (rc != RC::SUCCESS) {
       LOG_ERROR("Update record failed. table name=%s, rc=%s", table_meta_.name(), strrc(rc));
       return rc;
@@ -466,7 +467,7 @@ RC Table::make_record(int value_num, const Value *values, Record &record)
         }
         rc = set_value_to_record(record_data, real_value, field);
       }
-    } else {
+    }else {
       rc = set_value_to_record(record_data, value, field);
     }
   }
@@ -494,7 +495,10 @@ RC Table::set_value_to_record(char *record_data, const Value &value, const Field
   if (field->type() == AttrType::VECTORS) {
     if (copy_len != data_len) return RC::INVALID_ARGUMENT;
   }
-
+  
+  if (AttrType::VECTORS_HIGH == field->type()){
+    if (static_cast<size_t>(data_len/sizeof(float)) != static_cast<size_t>(field->real_len())) return RC::INVALID_ARGUMENT;
+  }
   field->set_field_null(record_data, value.attr_type() == AttrType::NULLS);
     
   //TEXT数据类型处理，需要将value中的字符串插入到文件中，然后将offset、length写入record
