@@ -81,10 +81,11 @@ public:
                                               override { return nullptr; }
   RC drop() override { return RC::UNIMPLEMENTED; }
 
+  void k_means();
+
   VectorOperationExpr::Type type() { return calculator_.type_; }
 
 private:
-  void k_means();
   void k_meansplus();
 
   size_t get_id(Value &value)
@@ -103,7 +104,7 @@ private:
   }
 
 private:
-  constexpr static int upper_limit = 20;
+  constexpr static int upper_limit = 12;
   constexpr static float INF = 1e18;
   bool   inited_ = false;
   Table *table_  = nullptr;

@@ -76,6 +76,8 @@ RC IvfflatIndex::update_entry(const char *record, const RID *rid)
 
 void IvfflatIndex::k_means()
 {
+    k_meansplus();
+    
     int loops = upper_limit;
     while(loops--){
         swap(before_centers, centers_);
@@ -117,16 +119,13 @@ void IvfflatIndex::k_means()
         }
         if(ctl)break;   
     }
+    changed = false;
 }
 
 vector<RID> IvfflatIndex::ann_search(const vector<float> &base_vector, size_t limit)
 {
-    if(changed){
-        k_meansplus();
-        k_means();
-    }
-       
-    changed = false;
+    if(changed)k_means();
+    
     std::priority_queue<pair<float, int>> pq;
     Value value;
     value.set_vector(&base_vector);

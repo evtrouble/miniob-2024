@@ -900,6 +900,7 @@ RC Table::create_vector_index(Trx *trx, bool unique, std::vector<const FieldMeta
     }
   }
   if (RC::RECORD_EOF == rc) {
+    index->k_means();
     rc = RC::SUCCESS;
   } else {
     LOG_WARN("failed to insert record into index while creating index. table=%s, index=%s, rc=%s",
