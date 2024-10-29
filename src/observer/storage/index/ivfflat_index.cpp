@@ -76,6 +76,7 @@ RC IvfflatIndex::update_entry(const char *record, const RID *rid)
 
 void IvfflatIndex::k_means()
 {
+    if(records_.size() == 0)return;
     k_meansplus();
     
     int loops = upper_limit;
