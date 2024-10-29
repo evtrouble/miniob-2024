@@ -54,5 +54,6 @@ static const char FILE_PATH_SPLIT       = '/';
 static const char FILE_PATH_SPLIT_STR[] = "/";
 
 #define EPSILON (1E-6)
+#define VECTOR_EPSILON (1E-3)
 
 }  // namespace common

@@ -85,6 +85,7 @@ public:
 
 private:
   void k_means();
+  void k_meansplus();
 
   size_t get_id(Value &value)
   {
@@ -102,7 +103,8 @@ private:
   }
 
 private:
-  constexpr static int upper_limit = 100;
+  constexpr static int upper_limit = 20;
+  constexpr static float INF = 1e18;
   bool   inited_ = false;
   Table *table_  = nullptr;
   int    lists_  = 1;
@@ -111,7 +113,7 @@ private:
   Calculator  calculator_;
   vector<Value> centers_;
   vector<Value> before_centers;
-  vector<vector<RID>> clusters_;
-  unordered_map<RID, Value, RIDHash> records_;
+  vector<vector<size_t>> clusters_;
+  vector<pair<RID, Value>> records_;
   bool changed = false;
 };

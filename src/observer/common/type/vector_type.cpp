@@ -24,8 +24,8 @@ int VectorType::compare(const Value &left, const Value &right) const
     ASSERT(left_vector->size() == right_vector->size(), "invalid type");
     
     for(size_t id = 0; id < left_vector->size(); id++){
-        if(left_vector->at(id) - right_vector->at(id) > EPSILON)return 1;
-        if(left_vector->at(id) - right_vector->at(id) < -EPSILON)return -1;
+        if(left_vector->at(id) - right_vector->at(id) > VECTOR_EPSILON)return 1;
+        if(left_vector->at(id) - right_vector->at(id) < -VECTOR_EPSILON)return -1;
     }
     return 0;
 }

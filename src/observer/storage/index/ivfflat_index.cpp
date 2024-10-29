@@ -30,16 +30,6 @@ RC IvfflatIndex::create(Table *table, VectorIndexNode &vector_index, const Field
     probes_ = vector_index.probes;
     centers_.resize(lists_);
 
-    vector<float> temp(field_meta->len() / sizeof(float));
-    Value val;
-    uniform_real_distribution<float> random_(-1e6, 1e6);
-    default_random_engine e_;
-
-    for(auto &center : centers_){
-        for(auto &num : temp)num = random_(e_);
-        val.set_vector(&temp);
-        center = move(val);
-    }
     clusters_.resize(lists_);
     before_centers.resize(lists_);
 
@@ -50,31 +40,37 @@ RC IvfflatIndex::create(Table *table, VectorIndexNode &vector_index, const Field
 
 RC IvfflatIndex::insert_entry(const char *record, const RID *rid) 
 { 
-    if(records_.count(*rid) != 0)return RC::INVALID_ARGUMENT;
-
-    changed = true;
     Value tmp;
     tmp.set_vector(record + attr_offset_, calculator_.attr_length_);
-    records_[*rid] = move(tmp);
+    records_.emplace_back(*rid, move(tmp));
+
+    changed = true;
 
     return RC::SUCCESS; 
 }
 
 RC IvfflatIndex::delete_entry(const char *record, const RID *rid) 
 { 
-    if(records_.count(*rid) == 0)return RC::SUCCESS;
+    auto iter = find_if(records_.begin(), records_.end(), [&](const auto& a){
+        return a.first == *(rid);
+    });
+    records_.erase(iter);
+    
     changed = true;
-    records_.erase(*rid);
     return RC::SUCCESS; 
 }
 
 RC IvfflatIndex::update_entry(const char *record, const RID *rid) 
 { 
-    if(records_.count(*rid) == 0)return RC::SUCCESS;
-    changed = true;
     Value tmp;
     tmp.set_vector(record + attr_offset_, calculator_.attr_length_);
-    records_[*rid] = move(tmp);
+    
+    auto iter = find_if(records_.begin(), records_.end(), [&](const auto& a){
+        return a.first == *(rid);
+    });
+    (*iter).second = move(tmp);
+    changed = true;
+    
     return RC::SUCCESS; 
 }
 
@@ -86,9 +82,9 @@ void IvfflatIndex::k_means()
 
         for(int i = 0; i < lists_; i++)clusters_[i].clear();
 
-        for(auto& [rid, value] : records_){
-            size_t id = get_id(value);
-            clusters_[id].emplace_back(rid);
+        for(size_t id = 0; id < records_.size(); id++){
+            size_t temp = get_id(records_[id].second);
+            clusters_[temp].emplace_back(id);
         }
         for(int i = 0; i < lists_; i++)
         {
@@ -100,20 +96,24 @@ void IvfflatIndex::k_means()
                 continue;
             }
             
-            Value sum = records_[cluster[0]];
+            Value sum = records_[cluster[0]].second;
             for(size_t j = 1; j < cluster.size(); j++)
             {
-                Value::add(sum, records_[cluster[j]], sum);
+                Value::add(sum, records_[cluster[j]].second, sum);
             }
             vector<float>* temp = sum.get_vector();
             for(auto& val : *temp)val /= cluster.size();
             centers_[i] = std::move(sum);
         }
 
-        bool ctl = false;
+        bool ctl = true;
         for(int id = 0; id < lists_; id++)
         {
-            ctl = ctl || (before_centers[id].compare(centers_[id]) != 0);
+            if(before_centers[id].compare(centers_[id]) != 0)
+            {
+                ctl = false;
+                break;
+            }
         }
         if(ctl)break;   
     }
@@ -121,10 +121,13 @@ void IvfflatIndex::k_means()
 
 vector<RID> IvfflatIndex::ann_search(const vector<float> &base_vector, size_t limit)
 {
-    if(changed)
+    if(changed){
+        k_meansplus();
         k_means();
+    }
+       
     changed = false;
-    std::priority_queue<pair<float,int>> pq;
+    std::priority_queue<pair<float, int>> pq;
     Value value;
     value.set_vector(&base_vector);
 
@@ -142,11 +145,11 @@ vector<RID> IvfflatIndex::ann_search(const vector<float> &base_vector, size_t li
         int id = pq.top().second;
         pq.pop();
         for(auto& cluster : clusters_[id]){
-            float temp = calculator_(records_[cluster], value); 
-            if(rid_pq.size() < (size_t)limit)rid_pq.emplace(temp, cluster);
+            float temp = calculator_(records_[cluster].second, value); 
+            if(rid_pq.size() < (size_t)limit)rid_pq.emplace(temp, records_[cluster].first);
             else if(rid_pq.top().first > temp){
                 rid_pq.pop();
-                rid_pq.emplace(temp, cluster);
+                rid_pq.emplace(temp, records_[cluster].first);
             }
         }
     }
@@ -158,4 +161,32 @@ vector<RID> IvfflatIndex::ann_search(const vector<float> &base_vector, size_t li
     }
     reverse(ret.begin(), ret.end());
     return ret;
+}
+
+void IvfflatIndex::k_meansplus()
+{   
+    vector<float> min_distance(records_.size(), INF);
+    vector<bool> vis(records_.size());
+
+    uniform_int_distribution<int> random_(0, records_.size() - 1);
+    default_random_engine e_;
+    int start = random_(e_);
+
+    vis[start] = true;
+    centers_[0] = records_[start].second;
+    for(int i = 1; i < lists_; i++){
+        float mmax = -INF;
+        int next = 0;
+        for(size_t id = 0; id < records_.size(); id++){
+            if(vis[i])continue;
+            auto &distance = min_distance[id];
+            distance = std::min(distance, calculator_(centers_[i - 1], records_[id].second));
+            if(distance > mmax){
+                mmax = distance;
+                next = id;
+            }
+        }
+        centers_[i] = records_[next].second;
+        vis[next] = true;
+    }
 }
