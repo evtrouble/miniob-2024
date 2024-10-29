@@ -90,9 +90,9 @@ private:
   {
     size_t id = 0;
     float mmin = 1e38;
-    int size = std::min(lists_, num);
-    for(int i = 0; i < size; i++){
-      float temp = calculator_(centers_[i], value); 
+
+    for(int i = 0; i < lists_; i++){
+      float temp = calculator_(before_centers[i], value); 
       if(mmin > temp){
         mmin = temp;
         id = i;
@@ -102,7 +102,7 @@ private:
   }
 
 private:
-  constexpr static int upper_limit = 10;
+  constexpr static int upper_limit = 100;
   bool   inited_ = false;
   Table *table_  = nullptr;
   int    lists_  = 1;
@@ -113,5 +113,5 @@ private:
   vector<Value> before_centers;
   vector<vector<RID>> clusters_;
   unordered_map<RID, Value, RIDHash> records_;
-  int num = 0;
+  bool changed = false;
 };
