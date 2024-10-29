@@ -104,7 +104,7 @@ private:
   }
 
 private:
-  constexpr static int upper_limit = 12;
+  constexpr static int upper_limit = 10;
   constexpr static float INF = 1e18;
   bool   inited_ = false;
   Table *table_  = nullptr;

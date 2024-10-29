@@ -112,7 +112,7 @@ void IvfflatIndex::k_means()
         bool ctl = true;
         for(int id = 0; id < lists_; id++)
         {
-            if(before_centers[id].compare(centers_[id]) != 0)
+            if(abs(calculator_(before_centers[id], centers_[id])) > VECTOR_EPSILON)
             {
                 ctl = false;
                 break;
