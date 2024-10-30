@@ -27,7 +27,7 @@ RC IvfflatIndex::create(Table *table, VectorIndexNode &vector_index, const Field
     calculator_.init((VectorOperationExpr::Type)vector_index.distance, field_meta->len());
     inited_ = true;
     lists_  = vector_index.lists;
-    probes_ = min(1, vector_index.probes - 1);
+    probes_ = vector_index.probes;
     centers_.resize(lists_);
 
     clusters_.resize(lists_);

@@ -26,14 +26,14 @@ InsertPhysicalOperator::InsertPhysicalOperator(BaseTable *base_table, std::vecto
 
 RC InsertPhysicalOperator::open(Trx *trx)
 {
-  LOG_INFO("open insert operator");
+  //LOG_INFO("open insert operator");
   if(base_table_->is_table())return insert_table(trx);
   return insert_view(trx);
 }
 
 RC InsertPhysicalOperator::next() { return RC::RECORD_EOF; }
 
-RC InsertPhysicalOperator::close() { LOG_INFO("close insert operator"); return RC::SUCCESS; }
+RC InsertPhysicalOperator::close() { /* LOG_INFO("close insert operator"); */ return RC::SUCCESS; }
 
 RC InsertPhysicalOperator::insert_table(Trx *trx)
 {
