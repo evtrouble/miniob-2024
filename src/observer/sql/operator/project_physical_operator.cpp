@@ -79,7 +79,7 @@ RC ProjectPhysicalOperator::close()
   if (!children_.empty()) {
     children_[0]->close();
   }
-  LOG_INFO("close project operator");
+  //LOG_INFO("close project operator");
   return RC::SUCCESS;
 }
 Tuple *ProjectPhysicalOperator::current_tuple()

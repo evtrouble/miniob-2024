@@ -27,7 +27,7 @@ RC IvfflatIndex::create(Table *table, VectorIndexNode &vector_index, const Field
     calculator_.init((VectorOperationExpr::Type)vector_index.distance, field_meta->len());
     inited_ = true;
     lists_  = vector_index.lists;
-    probes_ = vector_index.probes;
+    probes_ = min(1, vector_index.probes - 1);
     centers_.resize(lists_);
 
     clusters_.resize(lists_);
@@ -119,6 +119,9 @@ void IvfflatIndex::k_means()
             }
         }
         if(ctl)break;   
+    }
+    for(auto& cluster : clusters_){
+        cout<<cluster.size()<<endl;
     }
     changed = false;
 }

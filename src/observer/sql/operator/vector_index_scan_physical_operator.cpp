@@ -20,7 +20,7 @@ using namespace std;
 
 RC VectorIndexScanPhysicalOperator::open(Trx *trx)
 {
-  LOG_INFO("open vector index scan operator");
+  //LOG_INFO("open vector index scan operator");
   
   tuple_.set_schema(table_, table_->table_meta().field_metas());
   trx_ = trx;
@@ -42,11 +42,11 @@ RC VectorIndexScanPhysicalOperator::next()
   tuple_.set_record(&current_record_);
   current_id_++;
 
-  sql_debug("get a tuple: %s", tuple_.to_string().c_str());
+  //sql_debug("get a tuple: %s", tuple_.to_string().c_str());
   return rc;
 }
 
-RC VectorIndexScanPhysicalOperator::close() { LOG_INFO("close vector index scan operator"); return RC::SUCCESS; }
+RC VectorIndexScanPhysicalOperator::close() { /*LOG_INFO("close vector index scan operator");*/ return RC::SUCCESS; }
 
 Tuple *VectorIndexScanPhysicalOperator::current_tuple()
 {
