@@ -84,8 +84,8 @@ private:
   std::ifstream                            current_file_stream_;  /// 当前文件流
   size_t                                   chunk_size_;           /// 每个块的大小
   size_t                                   memory_threshold_;     /// 内存阈值（字节）
-  static constexpr size_t                  DEFAULT_CHUNK_SIZE = 10000;  /// 默认块大小
-  static constexpr size_t                  DEFAULT_MEMORY_THRESHOLD = 100 * 1024 * 1024;  /// 默认内存阈值 100MB
+  static constexpr size_t                  DEFAULT_CHUNK_SIZE = 1000;  /// 默认块大小
+  static constexpr size_t                  DEFAULT_MEMORY_THRESHOLD = 8 * 1024 * 1024;  /// 默认内存阈值 8MB
   
   // 外排序流式处理相关
   bool                                     is_external_sort_ = false;  /// 是否使用外排序
