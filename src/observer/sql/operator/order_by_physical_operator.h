@@ -52,7 +52,7 @@ private:
   RC     external_sort(Tuple *upper_tuple = nullptr);
   RC     external_sort_with_cached_data(Tuple *upper_tuple, size_t cached_count);
   RC     adaptive_sort(Tuple *upper_tuple = nullptr);
-  bool     cmp(const vector<Value>& a_vals, const vector<Value>& b_vals);
+  bool     cmp(const vector<Value>& a_vals, const vector<Value>& b_vals) const;
   
   // 外排序相关方法
   RC write_chunk_to_file(const std::vector<ValueListTuple>& chunk, const std::string& filename);

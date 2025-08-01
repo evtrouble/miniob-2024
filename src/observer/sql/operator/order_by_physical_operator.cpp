@@ -68,10 +68,6 @@ RC OrderByPhysicalOperator::close()
     
     if (is_external_sort_) {
         // 关闭文件流
-        if (current_file_stream_.is_open()) {
-            current_file_stream_.close();
-        }
-        
         for (auto& file : file_streams_) {
             if (file.is_open()) {
                 file.close();
@@ -83,11 +79,11 @@ RC OrderByPhysicalOperator::close()
         
         // 重置状态
         is_external_sort_ = false;
-        sorted_files_.clear();
-        current_chunk_.clear();
+        temp_files_.clear();
         file_streams_.clear();
         file_chunks_.clear();
         chunk_indices_.clear();
+        merge_pq_.reset();
     } else {
         // 清理临时文件
         cleanup_temp_files();
@@ -211,108 +207,7 @@ RC OrderByPhysicalOperator::load_file_chunk(size_t file_index)
   return RC::SUCCESS;
 }
 
-RC OrderByPhysicalOperator::quick_sort(Tuple *upper_tuple)
-{
-    RC rc = RC::SUCCESS;
-    std::unique_ptr<PhysicalOperator> &child = children_[0];
-    Tuple* tuple = nullptr;
-    while (OB_SUCC(rc = (upper_tuple == nullptr ? child->next() : child->next(upper_tuple)))) {
-        tuple = child->current_tuple();
-        if (nullptr == tuple) {
-            LOG_WARN("failed to get current record: %s", strrc(rc));
-            child->close();
-            return rc;
-        }
-        ValueListTuple value_list;
-        rc =  ValueListTuple::make(*tuple, value_list);
-        if (rc != RC::SUCCESS) {
-            LOG_WARN("failed to make ValueListTuple: %s", strrc(rc));
-            child->close();
-            return rc;
-        }
-        value_list_.emplace_back(std::move(value_list));
-    }
-    child->close();
 
-    if (RC::RECORD_EOF == rc) {
-        rc = RC::SUCCESS;
-    }
-
-    if (OB_FAIL(rc)) {
-        LOG_WARN("failed to get next tuple. rc=%s", strrc(rc));
-        return rc;
-    }
-
-    ids_.resize(value_list_.size());
-    order_values_.resize(value_list_.size());
-    for(size_t id = 0; id < value_list_.size(); id++){
-        auto& values = order_values_[id];
-        values.resize(order_by_.size());
-        for(size_t i = 0; i < order_by_.size(); i++){
-            order_by_[i]->get_value(value_list_[id], values[i]);
-        }
-        ids_[id] = id;
-    }
-
-    sort(ids_.begin(), ids_.end(), [&](size_t &a, size_t &b){
-        return cmp(order_values_[a], order_values_[b]);
-    });
-
-    return RC::SUCCESS;
-}
-
-RC OrderByPhysicalOperator::quick_sort_with_cached_data(Tuple *upper_tuple, size_t cached_count)
-{
-    RC rc = RC::SUCCESS;
-    std::unique_ptr<PhysicalOperator> &child = children_[0];
-    
-    // 继续读取剩余的数据
-    Tuple* tuple = nullptr;
-    while (OB_SUCC(rc = (upper_tuple == nullptr ? child->next() : child->next(upper_tuple)))) {
-        tuple = child->current_tuple();
-        if (nullptr == tuple) {
-            LOG_WARN("failed to get current record: %s", strrc(rc));
-            child->close();
-            return rc;
-        }
-        ValueListTuple value_list;
-        rc = ValueListTuple::make(*tuple, value_list);
-        if (rc != RC::SUCCESS) {
-            LOG_WARN("failed to make ValueListTuple: %s", strrc(rc));
-            child->close();
-            return rc;
-        }
-        value_list_.emplace_back(std::move(value_list));
-    }
-    child->close();
-
-    if (RC::RECORD_EOF == rc) {
-        rc = RC::SUCCESS;
-    }
-
-    if (OB_FAIL(rc)) {
-        LOG_WARN("failed to get next tuple. rc=%s", strrc(rc));
-        return rc;
-    }
-
-    // 对所有数据进行排序（包括已缓存的数据）
-    ids_.resize(value_list_.size());
-    order_values_.resize(value_list_.size());
-    for(size_t id = 0; id < value_list_.size(); id++){
-        auto& values = order_values_[id];
-        values.resize(order_by_.size());
-        for(size_t i = 0; i < order_by_.size(); i++){
-            order_by_[i]->get_value(value_list_[id], values[i]);
-        }
-        ids_[id] = id;
-    }
-
-    sort(ids_.begin(), ids_.end(), [&](size_t &a, size_t &b){
-        return cmp(order_values_[a], order_values_[b]);
-    });
-
-    return RC::SUCCESS;
-}
 
 RC OrderByPhysicalOperator::limit_sort(Tuple *upper_tuple)
 {
@@ -386,7 +281,7 @@ RC OrderByPhysicalOperator::limit_sort(Tuple *upper_tuple)
     return RC::SUCCESS;
 }
 
-bool OrderByPhysicalOperator::cmp(const vector<Value>& a_vals, const vector<Value>& b_vals)
+bool OrderByPhysicalOperator::cmp(const vector<Value>& a_vals, const vector<Value>& b_vals) const
 {
     for(size_t id = 0; id < order_by_.size(); id++){
         bool is_asc = is_asc_[id];
@@ -796,199 +691,7 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
     return RC::SUCCESS;
 }
 
-RC OrderByPhysicalOperator::external_sort(Tuple *upper_tuple)
-{
-    RC rc = RC::SUCCESS;
-    std::unique_ptr<PhysicalOperator> &child = children_[0];
-    
-    // 清空之前的数据
-    value_list_.clear();
-    order_values_.clear();
-    ids_.clear();
-    
-    // 第一阶段：分块读取并排序
-    std::vector<ValueListTuple> chunk;
-    chunk.reserve(chunk_size_);
-    
-    Tuple* tuple = nullptr;
-    while (OB_SUCC(rc = (upper_tuple == nullptr ? child->next() : child->next(upper_tuple)))) {
-        tuple = child->current_tuple();
-        if (nullptr == tuple) {
-            LOG_WARN("failed to get current record: %s", strrc(rc));
-            child->close();
-            return rc;
-        }
-        
-        ValueListTuple value_list;
-        rc = ValueListTuple::make(*tuple, value_list);
-        if (rc != RC::SUCCESS) {
-            LOG_WARN("failed to make ValueListTuple: %s", strrc(rc));
-            child->close();
-            return rc;
-        }
-        
-        chunk.emplace_back(std::move(value_list));
-        
-        // 当块满了时，排序并写入临时文件
-        if (chunk.size() >= chunk_size_) {
-            std::string temp_file = create_temp_file();
-            if (temp_file.empty()) {
-                LOG_ERROR("Failed to create temporary file");
-                child->close();
-                return RC::IOERR_WRITE;
-            }
-            
-            // 对当前块进行排序
-            std::vector<size_t> chunk_ids(chunk.size());
-            std::vector<std::vector<Value>> chunk_order_values(chunk.size());
-            
-            for (size_t i = 0; i < chunk.size(); i++) {
-                chunk_ids[i] = i;
-                chunk_order_values[i].resize(order_by_.size());
-                for (size_t j = 0; j < order_by_.size(); j++) {
-                    order_by_[j]->get_value(chunk[i], chunk_order_values[i][j]);
-                }
-            }
-            
-            std::sort(chunk_ids.begin(), chunk_ids.end(), [&](size_t a, size_t b) {
-                return cmp(chunk_order_values[a], chunk_order_values[b]);
-            });
-            
-            // 按排序后的顺序重新排列chunk
-            std::vector<ValueListTuple> sorted_chunk;
-            sorted_chunk.reserve(chunk.size());
-            for (size_t id : chunk_ids) {
-                sorted_chunk.emplace_back(std::move(chunk[id]));
-            }
-            
-            // 写入临时文件
-            rc = write_chunk_to_file(sorted_chunk, temp_file);
-            if (rc != RC::SUCCESS) {
-                LOG_ERROR("Failed to write chunk to file: %s", strrc(rc));
-                child->close();
-                return rc;
-            }
-            
-            temp_files_.push_back(temp_file);
-            chunk.clear();
-        }
-    }
-    child->close();
 
-    if (RC::RECORD_EOF == rc) {
-        rc = RC::SUCCESS;
-    }
-
-    if (OB_FAIL(rc)) {
-        LOG_WARN("failed to get next tuple. rc=%s", strrc(rc));
-        return rc;
-    }
-    
-    // 处理最后一个不完整的块
-    if (!chunk.empty()) {
-        std::string temp_file = create_temp_file();
-        if (temp_file.empty()) {
-            LOG_ERROR("Failed to create temporary file for last chunk");
-            return RC::IOERR_WRITE;
-        }
-        
-        // 对最后一个块进行排序
-        std::vector<size_t> chunk_ids(chunk.size());
-        std::vector<std::vector<Value>> chunk_order_values(chunk.size());
-        
-        for (size_t i = 0; i < chunk.size(); i++) {
-            chunk_ids[i] = i;
-            chunk_order_values[i].resize(order_by_.size());
-            for (size_t j = 0; j < order_by_.size(); j++) {
-                order_by_[j]->get_value(chunk[i], chunk_order_values[i][j]);
-            }
-        }
-        
-        std::sort(chunk_ids.begin(), chunk_ids.end(), [&](size_t a, size_t b) {
-            return cmp(chunk_order_values[a], chunk_order_values[b]);
-        });
-        
-        // 按排序后的顺序重新排列chunk
-        std::vector<ValueListTuple> sorted_chunk;
-        sorted_chunk.reserve(chunk.size());
-        for (size_t id : chunk_ids) {
-            sorted_chunk.emplace_back(std::move(chunk[id]));
-        }
-        
-        // 写入临时文件
-        rc = write_chunk_to_file(sorted_chunk, temp_file);
-        if (rc != RC::SUCCESS) {
-            LOG_ERROR("Failed to write last chunk to file: %s", strrc(rc));
-            return rc;
-        }
-        
-        temp_files_.push_back(temp_file);
-    }
-    
-    // 第二阶段：多路归并
-    if (temp_files_.size() == 1) {
-        // 只有一个文件，直接读取
-        current_temp_file_ = temp_files_[0];
-        current_file_stream_.open(current_temp_file_, std::ios::binary);
-        if (!current_file_stream_.is_open()) {
-            LOG_ERROR("Failed to open temporary file: %s", current_temp_file_.c_str());
-            return RC::IOERR_READ;
-        }
-        
-        // 读取所有数据到内存
-        rc = read_chunk_from_file(value_list_, current_temp_file_);
-        if (rc != RC::SUCCESS) {
-            LOG_ERROR("Failed to read from temporary file: %s", strrc(rc));
-            return rc;
-        }
-        
-        // 设置索引
-        ids_.resize(value_list_.size());
-        for (size_t i = 0; i < value_list_.size(); i++) {
-            ids_[i] = i;
-        }
-        
-        current_file_stream_.close();
-        unlink(current_temp_file_.c_str());
-        temp_files_.clear();
-        
-    } else {
-        // 多个文件，需要归并
-        std::string final_file = create_temp_file();
-        if (final_file.empty()) {
-            LOG_ERROR("Failed to create final temporary file");
-            return RC::IOERR_WRITE;
-        }
-        
-        rc = merge_sorted_files(temp_files_, final_file);
-        if (rc != RC::SUCCESS) {
-            LOG_ERROR("Failed to merge sorted files: %s", strrc(rc));
-            return rc;
-        }
-        
-        // 读取最终结果
-        rc = read_chunk_from_file(value_list_, final_file);
-        if (rc != RC::SUCCESS) {
-            LOG_ERROR("Failed to read from final file: %s", strrc(rc));
-            return rc;
-        }
-        
-        // 设置索引
-        ids_.resize(value_list_.size());
-        for (size_t i = 0; i < value_list_.size(); i++) {
-            ids_[i] = i;
-        }
-        
-        // 清理临时文件
-        cleanup_temp_files();
-        unlink(final_file.c_str());
-    }
-    
-    LOG_INFO("External sort completed for %zu tuples using %zu temporary files", 
-             value_list_.size(), temp_files_.size());
-    
-    return RC::SUCCESS;
-}
 
 RC OrderByPhysicalOperator::write_chunk_to_file(const std::vector<ValueListTuple>& chunk, const std::string& filename)
 {
@@ -1285,9 +988,9 @@ RC OrderByPhysicalOperator::cleanup_temp_files()
     return RC::SUCCESS;
 }
 
-    std::string OrderByPhysicalOperator::create_temp_file()
-    {
-        char temp_filename[256];
-        snprintf(temp_filename, sizeof(temp_filename), "/tmp/miniob_orderby_%d_%d", getpid(), rand());
-        return temp_filename;
-    }
+std::string OrderByPhysicalOperator::create_temp_file()
+{
+    char temp_filename[256];
+    snprintf(temp_filename, sizeof(temp_filename), "/tmp/miniob_orderby_%d_%d", getpid(), rand());
+    return temp_filename;
+}
