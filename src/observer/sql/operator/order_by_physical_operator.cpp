@@ -116,10 +116,7 @@ RC OrderByPhysicalOperator::next(Tuple *upper_tuple)
 Tuple *OrderByPhysicalOperator::current_tuple()
 {
   if (is_external_sort_) {
-    if (current_chunk_index_ < current_chunk_.size()) {
-      return &current_chunk_[current_chunk_index_];
-    }
-    return nullptr;
+    return &current_external_tuple_;
   } else {
     if (current_id_ != value_list_.size()) {
       return &value_list_[ids_[current_id_]];
@@ -153,85 +150,43 @@ RC OrderByPhysicalOperator::fetch_next()
 
 RC OrderByPhysicalOperator::fetch_next_external()
 {
-  // 如果当前块还有数据，直接返回
-  if (current_chunk_index_ < current_chunk_.size()) {
-    if (first_emited_) {
-      ++current_chunk_index_;
-    } else {
-      first_emited_ = true;
-    }
-    
-    if (current_chunk_index_ < current_chunk_.size()) {
-      return RC::SUCCESS;
-    }
-  }
-  
-  // 当前块数据用完，需要读取下一个块
-  if (sorted_files_.size() == 1) {
-    // 单文件情况：读取下一个块
-    return load_next_chunk_single_file();
-  } else {
-    // 多文件情况：多路归并
-    return load_next_chunk_merge();
-  }
-}
-
-RC OrderByPhysicalOperator::load_next_chunk_single_file()
-{
-  // 从单个文件中读取下一个块
-  if (current_file_stream_.eof()) {
+  if (merge_pq_ == nullptr || merge_pq_->empty()) {
     return RC::RECORD_EOF;
   }
-  
-  RC rc = read_chunk_from_stream(current_chunk_, current_file_stream_);
-  if (rc != RC::SUCCESS) {
-    return rc;
-  }
-  
-  current_chunk_index_ = 0;
-  first_emited_ = false;
-  return RC::SUCCESS;
-}
 
-RC OrderByPhysicalOperator::load_next_chunk_merge()
-{
-  // 多路归并：找到当前最小的元素
-  int min_file_index = -1;
-  std::vector<Value> min_values;
-  
-  for (size_t i = 0; i < file_chunks_.size(); i++) {
-    if (chunk_indices_[i] < file_chunks_[i].size()) {
-      std::vector<Value> values(order_by_.size());
-      for (size_t j = 0; j < order_by_.size(); j++) {
-        order_by_[j]->get_value(file_chunks_[i][chunk_indices_[i]], values[j]);
-      }
-      
-      if (min_file_index == -1 || cmp(values, min_values)) {
-        min_file_index = i;
-        min_values = values;
-      }
-    }
-  }
-  
-  if (min_file_index == -1) {
-    return RC::RECORD_EOF; // 所有文件都处理完毕
-  }
-  
-  // 将最小的元素放入当前块
-  current_chunk_.clear();
-  current_chunk_.emplace_back(std::move(file_chunks_[min_file_index][chunk_indices_[min_file_index]]));
-  chunk_indices_[min_file_index]++;
-  
-  // 如果当前文件的数据用完，尝试读取下一块
-  if (chunk_indices_[min_file_index] >= file_chunks_[min_file_index].size()) {
-    RC rc = load_file_chunk(min_file_index);
+  // Get the next element with the minimum key
+  MergeElement min_element = merge_pq_->top();
+  merge_pq_->pop();
+
+  size_t run_index = min_element.run_index;
+
+  // Set the current tuple to the one we just found
+  current_external_tuple_ = file_chunks_[run_index][chunk_indices_[run_index]];
+
+  // Move to the next element in the same run
+  chunk_indices_[run_index]++;
+
+  // If the current chunk for this run is exhausted, load the next one
+  if (chunk_indices_[run_index] >= file_chunks_[run_index].size()) {
+    RC rc = load_file_chunk(run_index);
     if (rc != RC::SUCCESS && rc != RC::RECORD_EOF) {
-      return rc;
+      return rc; // Propagate errors
     }
   }
-  
-  current_chunk_index_ = 0;
-  first_emited_ = false;
+
+  // If there are still elements in the run (either in the current chunk or a newly loaded one),
+  // push the new smallest element from that run to the priority queue.
+  if (chunk_indices_[run_index] < file_chunks_[run_index].size()) {
+    std::vector<Value> next_keys;
+    const auto& next_tuple = file_chunks_[run_index][chunk_indices_[run_index]];
+    for (const auto& expr : order_by_) {
+      Value val;
+      expr->get_value(next_tuple, val);
+      next_keys.push_back(val);
+    }
+    merge_pq_->push({next_keys, run_index});
+  }
+
   return RC::SUCCESS;
 }
 
@@ -798,57 +753,46 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
         temp_files_.push_back(temp_file);
     }
     
-    // 第三阶段：设置流式处理
+    // 第三阶段：初始化多路归并
     is_external_sort_ = true;
-    sorted_files_ = temp_files_;
     
-    if (temp_files_.size() == 1) {
-        // 单文件情况：打开文件流
-        current_temp_file_ = temp_files_[0];
-        current_file_stream_.open(current_temp_file_, std::ios::binary);
-        if (!current_file_stream_.is_open()) {
-            LOG_ERROR("Failed to open temporary file: %s", current_temp_file_.c_str());
+    // Open file streams for all temporary files
+    for (const auto& filename : temp_files_) {
+        file_streams_.emplace_back(filename, std::ios::binary);
+        if (!file_streams_.back().is_open()) {
+            LOG_ERROR("Failed to open temporary file for merging: %s", filename.c_str());
             return RC::IOERR_READ;
         }
-        
-        // 读取第一个块
-        current_chunk_.clear();
-        current_chunk_index_ = 0;
-        first_emited_ = false;
-        
-    } else {
-        // 多文件情况：设置多路归并
-        file_streams_.clear();
-        file_chunks_.clear();
-        chunk_indices_.clear();
-        
-        for (const auto& filename : temp_files_) {
-            std::ifstream file(filename, std::ios::binary);
-            if (!file.is_open()) {
-                LOG_ERROR("Failed to open input file: %s", filename.c_str());
-                return RC::IOERR_READ;
-            }
-            file_streams_.push_back(std::move(file));
-            
-            // 读取每个文件的第一块数据
-            std::vector<ValueListTuple> chunk;
-            RC rc = read_chunk_from_file(chunk, filename);
-            if (rc != RC::SUCCESS) {
-                LOG_ERROR("Failed to read chunk from file: %s", strrc(rc));
-                return rc;
-            }
-            file_chunks_.push_back(std::move(chunk));
-            chunk_indices_.push_back(0);
-        }
-        
-        // 初始化当前块
-        current_chunk_.clear();
-        current_chunk_index_ = 0;
-        first_emited_ = false;
     }
-    
-    LOG_INFO("External sort with cached data initialized for %zu temporary files", temp_files_.size());
-    
+
+    // Initialize chunks and indices
+    file_chunks_.resize(temp_files_.size());
+    chunk_indices_.assign(temp_files_.size(), 0);
+
+    // Initialize the priority queue
+    merge_pq_ = std::make_unique<std::priority_queue<MergeElement, std::vector<MergeElement>, MergeElementComparator>>(MergeElementComparator(this));
+
+    // Load the first chunk from each run and push the first element to the PQ
+    for (size_t i = 0; i < temp_files_.size(); ++i) {
+        RC rc = load_file_chunk(i);
+        if (rc == RC::SUCCESS) {
+            if (!file_chunks_[i].empty()) {
+                std::vector<Value> keys;
+                const auto& tuple = file_chunks_[i][0];
+                for (const auto& expr : order_by_) {
+                    Value val;
+                    expr->get_value(tuple, val);
+                    keys.push_back(val);
+                }
+                merge_pq_->push({keys, i});
+            }
+        } else if (rc != RC::RECORD_EOF) {
+            return rc; // Error loading initial chunk
+        }
+    }
+
+    LOG_INFO("External sort merge phase initialized with %zu temporary files.", temp_files_.size());
+
     return RC::SUCCESS;
 }
 

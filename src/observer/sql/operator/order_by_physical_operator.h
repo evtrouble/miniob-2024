@@ -61,14 +61,46 @@ private:
   RC merge_sorted_files(const std::vector<std::string>& input_files, const std::string& output_file);
   RC cleanup_temp_files();
   std::string create_temp_file();
+ 
+private:
+  std::vector<std::unique_ptr<Expression>> order_by_;
+  std::vector<bool>                        is_asc_;
+  bool                                     first_emited_ = false;  /// 第一条数据是否已经输出
+  bool                                     have_value = false;
+  vector<ValueListTuple>                   value_list_;
+  vector<size_t>                           ids_;     
+  vector<vector<Value>>                    order_values_;        
+  size_t                                   current_id_;
+  int                                      limit_ = -1;
+  
+  // Helper struct for the merge priority queue
+  struct MergeElement {
+    std::vector<Value> sort_keys;
+    size_t run_index;
+  };
+
+  // Custom comparator for the priority queue
+  struct MergeElementComparator {
+    const OrderByPhysicalOperator* op_;
+    MergeElementComparator(const OrderByPhysicalOperator* op) : op_(op) {}
+    // For min-heap, return true if a should come after b
+    bool operator()(const MergeElement& a, const MergeElement& b) const {
+      return !op_->cmp(a.sort_keys, b.sort_keys);
+    }
+  };
+
+  // 外排序相关成员变量
+  std::vector<std::string>                 temp_files_;           /// 临时文件列表
+  size_t                                   chunk_size_;           /// 每个块的大小
+  size_t                                   memory_threshold_;     /// 内存阈值（字节）
+  static constexpr size_t                  DEFAULT_CHUNK_SIZE = 1000;  /// 默认块大小
+  static constexpr size_t                  DEFAULT_MEMORY_THRESHOLD = 8 * 1024 * 1024;  /// 默认内存阈值 8MB
   
   // 外排序流式处理相关
   bool                                     is_external_sort_ = false;  /// 是否使用外排序
-  std::vector<std::string>                 sorted_files_;        /// 已排序的临时文件列表
-  size_t                                   current_file_index_ = 0;   /// 当前读取的文件索引
-  std::vector<ValueListTuple>              current_chunk_;       /// 当前块的数据
-  size_t                                   current_chunk_index_ = 0;  /// 当前块中的索引
   std::vector<std::ifstream>               file_streams_;        /// 多路归并时的文件流
   std::vector<std::vector<ValueListTuple>> file_chunks_;         /// 多路归并时的数据块
   std::vector<size_t>                      chunk_indices_;       /// 多路归并时的索引
+  std::unique_ptr<std::priority_queue<MergeElement, std::vector<MergeElement>, MergeElementComparator>> merge_pq_;
+  ValueListTuple                           current_external_tuple_;
 };
