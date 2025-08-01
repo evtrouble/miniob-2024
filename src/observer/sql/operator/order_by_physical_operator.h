@@ -19,6 +19,7 @@ See the Mulan PSL v2 for more details. */
 #include <vector>
 #include <fstream>
 #include <string>
+#include <queue>
 
 /**
  * @brief 更新物理算子
