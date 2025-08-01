@@ -18,8 +18,8 @@
 - **流式处理**: 支持真正的流式数据获取，避免将所有数据加载到内存
 
 ### 3. 内存管理
-- **动态阈值**: 可配置的内存阈值（默认100MB）
-- **内存估算**: 实时估算内存使用量，提前预测是否需要外排序
+- **动态阈值**: 可配置的内存阈值（默认8MB）
+- **精确计算**: 实时计算元组占用的确切内存，包括所有变长数据
 - **自动清理**: 自动清理临时文件，避免磁盘空间浪费
 
 ## 实现细节
@@ -59,7 +59,7 @@ private:
 RC OrderByPhysicalOperator::adaptive_sort(Tuple *upper_tuple)
 {
     // 1. 读取数据到内存
-    // 2. 实时估算内存使用量
+    // 2. 实时计算元组占用的确切内存
     // 3. 如果超过阈值，切换到外排序（保留已缓存数据）
     // 4. 否则使用内存排序（处理已缓存数据）
 }
@@ -241,7 +241,7 @@ current_file_stream_.open(current_temp_file_, std::ios::binary);  // ✅ 打开�
 - `read_chunk_from_stream()`: 从文件流读取数据块
 
 ### 3. 内存排序数据重复问题
-在初始实现中，`adaptive_sort()` 已经读取了一部分数据，但 `quick_sort()` 会重新读取所有数据，导致数据重复或丢失。通过引入 `quick_sort_with_cached_data()` 方法解决了这个问题：
+在初始实现中，`adaptive_sort()` 已经读取了一部分数据，但 `quick_sort()` 会重新读取所有数据，导致数据重复或丢失。通过引入 `sort_in_memory()` 方法解决了这个问题：
 
 #### 问题分析
 ```cpp
@@ -262,12 +262,10 @@ quick_sort() {
 // 修复后：正确处理已缓存数据
 adaptive_sort() {
     // 读取部分数据到 value_list_
-    return quick_sort_with_cached_data(upper_tuple, tuple_count);  // ✅ 处理已缓存数据
+    return sort_in_memory();  // ✅ 只对已缓存数据排序
 }
 
-quick_sort_with_cached_data() {
-    // 继续读取剩余数据
-    while (child->next()) { ... }  // ✅ 只读取剩余数据
+sort_in_memory() {
     // 对所有数据进行排序（包括已缓存的数据）
 }
 ```

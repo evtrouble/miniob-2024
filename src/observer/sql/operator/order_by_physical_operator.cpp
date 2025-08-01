@@ -461,6 +461,7 @@ RC OrderByPhysicalOperator::adaptive_sort(Tuple *upper_tuple)
     // 先读取所有数据到内存中
     Tuple* tuple = nullptr;
     size_t tuple_count = 0;
+    size_t current_memory_usage = 0;
     
     while (OB_SUCC(rc = (upper_tuple == nullptr ? child->next() : child->next(upper_tuple)))) {
         tuple = child->current_tuple();
@@ -478,12 +479,14 @@ RC OrderByPhysicalOperator::adaptive_sort(Tuple *upper_tuple)
             return rc;
         }
         
+        // 更新内存使用量
+        current_memory_usage += value_list.get_tuple_size();
+        
         value_list_.emplace_back(std::move(value_list));
         tuple_count++;
         
         // 检查内存使用量，如果超过阈值则切换到外排序
-        size_t estimated_memory = estimate_memory_usage(tuple_count);
-        if (estimated_memory > memory_threshold_) {
+        if (current_memory_usage > memory_threshold_) {
             LOG_INFO("Memory usage estimated to exceed threshold (%zu bytes), switching to external sort", memory_threshold_);
             // 不关闭子算子，让external_sort处理
             return external_sort_with_cached_data(upper_tuple, tuple_count);
@@ -502,7 +505,28 @@ RC OrderByPhysicalOperator::adaptive_sort(Tuple *upper_tuple)
 
     // 如果数据量在内存范围内，使用快速排序
     LOG_INFO("Using in-memory sort for %zu tuples", tuple_count);
-    return quick_sort_with_cached_data(upper_tuple, tuple_count);
+    return sort_in_memory();
+}
+
+RC OrderByPhysicalOperator::sort_in_memory()
+{
+    // 对所有数据进行排序（包括已缓存的数据）
+    ids_.resize(value_list_.size());
+    order_values_.resize(value_list_.size());
+    for(size_t id = 0; id < value_list_.size(); id++){
+        auto& values = order_values_[id];
+        values.resize(order_by_.size());
+        for(size_t i = 0; i < order_by_.size(); i++){
+            order_by_[i]->get_value(value_list_[id], values[i]);
+        }
+        ids_[id] = id;
+    }
+
+    sort(ids_.begin(), ids_.end(), [&](size_t &a, size_t &b){
+        return cmp(order_values_[a], order_values_[b]);
+    });
+
+    return RC::SUCCESS;
 }
 
 RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, size_t cached_count)
@@ -1323,23 +1347,3 @@ RC OrderByPhysicalOperator::cleanup_temp_files()
         snprintf(temp_filename, sizeof(temp_filename), "/tmp/miniob_orderby_%d_%d", getpid(), rand());
         return temp_filename;
     }
-
-size_t OrderByPhysicalOperator::estimate_memory_usage(size_t tuple_count)
-{
-    size_t tuple_size = estimate_tuple_size();
-    return tuple_count * tuple_size;
-}
-
-size_t OrderByPhysicalOperator::estimate_tuple_size()
-{
-    // 估算每个tuple的大小
-    // 这里使用一个简单的估算方法，实际项目中可能需要更精确的计算
-    size_t base_size = 64; // 基础开销
-    size_t value_size = 32; // 每个Value的平均大小
-    size_t total_values = 0;
-    
-    // 统计所有order_by表达式的值
-    total_values = order_by_.size();
-    
-    return base_size + total_values * value_size;
-}

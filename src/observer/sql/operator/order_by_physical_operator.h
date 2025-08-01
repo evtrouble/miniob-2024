@@ -47,8 +47,7 @@ private:
   RC load_next_chunk_single_file();
   RC load_next_chunk_merge();
   RC load_file_chunk(size_t file_index);
-  RC     quick_sort(Tuple *upper_tuple = nullptr);
-  RC     quick_sort_with_cached_data(Tuple *upper_tuple, size_t cached_count);
+  RC sort_in_memory();
   RC     limit_sort(Tuple *upper_tuple = nullptr);
   RC     external_sort(Tuple *upper_tuple = nullptr);
   RC     external_sort_with_cached_data(Tuple *upper_tuple, size_t cached_count);
@@ -62,30 +61,6 @@ private:
   RC merge_sorted_files(const std::vector<std::string>& input_files, const std::string& output_file);
   RC cleanup_temp_files();
   std::string create_temp_file();
-  
-  // 估算内存使用量
-  size_t estimate_memory_usage(size_t tuple_count);
-  size_t estimate_tuple_size();
-
-private:
-  std::vector<std::unique_ptr<Expression>> order_by_;
-  std::vector<bool>                        is_asc_;
-  bool                                     first_emited_ = false;  /// 第一条数据是否已经输出
-  bool                                     have_value = false;
-  vector<ValueListTuple>                   value_list_;
-  vector<size_t>                           ids_;     
-  vector<vector<Value>>                    order_values_;        
-  size_t                                   current_id_;
-  int                                      limit_ = -1;
-  
-  // 外排序相关成员变量
-  std::vector<std::string>                 temp_files_;           /// 临时文件列表
-  std::string                              current_temp_file_;    /// 当前临时文件
-  std::ifstream                            current_file_stream_;  /// 当前文件流
-  size_t                                   chunk_size_;           /// 每个块的大小
-  size_t                                   memory_threshold_;     /// 内存阈值（字节）
-  static constexpr size_t                  DEFAULT_CHUNK_SIZE = 1000;  /// 默认块大小
-  static constexpr size_t                  DEFAULT_MEMORY_THRESHOLD = 8 * 1024 * 1024;  /// 默认内存阈值 8MB
   
   // 外排序流式处理相关
   bool                                     is_external_sort_ = false;  /// 是否使用外排序

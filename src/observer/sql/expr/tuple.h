@@ -458,8 +458,14 @@ public:
   {
     return RC::INVALID_ARGUMENT;
   }
-
-  virtual int get_tuple_size() const override { return 0; }
+ 
+  virtual int get_tuple_size() const override {
+    int size = 0;
+    for (const auto& cell : cells_) {
+        size += cell.length();
+    }
+    return size;
+  }
 
   static RC make(const Tuple &tuple, ValueListTuple &value_list)
   {
