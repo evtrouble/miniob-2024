@@ -15,4 +15,4 @@ See the Mulan PSL v2 for more details. */
 #include "sql/operator/order_by_logical_operator.h"
 
 OrderByLogicalOperator::OrderByLogicalOperator(std::vector<std::unique_ptr<Expression>>&& order_by, std::vector<bool>&& is_asc, int limit)
-    : order_by_(move(order_by)), is_asc_(move(is_asc)), limit_(limit){}
+    : order_by_(std::move(order_by)), is_asc_(std::move(is_asc)), limit_(limit){}

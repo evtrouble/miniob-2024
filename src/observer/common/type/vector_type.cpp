@@ -41,7 +41,7 @@ RC VectorType::add(const Value &left, const Value &right, Value &result) const
     for(size_t id = 0; id < left_vector->size(); id++){
         temp->at(id) = left_vector->at(id) + right_vector->at(id);
     }
-    result.set_vector(move(*temp));
+    result.set_vector(std::move(*temp));
     return RC::SUCCESS;
 }
 
@@ -56,7 +56,7 @@ RC VectorType::subtract(const Value &left, const Value &right, Value &result) co
     for(size_t id = 0; id < left_vector->size(); id++){
         temp->at(id) = left_vector->at(id) - right_vector->at(id);
     }
-    result.set_vector(move(*temp));
+    result.set_vector(std::move(*temp));
     return RC::SUCCESS;
 }
 
@@ -72,7 +72,7 @@ RC VectorType::multiply(const Value &left, const Value &right, Value &result) co
         temp->at(id) = left_vector->at(id) * right_vector->at(id);
     }
     
-    result.set_vector(move(*temp));
+    result.set_vector(std::move(*temp));
     return RC::SUCCESS;
 }
 

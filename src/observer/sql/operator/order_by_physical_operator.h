@@ -45,9 +45,9 @@ public:
 private:
   RC fetch_next();
   RC fetch_next_external();
-  RC load_next_chunk_single_file();
-  RC load_next_chunk_merge();
-  RC load_file_chunk(size_t file_index);
+  RC load_next_tuple_from_file(size_t file_index);
+  RC read_single_tuple_from_stream(ValueListTuple& tuple, std::ifstream& file);
+
   RC sort_in_memory();
   RC     limit_sort(Tuple *upper_tuple = nullptr);
   RC     external_sort(Tuple *upper_tuple = nullptr);
@@ -57,11 +57,11 @@ private:
   
   // 外排序相关方法
   RC write_chunk_to_file(const std::vector<ValueListTuple>& chunk, const std::string& filename);
-  RC read_chunk_from_file(std::vector<ValueListTuple>& chunk, const std::string& filename);
-  RC read_chunk_from_stream(std::vector<ValueListTuple>& chunk, std::ifstream& file);
-  RC merge_sorted_files(const std::vector<std::string>& input_files, const std::string& output_file);
   RC cleanup_temp_files();
   std::string create_temp_file();
+  
+  // 辅助方法：排序并写入临时文件
+  RC sort_and_write_chunk(const std::vector<ValueListTuple>& chunk, std::string& temp_file);
  
 private:
   std::vector<std::unique_ptr<Expression>> order_by_;

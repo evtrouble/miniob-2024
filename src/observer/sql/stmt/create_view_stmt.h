@@ -35,7 +35,7 @@ public:
   CreateViewStmt(
       const std::string&& view_name, std::vector<AttrInfoSqlNode>&& attr_infos,
       std::vector<unique_ptr<Expression>>&& map_exprs, Stmt* select_stmt, bool allow_write)
-      : view_name_(move(view_name)), attr_infos_(move(attr_infos)), map_exprs_(move(map_exprs)), 
+      : view_name_(std::move(view_name)), attr_infos_(std::move(attr_infos)), map_exprs_(std::move(map_exprs)), 
       select_stmt_(unique_ptr<Stmt>(select_stmt)), allow_write_(allow_write)
   {}
   virtual ~CreateViewStmt() = default;

@@ -180,7 +180,7 @@ RC CastExpr::get_value_set(const Tuple &tuple, vector<Value> &value_list)const
   for(auto& value : value_list){
     rc = cast(value, temp);
     if(rc != RC::SUCCESS)return rc;
-    value = move(temp);
+    value = std::move(temp);
   }
   return rc;
 }
@@ -1159,7 +1159,7 @@ RC SelectExpr::pretreatment()
         LOG_WARN("failed to get tuple cell value. rc=%s", strrc(rc));
         return rc;
       }
-      values_->at(size).emplace_back(move(value));
+      values_->at(size).emplace_back(std::move(value));
     }
   }
 
@@ -1184,7 +1184,7 @@ RC ValueListExpr::get_value_set(const Tuple &tuple, vector<Value> &value_list) c
   for(auto& expr : exprs_){
     rc = expr->get_value(tuple, value);
     if(rc != RC::SUCCESS)return rc;
-    value_list.emplace_back(move(value));
+    value_list.emplace_back(std::move(value));
   }
   return RC::SUCCESS;
 }

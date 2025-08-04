@@ -14,7 +14,7 @@ See the Mulan PSL v2 for more details. */
 
 #include "sql/operator/create_table_logical_operator.h"
 
-CreateTableLogicalOperator::CreateTableLogicalOperator(Db *db, const string &&table_name, const std::vector<AttrInfoSqlNode>&& attr_infos, 
+CreateTableLogicalOperator::CreateTableLogicalOperator(Db *db, string &&table_name, std::vector<AttrInfoSqlNode>&& attr_infos, 
     const StorageFormat storage_format)
-    : db_(db), table_name_(move(table_name)), attr_infos_(move(attr_infos)), storage_format_(storage_format)
+    : db_(db), table_name_(std::move(table_name)), attr_infos_(std::move(attr_infos)), storage_format_(storage_format)
     {}

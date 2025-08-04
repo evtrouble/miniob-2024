@@ -162,16 +162,15 @@ RC OrderByPhysicalOperator::fetch_next_external()
   // Move to the next element in the same run
   chunk_indices_[run_index]++;
 
-  // If the current chunk for this run is exhausted, load the next one
+  // If the current chunk for this run is exhausted, load the next tuple
   if (chunk_indices_[run_index] >= file_chunks_[run_index].size()) {
-    RC rc = load_file_chunk(run_index);
-    if (rc != RC::SUCCESS && rc != RC::RECORD_EOF) {
+    RC rc = load_next_tuple_from_file(run_index);
+    if (rc != RC::SUCCESS) {
       return rc; // Propagate errors
     }
   }
 
-  // If there are still elements in the run (either in the current chunk or a newly loaded one),
-  // push the new smallest element from that run to the priority queue.
+  // If there are still elements in the run, push the next element to the priority queue
   if (chunk_indices_[run_index] < file_chunks_[run_index].size()) {
     std::vector<Value> next_keys;
     const auto& next_tuple = file_chunks_[run_index][chunk_indices_[run_index]];
@@ -186,9 +185,9 @@ RC OrderByPhysicalOperator::fetch_next_external()
   return RC::SUCCESS;
 }
 
-RC OrderByPhysicalOperator::load_file_chunk(size_t file_index)
+RC OrderByPhysicalOperator::load_next_tuple_from_file(size_t file_index)
 {
-  // 从指定文件中读取下一个块
+  // 从指定文件中读取下一个tuple
   if (file_index >= file_streams_.size()) {
     return RC::INVALID_ARGUMENT;
   }
@@ -198,12 +197,19 @@ RC OrderByPhysicalOperator::load_file_chunk(size_t file_index)
     return RC::RECORD_EOF;
   }
   
-  RC rc = read_chunk_from_stream(file_chunks_[file_index], file);
+  // 读取单个tuple
+  ValueListTuple tuple;
+  RC rc = read_single_tuple_from_stream(tuple, file);
   if (rc != RC::SUCCESS) {
     return rc;
   }
   
-  chunk_indices_[file_index] = 0;
+  // 将tuple添加到当前文件的chunk中
+  if (file_chunks_[file_index].empty()) {
+    file_chunks_[file_index].reserve(chunk_size_);
+  }
+  file_chunks_[file_index].emplace_back(std::move(tuple));
+  
   return RC::SUCCESS;
 }
 
@@ -339,6 +345,7 @@ RC OrderByPhysicalOperator::adaptive_sort(Tuple *upper_tuple)
         if (current_memory_usage > memory_threshold_) {
             LOG_INFO("Memory usage estimated to exceed threshold (%zu bytes), switching to external sort", memory_threshold_);
             // 不关闭子算子，让external_sort处理
+            chunk_size_ = tuple_count;
             return external_sort_with_cached_data(upper_tuple, tuple_count);
         }
     }
@@ -386,146 +393,20 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
     
     // 第一阶段：处理已缓存的数据
     if (cached_count > 0) {
-        // 将已缓存的数据分成块并排序
-        size_t remaining_in_first_chunk = chunk_size_ - (cached_count % chunk_size_);
-        if (remaining_in_first_chunk == chunk_size_) {
-            remaining_in_first_chunk = 0;
+        std::vector<ValueListTuple> cached_chunk;
+        cached_chunk.reserve(cached_count);
+        for (size_t i = 0; i < cached_count; i++) {
+            cached_chunk.emplace_back(std::move(value_list_[i]));
         }
         
-        // 处理第一个不完整的块
-        if (remaining_in_first_chunk > 0) {
-            std::vector<ValueListTuple> first_chunk;
-            first_chunk.reserve(remaining_in_first_chunk);
-            
-            // 继续读取数据直到第一个块满
-            Tuple* tuple = nullptr;
-            for (size_t i = 0; i < remaining_in_first_chunk; i++) {
-                rc = (upper_tuple == nullptr ? child->next() : child->next(upper_tuple));
-                if (rc != RC::SUCCESS) {
-                    if (rc == RC::RECORD_EOF) {
-                        break;
-                    }
-                    LOG_WARN("failed to get next tuple: %s", strrc(rc));
-                    child->close();
-                    return rc;
-                }
-                
-                tuple = child->current_tuple();
-                if (nullptr == tuple) {
-                    LOG_WARN("failed to get current record: %s", strrc(rc));
-                    child->close();
-                    return rc;
-                }
-                
-                ValueListTuple value_list;
-                rc = ValueListTuple::make(*tuple, value_list);
-                if (rc != RC::SUCCESS) {
-                    LOG_WARN("failed to make ValueListTuple: %s", strrc(rc));
-                    child->close();
-                    return rc;
-                }
-                
-                first_chunk.emplace_back(std::move(value_list));
-            }
-            
-            // 将已缓存的数据和刚读取的数据合并
-            std::vector<ValueListTuple> combined_chunk;
-            combined_chunk.reserve(cached_count + first_chunk.size());
-            
-            // 添加已缓存的数据
-            for (size_t i = 0; i < cached_count; i++) {
-                combined_chunk.emplace_back(std::move(value_list_[i]));
-            }
-            
-            // 添加新读取的数据
-            for (auto& item : first_chunk) {
-                combined_chunk.emplace_back(std::move(item));
-            }
-            
-            // 排序并写入临时文件
-            std::string temp_file = create_temp_file();
-            if (temp_file.empty()) {
-                LOG_ERROR("Failed to create temporary file");
-                child->close();
-                return RC::IOERR_WRITE;
-            }
-            
-            // 对合并的块进行排序
-            std::vector<size_t> chunk_ids(combined_chunk.size());
-            std::vector<std::vector<Value>> chunk_order_values(combined_chunk.size());
-            
-            for (size_t i = 0; i < combined_chunk.size(); i++) {
-                chunk_ids[i] = i;
-                chunk_order_values[i].resize(order_by_.size());
-                for (size_t j = 0; j < order_by_.size(); j++) {
-                    order_by_[j]->get_value(combined_chunk[i], chunk_order_values[i][j]);
-                }
-            }
-            
-            std::sort(chunk_ids.begin(), chunk_ids.end(), [&](size_t a, size_t b) {
-                return cmp(chunk_order_values[a], chunk_order_values[b]);
-            });
-            
-            // 按排序后的顺序重新排列chunk
-            std::vector<ValueListTuple> sorted_chunk;
-            sorted_chunk.reserve(combined_chunk.size());
-            for (size_t id : chunk_ids) {
-                sorted_chunk.emplace_back(std::move(combined_chunk[id]));
-            }
-            
-            // 写入临时文件
-            rc = write_chunk_to_file(sorted_chunk, temp_file);
-            if (rc != RC::SUCCESS) {
-                LOG_ERROR("Failed to write chunk to file: %s", strrc(rc));
-                child->close();
-                return rc;
-            }
-            
-            temp_files_.push_back(temp_file);
-        } else {
-            // 已缓存的数据正好是一个完整的块
-            std::string temp_file = create_temp_file();
-            if (temp_file.empty()) {
-                LOG_ERROR("Failed to create temporary file");
-                child->close();
-                return RC::IOERR_WRITE;
-            }
-            
-            // 对已缓存的数据进行排序
-            std::vector<size_t> chunk_ids(cached_count);
-            std::vector<std::vector<Value>> chunk_order_values(cached_count);
-            
-            for (size_t i = 0; i < cached_count; i++) {
-                chunk_ids[i] = i;
-                chunk_order_values[i].resize(order_by_.size());
-                for (size_t j = 0; j < order_by_.size(); j++) {
-                    order_by_[j]->get_value(value_list_[i], chunk_order_values[i][j]);
-                }
-            }
-            
-            std::sort(chunk_ids.begin(), chunk_ids.end(), [&](size_t a, size_t b) {
-                return cmp(chunk_order_values[a], chunk_order_values[b]);
-            });
-            
-            // 按排序后的顺序重新排列chunk
-            std::vector<ValueListTuple> sorted_chunk;
-            sorted_chunk.reserve(cached_count);
-            for (size_t id : chunk_ids) {
-                sorted_chunk.emplace_back(std::move(value_list_[id]));
-            }
-            
-            // 写入临时文件
-            rc = write_chunk_to_file(sorted_chunk, temp_file);
-            if (rc != RC::SUCCESS) {
-                LOG_ERROR("Failed to write chunk to file: %s", strrc(rc));
-                child->close();
-                return rc;
-            }
-            
-            temp_files_.push_back(temp_file);
+        std::string temp_file;
+        rc = sort_and_write_chunk(cached_chunk, temp_file);
+        if (rc != RC::SUCCESS) {
+            child->close();
+            return rc;
         }
         
-        // 清空已缓存的数据
+        temp_files_.push_back(temp_file);
         value_list_.clear();
     }
     
@@ -554,40 +435,9 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
         
         // 当块满了时，排序并写入临时文件
         if (chunk.size() >= chunk_size_) {
-            std::string temp_file = create_temp_file();
-            if (temp_file.empty()) {
-                LOG_ERROR("Failed to create temporary file");
-                child->close();
-                return RC::IOERR_WRITE;
-            }
-            
-            // 对当前块进行排序
-            std::vector<size_t> chunk_ids(chunk.size());
-            std::vector<std::vector<Value>> chunk_order_values(chunk.size());
-            
-            for (size_t i = 0; i < chunk.size(); i++) {
-                chunk_ids[i] = i;
-                chunk_order_values[i].resize(order_by_.size());
-                for (size_t j = 0; j < order_by_.size(); j++) {
-                    order_by_[j]->get_value(chunk[i], chunk_order_values[i][j]);
-                }
-            }
-            
-            std::sort(chunk_ids.begin(), chunk_ids.end(), [&](size_t a, size_t b) {
-                return cmp(chunk_order_values[a], chunk_order_values[b]);
-            });
-            
-            // 按排序后的顺序重新排列chunk
-            std::vector<ValueListTuple> sorted_chunk;
-            sorted_chunk.reserve(chunk.size());
-            for (size_t id : chunk_ids) {
-                sorted_chunk.emplace_back(std::move(chunk[id]));
-            }
-            
-            // 写入临时文件
-            rc = write_chunk_to_file(sorted_chunk, temp_file);
+            std::string temp_file;
+            rc = sort_and_write_chunk(chunk, temp_file);
             if (rc != RC::SUCCESS) {
-                LOG_ERROR("Failed to write chunk to file: %s", strrc(rc));
                 child->close();
                 return rc;
             }
@@ -609,39 +459,9 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
     
     // 处理最后一个不完整的块
     if (!chunk.empty()) {
-        std::string temp_file = create_temp_file();
-        if (temp_file.empty()) {
-            LOG_ERROR("Failed to create temporary file for last chunk");
-            return RC::IOERR_WRITE;
-        }
-        
-        // 对最后一个块进行排序
-        std::vector<size_t> chunk_ids(chunk.size());
-        std::vector<std::vector<Value>> chunk_order_values(chunk.size());
-        
-        for (size_t i = 0; i < chunk.size(); i++) {
-            chunk_ids[i] = i;
-            chunk_order_values[i].resize(order_by_.size());
-            for (size_t j = 0; j < order_by_.size(); j++) {
-                order_by_[j]->get_value(chunk[i], chunk_order_values[i][j]);
-            }
-        }
-        
-        std::sort(chunk_ids.begin(), chunk_ids.end(), [&](size_t a, size_t b) {
-            return cmp(chunk_order_values[a], chunk_order_values[b]);
-        });
-        
-        // 按排序后的顺序重新排列chunk
-        std::vector<ValueListTuple> sorted_chunk;
-        sorted_chunk.reserve(chunk.size());
-        for (size_t id : chunk_ids) {
-            sorted_chunk.emplace_back(std::move(chunk[id]));
-        }
-        
-        // 写入临时文件
-        rc = write_chunk_to_file(sorted_chunk, temp_file);
+        std::string temp_file;
+        rc = sort_and_write_chunk(chunk, temp_file);
         if (rc != RC::SUCCESS) {
-            LOG_ERROR("Failed to write last chunk to file: %s", strrc(rc));
             return rc;
         }
         
@@ -667,9 +487,9 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
     // Initialize the priority queue
     merge_pq_ = std::make_unique<std::priority_queue<MergeElement, std::vector<MergeElement>, MergeElementComparator>>(MergeElementComparator(this));
 
-    // Load the first chunk from each run and push the first element to the PQ
+    // Load the first tuple from each run and push the first element to the PQ
     for (size_t i = 0; i < temp_files_.size(); ++i) {
-        RC rc = load_file_chunk(i);
+        RC rc = load_next_tuple_from_file(i);
         if (rc == RC::SUCCESS) {
             if (!file_chunks_[i].empty()) {
                 std::vector<Value> keys;
@@ -682,7 +502,7 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
                 merge_pq_->push({keys, i});
             }
         } else if (rc != RC::RECORD_EOF) {
-            return rc; // Error loading initial chunk
+            return rc; // Error loading initial tuple
         }
     }
 
@@ -692,6 +512,48 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
 }
 
 
+
+RC OrderByPhysicalOperator::sort_and_write_chunk(const std::vector<ValueListTuple>& chunk, std::string& temp_file)
+{
+    // 创建临时文件
+    temp_file = create_temp_file();
+    if (temp_file.empty()) {
+        LOG_ERROR("Failed to create temporary file");
+        return RC::IOERR_WRITE;
+    }
+    
+    // 对当前块进行排序
+    std::vector<size_t> chunk_ids(chunk.size());
+    std::vector<std::vector<Value>> chunk_order_values(chunk.size());
+    
+    for (size_t i = 0; i < chunk.size(); i++) {
+        chunk_ids[i] = i;
+        chunk_order_values[i].resize(order_by_.size());
+        for (size_t j = 0; j < order_by_.size(); j++) {
+            order_by_[j]->get_value(chunk[i], chunk_order_values[i][j]);
+        }
+    }
+    
+    std::sort(chunk_ids.begin(), chunk_ids.end(), [&](size_t a, size_t b) {
+        return cmp(chunk_order_values[a], chunk_order_values[b]);
+    });
+    
+    // 按排序后的顺序重新排列chunk
+    std::vector<ValueListTuple> sorted_chunk;
+    sorted_chunk.reserve(chunk.size());
+    for (size_t id : chunk_ids) {
+        sorted_chunk.emplace_back(std::move(chunk[id]));
+    }
+    
+    // 写入临时文件
+    RC rc = write_chunk_to_file(sorted_chunk, temp_file);
+    if (rc != RC::SUCCESS) {
+        LOG_ERROR("Failed to write chunk to file: %s", strrc(rc));
+        return rc;
+    }
+    
+    return RC::SUCCESS;
+}
 
 RC OrderByPhysicalOperator::write_chunk_to_file(const std::vector<ValueListTuple>& chunk, const std::string& filename)
 {
@@ -754,226 +616,105 @@ RC OrderByPhysicalOperator::write_chunk_to_file(const std::vector<ValueListTuple
     return RC::SUCCESS;
 }
 
-RC OrderByPhysicalOperator::read_chunk_from_file(std::vector<ValueListTuple>& chunk, const std::string& filename)
+RC OrderByPhysicalOperator::read_single_tuple_from_stream(ValueListTuple& tuple, std::ifstream& file)
 {
-    std::ifstream file(filename, std::ios::binary);
-    if (!file.is_open()) {
-        LOG_ERROR("Failed to open file for reading: %s", filename.c_str());
+    // 读取tuple的cell数量
+    int cell_num;
+    file.read(reinterpret_cast<char*>(&cell_num), sizeof(cell_num));
+    if (file.eof()) {
+        return RC::RECORD_EOF;
+    }
+    if (!file) {
+        LOG_ERROR("Failed to read cell number from file");
         return RC::IOERR_READ;
     }
     
-    return read_chunk_from_stream(chunk, file);
-}
-
-RC OrderByPhysicalOperator::read_chunk_from_stream(std::vector<ValueListTuple>& chunk, std::ifstream& file)
-{
-    chunk.clear();
+    // 创建ValueListTuple
+    std::vector<Value> cells;
+    cells.reserve(cell_num);
     
-    // 检查文件是否到达末尾
-    if (file.eof()) {
-        return RC::RECORD_EOF;
-    }
-    
-    // 读取块大小
-    size_t chunk_size;
-    file.read(reinterpret_cast<char*>(&chunk_size), sizeof(chunk_size));
-    
-    if (file.eof()) {
-        return RC::RECORD_EOF;
-    }
-    
-    // 读取每个tuple
-    for (size_t i = 0; i < chunk_size; i++) {
-        int cell_num;
-        file.read(reinterpret_cast<char*>(&cell_num), sizeof(cell_num));
-        
-        if (file.eof()) {
-            break;
+    // 读取每个cell
+    for (int i = 0; i < cell_num; i++) {
+        AttrType type;
+        file.read(reinterpret_cast<char*>(&type), sizeof(type));
+        if (!file) {
+            LOG_ERROR("Failed to read cell type from file");
+            return RC::IOERR_READ;
         }
         
-        ValueListTuple tuple;
-        std::vector<Value> cells;
-        std::vector<TupleCellSpec> specs;
-        
-        for (int j = 0; j < cell_num; j++) {
-            AttrType type;
-            file.read(reinterpret_cast<char*>(&type), sizeof(type));
-            
-            if (file.eof()) {
+        Value cell;
+        switch (type) {
+            case AttrType::INTS: {
+                int val;
+                file.read(reinterpret_cast<char*>(&val), sizeof(val));
+                if (!file) {
+                    LOG_ERROR("Failed to read int value from file");
+                    return RC::IOERR_READ;
+                }
+                cell = Value(val);
                 break;
             }
-            
-            Value cell;
-            switch (type) {
-                case AttrType::INTS: {
-                    int val;
-                    file.read(reinterpret_cast<char*>(&val), sizeof(val));
-                    cell = Value(val);
-                    break;
+            case AttrType::FLOATS: {
+                float val;
+                file.read(reinterpret_cast<char*>(&val), sizeof(val));
+                if (!file) {
+                    LOG_ERROR("Failed to read float value from file");
+                    return RC::IOERR_READ;
                 }
-                case AttrType::FLOATS: {
-                    float val;
-                    file.read(reinterpret_cast<char*>(&val), sizeof(val));
-                    cell = Value(val);
-                    break;
-                }
-                case AttrType::CHARS: {
-                    int len;
-                    file.read(reinterpret_cast<char*>(&len), sizeof(len));
-                    std::string str(len, '\0');
-                    file.read(&str[0], len);
-                    cell = Value(str.c_str());
-                    break;
-                }
-                case AttrType::NULLS:
-                    cell.set_null();
-                    break;
-                default:
-                    LOG_ERROR("Unsupported attribute type: %d", static_cast<int>(type));
-                    return RC::INVALID_ARGUMENT;
+                cell = Value(val);
+                break;
             }
-            
-            cells.push_back(cell);
-            specs.emplace_back("col_" + std::to_string(j)); // 临时列名
-        }
-        
-        tuple.set_cells(cells);
-        tuple.set_names(specs);
-        chunk.emplace_back(std::move(tuple));
-    }
-    
-    return RC::SUCCESS;
-}
-
-RC OrderByPhysicalOperator::merge_sorted_files(const std::vector<std::string>& input_files, const std::string& output_file)
-{
-    if (input_files.empty()) {
-        return RC::SUCCESS;
-    }
-    
-    if (input_files.size() == 1) {
-        // 只有一个文件，直接复制
-        std::ifstream src(input_files[0], std::ios::binary);
-        std::ofstream dst(output_file, std::ios::binary);
-        
-        if (!src.is_open() || !dst.is_open()) {
-            LOG_ERROR("Failed to open files for copying");
-            return RC::IOERR_READ;
-        }
-        
-        dst << src.rdbuf();
-        src.close();
-        dst.close();
-        return RC::SUCCESS;
-    }
-    
-    // 多路归并
-    std::vector<std::ifstream> file_streams;
-    std::vector<std::vector<ValueListTuple>> file_chunks;
-    std::vector<size_t> chunk_indices;
-    
-    // 打开所有输入文件
-    for (const auto& filename : input_files) {
-        std::ifstream file(filename, std::ios::binary);
-        if (!file.is_open()) {
-            LOG_ERROR("Failed to open input file: %s", filename.c_str());
-            return RC::IOERR_READ;
-        }
-        file_streams.push_back(std::move(file));
-        
-        // 读取每个文件的第一块数据
-        std::vector<ValueListTuple> chunk;
-        RC rc = read_chunk_from_file(chunk, filename);
-        if (rc != RC::SUCCESS) {
-            LOG_ERROR("Failed to read chunk from file: %s", strrc(rc));
-            return rc;
-        }
-        file_chunks.push_back(std::move(chunk));
-        chunk_indices.push_back(0);
-    }
-    
-    std::ofstream output(output_file, std::ios::binary);
-    if (!output.is_open()) {
-        LOG_ERROR("Failed to open output file: %s", output_file.c_str());
-        return RC::IOERR_WRITE;
-    }
-    
-    // 执行多路归并
-    while (true) {
-        // 找到当前最小的元素
-        int min_file_index = -1;
-        std::vector<Value> min_values;
-        
-        for (size_t i = 0; i < file_chunks.size(); i++) {
-            if (chunk_indices[i] < file_chunks[i].size()) {
-                std::vector<Value> values(order_by_.size());
-                for (size_t j = 0; j < order_by_.size(); j++) {
-                    order_by_[j]->get_value(file_chunks[i][chunk_indices[i]], values[j]);
+            case AttrType::CHARS: {
+                int length;
+                file.read(reinterpret_cast<char*>(&length), sizeof(length));
+                if (!file) {
+                    LOG_ERROR("Failed to read string length from file");
+                    return RC::IOERR_READ;
                 }
                 
-                if (min_file_index == -1 || cmp(values, min_values)) {
-                    min_file_index = i;
-                    min_values = values;
+                std::string str(length, '\0');
+                file.read(&str[0], length);
+                if (!file) {
+                    LOG_ERROR("Failed to read string value from file");
+                    return RC::IOERR_READ;
                 }
+                cell = Value(str.c_str(), str.length());
+                break;
+            }
+            case AttrType::TEXTS: {
+                int length;
+                file.read(reinterpret_cast<char*>(&length), sizeof(length));
+                if (!file) {
+                    LOG_ERROR("Failed to read text length from file");
+                    return RC::IOERR_READ;
+                }
+                
+                std::string str(length, '\0');
+                file.read(&str[0], length);
+                if (!file) {
+                    LOG_ERROR("Failed to read text value from file");
+                    return RC::IOERR_READ;
+                }
+                cell = Value(str.c_str(), str.length());
+                break;
+            }
+            case AttrType::NULLS: {
+                cell.set_null();
+                break;
+            }
+            default: {
+                LOG_ERROR("Unknown attribute type: %d", static_cast<int>(type));
+                return RC::INVALID_ARGUMENT;
             }
         }
-        
-        if (min_file_index == -1) {
-            break; // 所有文件都处理完毕
-        }
-        
-        // 写入最小的元素
-        const auto& min_tuple = file_chunks[min_file_index][chunk_indices[min_file_index]];
-        
-        // 序列化并写入输出文件
-        int cell_num = min_tuple.cell_num();
-        output.write(reinterpret_cast<const char*>(&cell_num), sizeof(cell_num));
-        
-        for (int i = 0; i < cell_num; i++) {
-            Value cell;
-            RC rc = min_tuple.cell_at(i, cell);
-            if (rc != RC::SUCCESS) {
-                LOG_ERROR("Failed to get cell at index %d", i);
-                return rc;
-            }
-            
-            AttrType type = cell.attr_type();
-            output.write(reinterpret_cast<const char*>(&type), sizeof(type));
-            
-            switch (type) {
-                case AttrType::INTS: {
-                    int val = cell.get_int();
-                    output.write(reinterpret_cast<const char*>(&val), sizeof(val));
-                    break;
-                }
-                case AttrType::FLOATS: {
-                    float val = cell.get_float();
-                    output.write(reinterpret_cast<const char*>(&val), sizeof(val));
-                    break;
-                }
-                case AttrType::CHARS: {
-                    string str = cell.get_string();
-                    int len = str.length();
-                    output.write(reinterpret_cast<const char*>(&len), sizeof(len));
-                    output.write(str.c_str(), len);
-                    break;
-                }
-                case AttrType::NULLS:
-                    break;
-                default:
-                    LOG_ERROR("Unsupported attribute type: %d", static_cast<int>(type));
-                    return RC::INVALID_ARGUMENT;
-            }
-        }
-        
-        chunk_indices[min_file_index]++;
+        cells.emplace_back(std::move(cell));
     }
     
-    output.close();
-    
-    // 关闭所有文件流
-    for (auto& file : file_streams) {
-        file.close();
+    // 创建ValueListTuple
+    RC rc = ValueListTuple::make(cells, tuple);
+    if (rc != RC::SUCCESS) {
+        LOG_ERROR("Failed to create ValueListTuple from cells");
+        return rc;
     }
     
     return RC::SUCCESS;

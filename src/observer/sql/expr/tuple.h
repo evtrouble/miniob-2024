@@ -489,6 +489,14 @@ public:
     return RC::SUCCESS;
   }
 
+  static RC make(const std::vector<Value> &values, ValueListTuple &value_list)
+  {
+    value_list.cells_ = values;
+    value_list.specs_.clear();
+    value_list.specs_.resize(values.size());
+    return RC::SUCCESS;
+  }
+
 private:
   std::vector<Value>         cells_;
   std::vector<TupleCellSpec> specs_;

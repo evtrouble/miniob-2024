@@ -322,7 +322,7 @@ public:
 
   unique_ptr<Expression> deep_copy() override
   {
-    return unique_ptr<Expression>(new CastExpr(move(child_->deep_copy()), cast_type_));
+    return unique_ptr<Expression>(new CastExpr(child_->deep_copy(), cast_type_));
   }
 
 private:
@@ -383,7 +383,7 @@ public:
 
   unique_ptr<Expression> deep_copy() override
   {
-    return unique_ptr<Expression>(new ComparisonExpr(comp_, move(left_->deep_copy()), move(right_->deep_copy())));
+    return unique_ptr<Expression>(new ComparisonExpr(comp_, left_->deep_copy(), right_->deep_copy()));
   }
 
 private:
@@ -471,7 +471,7 @@ public:
 
   unique_ptr<Expression> deep_copy() override
   {
-    return unique_ptr<Expression>(new ArithmeticExpr(arithmetic_type_, move(left_->deep_copy()), move(right_->deep_copy())));
+    return unique_ptr<Expression>(new ArithmeticExpr(arithmetic_type_, left_->deep_copy(), right_->deep_copy()));
   }
 
 private:
@@ -592,7 +592,7 @@ public:
 
   unique_ptr<Expression> deep_copy() override
   {
-    return unique_ptr<Expression>(new AggregateExpr(aggregate_type_, move(child_->deep_copy())));
+    return unique_ptr<Expression>(new AggregateExpr(aggregate_type_, child_->deep_copy()));
   }
 
 public:
@@ -622,7 +622,7 @@ public:
 
   RC get_value(const Tuple &tuple, Value &value) const override;
   RC get_value_set(const Tuple &tuple, vector<Value> &value_list)const override;
-  RC try_get_value(Value &value) const { 
+  RC try_get_value(Value &value) const override { 
     if(values_ != nullptr){
       if(values_->size() == 0 || values_->at(0).size() == 0){
         value.set_null();
