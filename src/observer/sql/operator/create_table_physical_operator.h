@@ -23,7 +23,7 @@ See the Mulan PSL v2 for more details. */
 class CreateTablePhysicalOperator : public PhysicalOperator
 {
 public:
-    CreateTablePhysicalOperator(Db *db, string &&table_name, std::vector<AttrInfoSqlNode> &&attr_infos, 
+    CreateTablePhysicalOperator(Db *db, const string &&table_name, const std::vector<AttrInfoSqlNode> &&attr_infos, 
         const StorageFormat storage_format);
      virtual ~CreateTablePhysicalOperator() = default;
 

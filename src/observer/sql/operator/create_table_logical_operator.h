@@ -23,7 +23,7 @@ See the Mulan PSL v2 for more details. */
 class CreateTableLogicalOperator : public LogicalOperator
 {
 public:
-    CreateTableLogicalOperator(Db *db, string &&table_name, std::vector<AttrInfoSqlNode> &&attr_infos,
+    CreateTableLogicalOperator(Db *db, const string &&table_name, const std::vector<AttrInfoSqlNode> &&attr_infos,
         const StorageFormat storage_format);
     virtual ~CreateTableLogicalOperator() = default;
 

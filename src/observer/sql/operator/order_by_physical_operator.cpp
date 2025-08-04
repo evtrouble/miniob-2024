@@ -511,8 +511,6 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
     return RC::SUCCESS;
 }
 
-
-
 RC OrderByPhysicalOperator::sort_and_write_chunk(const std::vector<ValueListTuple>& chunk, std::string& temp_file)
 {
     // 创建临时文件
