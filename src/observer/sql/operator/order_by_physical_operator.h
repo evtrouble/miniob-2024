@@ -45,7 +45,7 @@ public:
 private:
   RC fetch_next();
   RC fetch_next_external();
-  RC load_next_tuple_from_file(size_t file_index);
+  RC load_next_tuple_from_run(size_t run_index);
   RC read_single_tuple_from_stream(ValueListTuple& tuple, std::ifstream& file);
 
   RC sort_in_memory();
@@ -100,8 +100,8 @@ private:
   // 外排序流式处理相关
   bool                                     is_external_sort_ = false;  /// 是否使用外排序
   std::vector<std::ifstream>               file_streams_;        /// 多路归并时的文件流
-  std::vector<std::vector<ValueListTuple>> file_chunks_;         /// 多路归并时的数据块
-  std::vector<size_t>                      chunk_indices_;       /// 多路归并时的索引
+  std::vector<ValueListTuple>              current_tuples_;      /// 每个run的当前tuple
+  std::vector<bool>                        run_exhausted_;       /// 每个run是否已耗尽
   std::unique_ptr<std::priority_queue<MergeElement, std::vector<MergeElement>, MergeElementComparator>> merge_pq_;
   ValueListTuple                           current_external_tuple_;
 };

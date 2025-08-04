@@ -81,8 +81,8 @@ RC OrderByPhysicalOperator::close()
         is_external_sort_ = false;
         temp_files_.clear();
         file_streams_.clear();
-        file_chunks_.clear();
-        chunk_indices_.clear();
+        current_tuples_.clear();
+        run_exhausted_.clear();
         merge_pq_.reset();
     } else {
         // 清理临时文件
@@ -157,43 +157,42 @@ RC OrderByPhysicalOperator::fetch_next_external()
   size_t run_index = min_element.run_index;
 
   // Set the current tuple to the one we just found
-  current_external_tuple_ = file_chunks_[run_index][chunk_indices_[run_index]];
+  current_external_tuple_ = current_tuples_[run_index];
 
-  // Move to the next element in the same run
-  chunk_indices_[run_index]++;
-
-  // If the current chunk for this run is exhausted, load the next tuple
-  if (chunk_indices_[run_index] >= file_chunks_[run_index].size()) {
-    RC rc = load_next_tuple_from_file(run_index);
-    if (rc != RC::SUCCESS) {
-      return rc; // Propagate errors
-    }
-  }
-
-  // If there are still elements in the run, push the next element to the priority queue
-  if (chunk_indices_[run_index] < file_chunks_[run_index].size()) {
+  // Load the next tuple from this run
+  RC rc = load_next_tuple_from_run(run_index);
+  if (rc == RC::SUCCESS) {
+    // If successfully loaded next tuple, push it to the priority queue
     std::vector<Value> next_keys;
-    const auto& next_tuple = file_chunks_[run_index][chunk_indices_[run_index]];
+    const auto& next_tuple = current_tuples_[run_index];
     for (const auto& expr : order_by_) {
       Value val;
       expr->get_value(next_tuple, val);
       next_keys.push_back(val);
     }
     merge_pq_->push({next_keys, run_index});
+  } else if (rc != RC::RECORD_EOF) {
+    return rc; // Propagate errors
   }
+  // If rc == RC::RECORD_EOF, this run is exhausted, so we don't push anything to PQ
 
   return RC::SUCCESS;
 }
 
-RC OrderByPhysicalOperator::load_next_tuple_from_file(size_t file_index)
+RC OrderByPhysicalOperator::load_next_tuple_from_run(size_t run_index)
 {
-  // 从指定文件中读取下一个tuple
-  if (file_index >= file_streams_.size()) {
+  // 从指定run中读取下一个tuple
+  if (run_index >= file_streams_.size()) {
     return RC::INVALID_ARGUMENT;
   }
   
-  std::ifstream& file = file_streams_[file_index];
+  if (run_exhausted_[run_index]) {
+    return RC::RECORD_EOF;
+  }
+  
+  std::ifstream& file = file_streams_[run_index];
   if (file.eof()) {
+    run_exhausted_[run_index] = true;
     return RC::RECORD_EOF;
   }
   
@@ -201,19 +200,17 @@ RC OrderByPhysicalOperator::load_next_tuple_from_file(size_t file_index)
   ValueListTuple tuple;
   RC rc = read_single_tuple_from_stream(tuple, file);
   if (rc != RC::SUCCESS) {
+    if (rc == RC::RECORD_EOF) {
+      run_exhausted_[run_index] = true;
+    }
     return rc;
   }
   
-  // 将tuple添加到当前文件的chunk中
-  if (file_chunks_[file_index].empty()) {
-    file_chunks_[file_index].reserve(chunk_size_);
-  }
-  file_chunks_[file_index].emplace_back(std::move(tuple));
+  // 直接设置当前tuple，不缓存
+  current_tuples_[run_index] = std::move(tuple);
   
   return RC::SUCCESS;
 }
-
-
 
 RC OrderByPhysicalOperator::limit_sort(Tuple *upper_tuple)
 {
@@ -393,27 +390,18 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
     
     // 第一阶段：处理已缓存的数据
     if (cached_count > 0) {
-        std::vector<ValueListTuple> cached_chunk;
-        cached_chunk.reserve(cached_count);
-        for (size_t i = 0; i < cached_count; i++) {
-            cached_chunk.emplace_back(std::move(value_list_[i]));
-        }
-        
         std::string temp_file;
-        rc = sort_and_write_chunk(cached_chunk, temp_file);
+        rc = sort_and_write_chunk(value_list_, temp_file);
         if (rc != RC::SUCCESS) {
             child->close();
             return rc;
         }
         
-        temp_files_.push_back(temp_file);
+        temp_files_.emplace_back(std::move(temp_file));
         value_list_.clear();
     }
     
     // 第二阶段：继续读取剩余数据并分块处理
-    std::vector<ValueListTuple> chunk;
-    chunk.reserve(chunk_size_);
-    
     Tuple* tuple = nullptr;
     while (OB_SUCC(rc = (upper_tuple == nullptr ? child->next() : child->next(upper_tuple)))) {
         tuple = child->current_tuple();
@@ -431,19 +419,19 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
             return rc;
         }
         
-        chunk.emplace_back(std::move(value_list));
+        value_list_.emplace_back(std::move(value_list));
         
         // 当块满了时，排序并写入临时文件
-        if (chunk.size() >= chunk_size_) {
+        if (value_list_.size() >= chunk_size_) {
             std::string temp_file;
-            rc = sort_and_write_chunk(chunk, temp_file);
+            rc = sort_and_write_chunk(value_list_, temp_file);
             if (rc != RC::SUCCESS) {
                 child->close();
                 return rc;
             }
             
-            temp_files_.push_back(temp_file);
-            chunk.clear();
+            temp_files_.emplace_back(std::move(temp_file));
+            value_list_.clear();
         }
     }
     child->close();
@@ -458,14 +446,15 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
     }
     
     // 处理最后一个不完整的块
-    if (!chunk.empty()) {
+    if (!value_list_.empty()) {
         std::string temp_file;
-        rc = sort_and_write_chunk(chunk, temp_file);
+        rc = sort_and_write_chunk(value_list_, temp_file);
         if (rc != RC::SUCCESS) {
             return rc;
         }
         
-        temp_files_.push_back(temp_file);
+        temp_files_.emplace_back(std::move(temp_file));
+        value_list_.clear();
     }
     
     // 第三阶段：初始化多路归并
@@ -480,27 +469,25 @@ RC OrderByPhysicalOperator::external_sort_with_cached_data(Tuple *upper_tuple, s
         }
     }
 
-    // Initialize chunks and indices
-    file_chunks_.resize(temp_files_.size());
-    chunk_indices_.assign(temp_files_.size(), 0);
+    // Initialize current tuples and run status
+    current_tuples_.resize(temp_files_.size());
+    run_exhausted_.assign(temp_files_.size(), false);
 
     // Initialize the priority queue
     merge_pq_ = std::make_unique<std::priority_queue<MergeElement, std::vector<MergeElement>, MergeElementComparator>>(MergeElementComparator(this));
 
     // Load the first tuple from each run and push the first element to the PQ
     for (size_t i = 0; i < temp_files_.size(); ++i) {
-        RC rc = load_next_tuple_from_file(i);
+        RC rc = load_next_tuple_from_run(i);
         if (rc == RC::SUCCESS) {
-            if (!file_chunks_[i].empty()) {
-                std::vector<Value> keys;
-                const auto& tuple = file_chunks_[i][0];
-                for (const auto& expr : order_by_) {
-                    Value val;
-                    expr->get_value(tuple, val);
-                    keys.push_back(val);
-                }
-                merge_pq_->push({keys, i});
+            std::vector<Value> keys;
+            const auto& tuple = current_tuples_[i];
+            for (const auto& expr : order_by_) {
+                Value val;
+                expr->get_value(tuple, val);
+                keys.push_back(val);
             }
+            merge_pq_->push({keys, i});
         } else if (rc != RC::RECORD_EOF) {
             return rc; // Error loading initial tuple
         }
