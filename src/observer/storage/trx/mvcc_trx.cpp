@@ -34,7 +34,7 @@ RC MvccTrxKit::init()
   fields_ = vector<FieldMeta>{
       // field_id in trx fields is invisible.
       FieldMeta("__trx_xid_begin", AttrType::INTS, 0 /*attr_offset*/, 4 /*attr_len*/, false /*visible*/, 1/*field_id*/),
-      FieldMeta("__trx_xid_end", AttrType::INTS, 0 /*attr_offset*/, 4 /*attr_len*/, false /*visible*/, 2/*field_id*/)};
+      FieldMeta("__trx_xid_end", AttrType::INTS, 4 /*attr_offset*/, 4 /*attr_len*/, false /*visible*/, 2/*field_id*/)};
 
   LOG_INFO("init mvcc trx kit done.");
   return RC::SUCCESS;
